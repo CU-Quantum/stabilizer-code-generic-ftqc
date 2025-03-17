@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple
 
 
 class ErrorCorrectingCode(ABC):
@@ -8,5 +9,5 @@ class ErrorCorrectingCode(ABC):
 
     @property
     @abstractmethod
-    def data_coordinates(self):
+    def data_coordinates(self) -> List[Tuple[float, float]]:
         pass
