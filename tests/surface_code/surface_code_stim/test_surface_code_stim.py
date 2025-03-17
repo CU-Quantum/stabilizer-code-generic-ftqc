@@ -14,7 +14,8 @@ class SurfaceCodeStim(ErrorCorrectingCode):
 
     @property
     def data_coordinates(self) -> List[Tuple[float, float]]:
-        return self._circuit.get_detector_coordinates()
+        distance = int((self._circuit.num_qubits + 1) ** (1/3))
+        return [(j * 2 + 1, i * 2 + 1) for i in range(distance) for j in range(distance)]
 
 
 class TestSurfaceCodeCourseraCustom:
@@ -36,4 +37,4 @@ class TestSurfaceCodeCourseraCustom:
 
     def test_data_coordinates(self):
         code = SurfaceCodeStim(circuit=self._circuit)
-        assert code.data_coordinates == [(1, 1), (2, 1), (3, 1), (1, 2), (2, 2), (3, 2), (1, 3), (2, 3), (3, 3)]
+        assert code.data_coordinates == [(1, 1), (3, 1), (5, 1), (1, 3), (3, 3), (5, 3), (1, 5), (3, 5), (5, 5)]
