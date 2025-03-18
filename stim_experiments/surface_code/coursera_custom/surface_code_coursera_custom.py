@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from stim_experiments.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.surface_code.coursera_custom.support.cx_getter import CxGetter
@@ -7,17 +7,17 @@ from stim_experiments.surface_code.coursera_custom.support.utilities import adja
 
 class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
     def __init__(self, distance: int, error_probability: float, rounds: int):
+        super().__init__()
         self._distance = distance
         self._error_probability = error_probability
         self._rounds = rounds
 
-    def circuit_string(self) -> str:
+    def surface_code_string(self) -> str:
         string = coord_circuit(self._distance)
         string += self._initialization_step()
         string += self._rounds_step()
         string += self._final_step()
         return string
-
 
     def _initialization_step(self) -> str:
         # Use `lattice_with_noise` to create the first round of stabilizer
@@ -59,7 +59,6 @@ class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
         final = "\n".join(steps)
         return final
 
-
     def _rounds_step(self) -> str:
         # Use `stabilizers_with_noise` to implement the `REPEAT` block of
         #  stabilizers. Include the mid-round detectors.
@@ -81,7 +80,6 @@ class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
         }}
         """
         return stim_string
-
 
     def _stabilizers_with_noise(self) -> str:
         # Use `lattice_with_noise` to create a full lattice of stabilizers
@@ -109,7 +107,6 @@ class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
         M {index_string(self._all_measures, self._coordinates_to_index_map)}
         TICK
         """
-
 
     def _final_step(self) -> str:
         # Use `lattice_with_noise` to implement the final round of stabilizer
@@ -177,7 +174,7 @@ class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
         return self._prepared_coords[2]
 
     @property
-    def _coordinates_to_index_map(self) -> Dict[Tuple[float, float], int]:
+    def coordinates_to_index_map(self) -> Dict[Iterable[float], int]:
         return self._prepared_coords[3]
 
     @property
