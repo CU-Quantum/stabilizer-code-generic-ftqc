@@ -4,11 +4,11 @@ from typing import List
 from cirq import CX, Circuit, H, LineQubit, X, density_matrix_from_state_vector
 from numpy.ma.core import allclose
 
-from stim_experiments.error_correcting_codes.shors_code.test_qubit_encoding import ShorsRepetitionCode
+from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ONE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
-class TestLogicalState:
+class TestLogicalStateEncoding:
     def test_logical_zero(self):
         assert self._encoding_matches_expected(initial_state=KET_ZERO_DENSITY_MATRIX, expected_state=self._expected_state_zero)
 

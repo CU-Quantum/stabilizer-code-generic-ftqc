@@ -8,10 +8,11 @@ from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MAT
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
     def __init__(self, initial_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
-        super().__init__()
-        self._current_state = self._encode_initial_state(initial_qubit_state_density_matrix)
+        super().__init__(initial_qubit_state_density_matrix=initial_qubit_state_density_matrix)
+        self._current_state = self._encode_initial_state(self._initial_qubit_state_density_matrix)
 
-    def _encode_initial_state(self, initial_state: DENSITY_MATRIX_TYPE) -> DENSITY_MATRIX_TYPE:
+    @staticmethod
+    def _encode_initial_state(initial_state: DENSITY_MATRIX_TYPE) -> DENSITY_MATRIX_TYPE:
         num_physical_qubits = 9
         qubits = LineQubit.range(num_physical_qubits)
         outer_qubits_indices = list(range(0, num_physical_qubits, 3))
