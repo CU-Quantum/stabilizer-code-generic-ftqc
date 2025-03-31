@@ -16,7 +16,7 @@ class RepetitionCodeSimonsAlgorithm:
 
     @cached_property
     def _circuit(self) -> stim.Circuit:
-        from surface_code import prepare_coords
+        from tests.error_correcting_codes.surface_code import prepare_coords
         distance = 3
         datas, x_measures, z_measures, c2i = prepare_coords(distance)
         print('data qubits', datas)

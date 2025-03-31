@@ -1,7 +1,7 @@
 import pytest
 from stim import Circuit
 
-from stim_experiments.surface_code.surface_code_stim.surface_code_stim import SurfaceCodeStim
+from stim_experiments.error_correcting_codes.surface_code.surface_code_stim.surface_code_stim import SurfaceCodeStim
 
 
 class TestSurfaceCodeCourseraCustom:

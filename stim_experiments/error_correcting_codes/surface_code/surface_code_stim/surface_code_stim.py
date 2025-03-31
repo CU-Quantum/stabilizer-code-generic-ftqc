@@ -2,10 +2,10 @@ from typing import Dict, Iterable, List, Tuple
 
 from stim import Circuit
 
-from stim_experiments.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code_stim import ErrorCorrectingCodeStim
 
 
-class SurfaceCodeStim(ErrorCorrectingCode):
+class SurfaceCodeStim(ErrorCorrectingCodeStim):
     def __init__(self, circuit: Circuit):
         super().__init__()
         self._circuit = circuit

@@ -1,11 +1,11 @@
 from typing import Dict, Iterable, List, Tuple
 
-from stim_experiments.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.surface_code.coursera_custom.support.cx_getter import CxGetter
-from stim_experiments.surface_code.coursera_custom.support.utilities import adjacent_coords, coord_circuit, index_string, prepare_coords
+from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code_stim import ErrorCorrectingCodeStim
+from stim_experiments.error_correcting_codes.surface_code.coursera_custom.support.cx_getter import CxGetter
+from stim_experiments.error_correcting_codes.surface_code.coursera_custom.support.utilities import adjacent_coords, coord_circuit, index_string, prepare_coords
 
 
-class SurfaceCodeCourseraCustom(ErrorCorrectingCode):
+class SurfaceCodeCourseraCustom(ErrorCorrectingCodeStim):
     def __init__(self, distance: int, error_probability: float, rounds: int):
         super().__init__()
         self._distance = distance

@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Tuple
 
-from stim_experiments.surface_code.coursera_custom.support.utilities import index_string
+from stim_experiments.error_correcting_codes.surface_code.coursera_custom.support.utilities import index_string
 
 
-class ErrorCorrectingCode(ABC):
+class ErrorCorrectingCodeStim(ABC):
     def __init__(self):
         self.circuit_string = ""
 
