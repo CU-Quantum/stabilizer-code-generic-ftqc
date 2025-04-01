@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from cirq import CCX, CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, I, LineQubit, M, R, X, Z, \
     bit_flip, \
-    kron
+    inverse, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
@@ -54,15 +54,21 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
 
     def _correct_bit_flip(self, block_number: int) -> None:
         ancillas = self._qubits[self._num_physical_qubits:]
-        start_index = 3 * block_number
+        block_start_index = 3 * block_number
+        syndrome = Circuit(
+            [CX(self._qubits[i], ancillas[0]) for i in range(block_start_index, block_start_index + 2)],
+            [CX(self._qubits[i], ancillas[1]) for i in range(block_start_index + 1, block_start_index + 3)],
+        )
+        correction = Circuit(
+            X.controlled(num_controls=2, control_values=[0,1]).on(ancillas[0], ancillas[1], self._qubits[block_start_index + 2]),
+            X.controlled(num_controls=2, control_values=[1,0]).on(ancillas[0], ancillas[1], self._qubits[block_start_index]),
+            X.controlled(num_controls=2, control_values=[1,1]).on(ancillas[0], ancillas[1], self._qubits[block_start_index + 1]),
+        )
         circuit = Circuit(
-            [CX(self._qubits[i], ancillas[0]) for i in range(start_index + 2)],
-            [CX(self._qubits[i], ancillas[1]) for i in range(start_index + 1, start_index + 3)],
-            [M(ancilla) for ancilla in ancillas],
+            [I(qubit) for qubit in self._qubits],
+            syndrome,
+            correction,
             [R(ancilla) for ancilla in ancillas],
-            X.controlled(num_controls=2, control_values=[0,1]).on(ancillas[0], ancillas[1], self._qubits[start_index + 2]),
-            X.controlled(num_controls=2, control_values=[1,0]).on(ancillas[0], ancillas[1], self._qubits[start_index]),
-            X.controlled(num_controls=2, control_values=[1,1]).on(ancillas[0], ancillas[1], self._qubits[start_index + 1]),
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
