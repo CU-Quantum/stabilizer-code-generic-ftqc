@@ -1,13 +1,15 @@
 from functools import reduce
+from typing import List
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, LineQubit, X, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, X, Z, bit_flip, \
+    kron, \
+    phase_flip
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
-
     def __init__(self, initial_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
         super().__init__(initial_qubit_state_density_matrix=initial_qubit_state_density_matrix)
         self._num_physical_qubits = 9
@@ -31,8 +33,8 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
 
         return self._get_state_after_circuit(circuit=circuit)
 
-    def apply_bit_flip(self, qubit_index: int) -> None:
-        circuit = Circuit(X(self._qubits[qubit_index]))
+    def apply_gate(self, gate: Gate, qubit_index: int) -> None:
+        circuit = Circuit(gate(self._qubits[qubit_index]))
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _get_state_after_circuit(self, circuit: Circuit) -> DENSITY_MATRIX_TYPE:
