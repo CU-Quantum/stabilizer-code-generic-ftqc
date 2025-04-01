@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from functools import reduce
 from typing import List, Optional
 
-from cirq import CCX, CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, M, X, Z, \
+from cirq import CCX, CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, I, LineQubit, M, R, X, Z, \
     bit_flip, \
     kron
 
@@ -44,22 +44,44 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self._qubits, initial_state=self._current_state)
         return simulation.final_density_matrix
 
-    def correct_bit_flips(self) -> None:
+    def correct_errors(self):
+        self._correct_bit_flips()
+        # self._correct_phase_flips()
+
+    def _correct_bit_flips(self) -> None:
         for i in range(3):
             self._correct_bit_flip(block_number=i)
 
     def _correct_bit_flip(self, block_number: int) -> None:
         ancillas = self._qubits[self._num_physical_qubits:]
+        start_index = 3 * block_number
         circuit = Circuit(
-            [CX(self._qubits[i], ancillas[0]) for i in range(3 * block_number + 2)],
-            [CX(self._qubits[i], ancillas[1]) for i in range(3 * block_number + 1, 3 * block_number + 3)],
+            [CX(self._qubits[i], ancillas[0]) for i in range(start_index + 2)],
+            [CX(self._qubits[i], ancillas[1]) for i in range(start_index + 1, start_index + 3)],
             [M(ancilla) for ancilla in ancillas],
-            X.controlled(num_controls=2, control_values=[0,1]).on(ancillas[0], ancillas[1], self._qubits[2]),
-            X.controlled(num_controls=2, control_values=[1,0]).on(ancillas[0], ancillas[1], self._qubits[0]),
-            X.controlled(num_controls=2, control_values=[1,1]).on(ancillas[0], ancillas[1], self._qubits[1]),
+            [R(ancilla) for ancilla in ancillas],
+            X.controlled(num_controls=2, control_values=[0,1]).on(ancillas[0], ancillas[1], self._qubits[start_index + 2]),
+            X.controlled(num_controls=2, control_values=[1,0]).on(ancillas[0], ancillas[1], self._qubits[start_index]),
+            X.controlled(num_controls=2, control_values=[1,1]).on(ancillas[0], ancillas[1], self._qubits[start_index + 1]),
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
-    def get_current_state(self, qubit_indices: Optional[List[int]] = None) -> DENSITY_MATRIX_TYPE:
-        physical_qubit_indices = qubit_indices or list(range(self._num_physical_qubits))
-        return super().get_current_state(qubit_indices=physical_qubit_indices)
+    def _correct_phase_flips(self):
+        ancillas = self._qubits[self._num_physical_qubits:]
+        circuit = Circuit(
+            # [H(ancilla) for ancilla in ancillas],
+            [H(qubit) for qubit in self._qubits],
+            [CX(ancillas[0], self._qubits[i]) for i in range(6)],
+            [CX(ancillas[1], self._qubits[i]) for i in range(3, 9)],
+            [H(qubit) for qubit in self._qubits],
+            [M(ancilla) for ancilla in ancillas],
+            [R(ancilla) for ancilla in ancillas],
+            [Z.controlled(num_controls=2, control_values=[0, 1]).on(ancillas[0], ancillas[1], self._qubits[i]) for i in range(6, 9)],
+            [Z.controlled(num_controls=2, control_values=[1, 0]).on(ancillas[0], ancillas[1], self._qubits[i]) for i in range(3)],
+            [Z.controlled(num_controls=2, control_values=[1, 1]).on(ancillas[0], ancillas[1], self._qubits[i]) for i in range(3, 6)],
+        )
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    # def get_current_state(self, qubit_indices: Optional[List[int]] = None) -> DENSITY_MATRIX_TYPE:
+    #     physical_qubit_indices = qubit_indices or list(range(self._num_physical_qubits))
+    #     return super().get_current_state(qubit_indices=physical_qubit_indices)

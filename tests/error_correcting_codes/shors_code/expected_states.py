@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List
 
-from cirq import CX, Circuit, H, LineQubit, X, density_matrix_from_state_vector
+from cirq import CX, Circuit, H, I, LineQubit, X, density_matrix_from_state_vector
 
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE
 
@@ -26,6 +26,8 @@ class ExpectedStatesUtilities:
             CX(qubits[3], qubits[5]),
             CX(qubits[6], qubits[7]),
             CX(qubits[6], qubits[8]),
+            I(qubits[9]),
+            I(qubits[10]),
         )
 
     @staticmethod
@@ -35,4 +37,6 @@ class ExpectedStatesUtilities:
 
     @cached_property
     def circuit_qubits(self) -> List[LineQubit]:
-        return LineQubit.range(9)
+        num_physical_qubits = 9
+        num_ancilla_qubits = 2
+        return LineQubit.range(num_physical_qubits + num_ancilla_qubits)

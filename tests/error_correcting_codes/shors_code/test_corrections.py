@@ -34,10 +34,22 @@ class TestCorrections:
     def test_bit_flip_error_is_corrected(self, qubit_index: int):
         code = ShorsRepetitionCode(initial_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
         code.apply_gate(X, qubit_index=qubit_index)
-        code.correct_bit_flips()
+        code.correct_errors()
         current_state = code.get_current_state()
 
         circuit = self._expected_states_utilities.get_logical_zero_circuit()
         expected_state = self._expected_states_utilities.get_expected_state(circuit=circuit)
 
-        return allclose(current_state, expected_state, atol=1e-7)
+        assert allclose(current_state, expected_state, atol=1e-7)
+
+    # @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_blocks)
+    # def test_phase_flip_error_is_corrected(self, qubit_index: int):
+    #     code = ShorsRepetitionCode(initial_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
+    #     code.apply_gate(Z, qubit_index=qubit_index)
+    #     code.correct_errors()
+    #     current_state = code.get_current_state()
+    #
+    #     circuit = self._expected_states_utilities.get_logical_zero_circuit()
+    #     expected_state = self._expected_states_utilities.get_expected_state(circuit=circuit)
+    #
+    #     assert allclose(current_state, expected_state, atol=1e-7)
