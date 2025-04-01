@@ -13,3 +13,7 @@ class ErrorCorrectingCode(ABC):
 
     def get_current_state(self) -> NDArray[NDArray[complex]]:
         return self._current_state
+
+    # def get_current_state(self, qubit_indices: Optional[List[int]] = None) -> NDArray[NDArray[complex]]:
+    #     keep_qubits = qubit_indices or list(range(log2(self._current_state.shape[0])))
+    #     return partial_trace(rho=self._current_state, keep_qubits=keep_qubits)

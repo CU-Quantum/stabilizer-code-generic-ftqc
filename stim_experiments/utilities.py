@@ -33,6 +33,7 @@ def partial_trace(rho: DENSITY_MATRIX_TYPE, keep_qubits: List[int]) -> DENSITY_M
 
     for qubit in reversed(trace_out):
         reshaped_rho = numpy.trace(reshaped_rho, axis1=qubit, axis2=qubit + dim)
+        dim -= 1
 
-    reduced_dim = 2 ** len(keep_qubits)
+    reduced_dim = 2 ** dim
     return reshaped_rho.reshape((reduced_dim, reduced_dim))
