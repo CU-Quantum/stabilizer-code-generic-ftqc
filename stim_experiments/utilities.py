@@ -1,11 +1,13 @@
 from typing import List
 
 import numpy
-from cirq import KET_ONE, KET_ZERO, density_matrix_from_state_vector, kron
+from cirq import KET_ONE, KET_ZERO, density_matrix_from_state_vector
 from numpy._typing import NDArray
 
 DENSITY_MATRIX_TYPE = NDArray[NDArray[complex]]
 
+KET_ZERO_STATE_VECTOR = KET_ZERO.state_vector()
+KET_ONE_STATE_VECTOR = KET_ONE.state_vector()
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
 

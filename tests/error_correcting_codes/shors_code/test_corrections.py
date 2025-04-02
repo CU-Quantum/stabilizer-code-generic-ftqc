@@ -1,14 +1,14 @@
 import pytest
-from cirq import Gate, X, Z
-from numpy import allclose
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, X, Z
+from numpy import allclose, log2
 
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX
-from tests.error_correcting_codes.shors_code.expected_states import ExpectedStatesUtilities
+from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 
 
 class TestCorrections:
-    _expected_states_utilities = ExpectedStatesUtilities()
+    _expected_states_utilities = ExpectedStatesShor()
     _qubit_indices_in_different_positions_in_different_blocks = [0, 4, 8]
 
     @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
@@ -24,9 +24,16 @@ class TestCorrections:
         code.apply_gate(error_gate, qubit_index=qubit_index)
         current_state = code.get_current_state()
 
-        circuit = self._expected_states_utilities.get_logical_zero_circuit()
-        circuit.append(error_gate(self._expected_states_utilities.circuit_qubits[qubit_index]))
-        expected_state = self._expected_states_utilities.get_expected_state(circuit=circuit)
+        initial_state = self._expected_states_utilities.get_logical_zero_density_matrix()
+        num_qubits = int(log2(initial_state.shape[0]))
+        qubits = LineQubit.range(num_qubits)
+        circuit = Circuit(
+            error_gate(qubits[qubit_index])
+        )
+        simulation: DensityMatrixTrialResult = DensityMatrixSimulator().simulate(circuit,
+                                                                                 qubit_order=qubits,
+                                                                                 initial_state=initial_state)
+        expected_state = simulation.final_density_matrix
 
         return allclose(current_state, expected_state, atol=1e-7)
 
@@ -37,9 +44,7 @@ class TestCorrections:
         code.correct_errors()
         current_state = code.get_current_state()
 
-        circuit = self._expected_states_utilities.get_logical_zero_circuit()
-        expected_state = self._expected_states_utilities.get_expected_state(circuit=circuit)
-
+        expected_state = self._expected_states_utilities.get_logical_zero_density_matrix()
         assert allclose(current_state, expected_state, atol=1e-7)
 
     @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
@@ -49,7 +54,5 @@ class TestCorrections:
         code.correct_errors()
         current_state = code.get_current_state()
 
-        circuit = self._expected_states_utilities.get_logical_zero_circuit()
-        expected_state = self._expected_states_utilities.get_expected_state(circuit=circuit)
-
+        expected_state = self._expected_states_utilities.get_logical_zero_density_matrix()
         assert allclose(current_state, expected_state, atol=1e-7)

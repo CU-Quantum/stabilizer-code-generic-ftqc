@@ -1,6 +1,6 @@
 from functools import reduce
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, I, LineQubit, M, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
@@ -8,12 +8,9 @@ from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MAT
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
     def __init__(self, initial_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
-        super().__init__(initial_qubit_state_density_matrix=initial_qubit_state_density_matrix)
+        super().__init__(initial_qubit_state_density_matrix=initial_qubit_state_density_matrix, num_data_qubits=9, num_ancilla_qubits=2)
         self._num_data_qubits = 9
         self._num_ancillas_qubits = 2
-        self._qubits = LineQubit.range(self._num_data_qubits + self._num_ancillas_qubits)
-        self._data_qubits = self._qubits[:self._num_ancillas_qubits]
-        self._ancilla_qubits = self._qubits[self._num_data_qubits:]
 
         each_qubit_initial_state = ([self._initial_qubit_state_density_matrix]
                                     + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self._qubits) - 1)])
