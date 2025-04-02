@@ -5,9 +5,6 @@ from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ONE_STATE_VECTOR
 
 
 class ExpectedStatesSteane:
-    def __init__(self):
-        super().__init__(num_physical_qubits=7, num_ancilla_qubits=6)
-
     def get_logical_zero_density_matrix(self) -> DENSITY_MATRIX_TYPE:
         data_qubits = (1/sqrt(8)) * (
                 kron(*[KET_ZERO_STATE_VECTOR] * 7)
