@@ -1,23 +1,16 @@
-from functools import reduce
+from typing import List
 
-from cirq import CX, CZ, Circuit, DensityMatrixSimulator, H, M, R, X, Z, kron
+from cirq import CX, Circuit, Gate, H, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE
 
 
-class SteaneCodeUtilities:
-    def get_logical_hadamard(self) -> DENSITY_MATRIX_TYPE:
-        circuit = Circuit(
-            [CX(self._qubits[0], qubit) for qubit in self._data_qubits[1:]],
-            [H(data_qubit) for data_qubit in self._data_qubits],
-        )
-        self._current_state = self._get_state_after_circuit(circuit=circuit)
-
-
 class SteaneCode(ErrorCorrectingCode):
+    _stabilizer_indices = [(3, 4, 5, 6), (1, 2, 5, 6), (0, 2, 4, 6)]
+
     def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
-        super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=7, num_ancilla_qubits=6)
+        super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=7, num_ancilla_qubits=3)
 
     def _encode_logical_qubit(self) -> None:
         circuit = Circuit(
@@ -41,113 +34,43 @@ class SteaneCode(ErrorCorrectingCode):
 
 
     def correct_errors(self) -> None:
-        stabilizer_indices_x = [(0, 4, 5, 6), (1, 3, 5, 6), (2, 3, 4, 5)]
-        stabilizer_indices_z = [(0, 2, 3, 6), (1, 2, 4, 6), (0, 1, 2, 5)]
+        self._correct_bit_flips()
+        self._correct_phase_flips()
+
+
+    def _correct_bit_flips(self) -> None:
+        syndrome = Circuit(
+            [CX(self._data_qubits[data_index], self._ancilla_qubits[ancilla_index])
+             for ancilla_index, data_indices in enumerate(self._stabilizer_indices)
+             for data_index in data_indices],
+        )
+        self._correct_error(syndrome=syndrome, correction_gate=X)
+
+    def _correct_phase_flips(self) -> None:
         syndrome = Circuit(
             [H(ancilla) for ancilla in self._ancilla_qubits],
             [CX(self._ancilla_qubits[ancilla_index], self._data_qubits[data_index])
-             for ancilla_index, data_indices in enumerate(stabilizer_indices_x)
-             for data_index in data_indices],
-            [CZ(self._ancilla_qubits[ancilla_index + len(stabilizer_indices_x)], self._data_qubits[data_index])
-             for ancilla_index, data_indices in enumerate(stabilizer_indices_z)
+             for ancilla_index, data_indices in enumerate(self._stabilizer_indices)
              for data_index in data_indices],
             [H(ancilla) for ancilla in self._ancilla_qubits],
         )
+        self._correct_error(syndrome=syndrome, correction_gate=Z)
 
-        recovery_z = Circuit(
-            Z.controlled(num_controls=3, control_values=[0, 0, 1]).on(
+    def _correct_error(self, syndrome: Circuit, correction_gate: Gate) -> None:
+        recovery = Circuit(
+            [correction_gate.controlled(num_controls=3, control_values=self._get_binary_array_for_ancillas(i + 1)).on(
                 self._ancilla_qubits[0],
                 self._ancilla_qubits[1],
                 self._ancilla_qubits[2],
-                self._data_qubits[2]
-            ),
-            Z.controlled(num_controls=3, control_values=[0, 1, 0]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[1]
-            ),
-            Z.controlled(num_controls=3, control_values=[0, 1, 1]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[3]
-            ),
-            Z.controlled(num_controls=3, control_values=[1, 0, 0]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[0]
-            ),
-            Z.controlled(num_controls=3, control_values=[1, 0, 1]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[4]
-            ),
-            Z.controlled(num_controls=3, control_values=[1, 1, 0]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[6]
-            ),
-            Z.controlled(num_controls=3, control_values=[1, 1, 1]).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
-                self._data_qubits[5]
-            ),
+                self._data_qubits[i]
+            ) for i in range(self._num_data_qubits)]
         )
-
-        recovery_x = Circuit(
-            X.controlled(num_controls=3, control_values=[0, 0, 1]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[5]
-            ),
-            X.controlled(num_controls=3, control_values=[0, 1, 0]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[4]
-            ),
-            X.controlled(num_controls=3, control_values=[0, 1, 1]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[1]
-            ),
-            X.controlled(num_controls=3, control_values=[1, 0, 0]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[3]
-            ),
-            X.controlled(num_controls=3, control_values=[1, 0, 1]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[0]
-            ),
-            X.controlled(num_controls=3, control_values=[1, 1, 0]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[6]
-            ),
-            X.controlled(num_controls=3, control_values=[1, 1, 1]).on(
-                self._ancilla_qubits[3],
-                self._ancilla_qubits[4],
-                self._ancilla_qubits[5],
-                self._data_qubits[2]
-            ),
-        )
-
         circuit = Circuit(
             syndrome,
-            recovery_z,
-            recovery_x,
+            recovery,
             [R(ancilla) for ancilla in self._ancilla_qubits],
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    def _get_binary_array_for_ancillas(self, num: int) -> List[int]:
+        return list(map(int, bin(num)[2:].rjust(self._num_ancilla_qubits, '0')))
