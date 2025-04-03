@@ -1,9 +1,9 @@
 from typing import List
 
-from cirq import CX, Circuit, Gate, H, R, X, Z
+from cirq import CX, CZ, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE
+from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
 
 
 class SteaneCode(ErrorCorrectingCode):
@@ -13,30 +13,20 @@ class SteaneCode(ErrorCorrectingCode):
         super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=7, num_ancilla_qubits=3)
 
     def _encode_logical_qubit(self) -> None:
-        circuit = Circuit(
-            H(self._data_qubits[0]),
-            H(self._data_qubits[1]),
-            H(self._data_qubits[3]),
-
-            CX(self._data_qubits[0], self._data_qubits[2]),
-            CX(self._data_qubits[3], self._data_qubits[5]),
-
-            CX(self._data_qubits[1], self._data_qubits[6]),
-            CX(self._data_qubits[0], self._data_qubits[4]),
-            CX(self._data_qubits[3], self._data_qubits[6]),
-            CX(self._data_qubits[1], self._data_qubits[5]),
-            CX(self._data_qubits[0], self._data_qubits[6]),
-
-            CX(self._data_qubits[1], self._data_qubits[2]),
-            CX(self._data_qubits[3], self._data_qubits[4]),
+        initial_state = kron(self._initial_logical_qubit_state_density_matrix, *[KET_ZERO_DENSITY_MATRIX] * (len(self._qubits) - 1))
+        initialize_with_given_state = Circuit(
+            [CX(self._data_qubits[0], data_qubit) for data_qubit in self._data_qubits[1:]],
         )
-        self._current_state = self._get_state_after_circuit(circuit=circuit)
+        initial_state_simulation: DensityMatrixTrialResult = DensityMatrixSimulator().simulate(initialize_with_given_state,
+                                                                                               qubit_order=self._qubits,
+                                                                                               initial_state=initial_state)
+        self._current_state = initial_state_simulation.final_density_matrix
 
+        self.correct_errors()
 
     def correct_errors(self) -> None:
         self._correct_bit_flips()
         self._correct_phase_flips()
-
 
     def _correct_bit_flips(self) -> None:
         syndrome = Circuit(
