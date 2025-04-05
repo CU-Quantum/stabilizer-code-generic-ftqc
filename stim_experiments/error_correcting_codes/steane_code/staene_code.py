@@ -1,6 +1,6 @@
 from typing import List
 
-from cirq import CX, CZ, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
@@ -49,9 +49,7 @@ class SteaneCode(ErrorCorrectingCode):
     def _correct_error(self, syndrome: Circuit, correction_gate: Gate) -> None:
         recovery = Circuit(
             [correction_gate.controlled(num_controls=3, control_values=self._get_binary_array_for_ancillas(i + 1)).on(
-                self._ancilla_qubits[0],
-                self._ancilla_qubits[1],
-                self._ancilla_qubits[2],
+                *self._ancilla_qubits,
                 self._data_qubits[i]
             ) for i in range(self._num_data_qubits)]
         )
