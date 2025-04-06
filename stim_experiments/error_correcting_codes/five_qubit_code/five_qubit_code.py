@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, I, Operation, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, Operation, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
@@ -24,10 +24,10 @@ class FiveQubitCode(ErrorCorrectingCode):
     @property
     def _flip_corrections(self):
         return [
-            [self._qubits[i] for i in (0, 2)],
-            [self._qubits[i] for i in (0,1,2,3)],
-            [self._qubits[i] for i in (0,1,3,4)],
-            [self._qubits[i] for i in (1,4)],
+            [self.all_qubits[i] for i in (0, 2)],
+            [self.all_qubits[i] for i in (0,1,2,3)],
+            [self.all_qubits[i] for i in (0,1,3,4)],
+            [self.all_qubits[i] for i in (1,4)],
         ]
 
     def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
@@ -36,112 +36,89 @@ class FiveQubitCode(ErrorCorrectingCode):
                          num_ancilla_qubits=4)
 
     def _encode_logical_qubit(self) -> None:
-        initial_state = kron(self._initial_logical_qubit_state_density_matrix, *[KET_ZERO_DENSITY_MATRIX] * (len(self._qubits) - 1))
+        initial_state = kron(self._initial_logical_qubit_state_density_matrix, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
         initialize_with_given_state = Circuit(
-            [CX(self._data_qubits[0], data_qubit) for data_qubit in self._data_qubits[1:]],
+            [CX(self.data_qubits[0], data_qubit) for data_qubit in self.data_qubits[1:]],
         )
         initial_state_simulation: DensityMatrixTrialResult = DensityMatrixSimulator().simulate(initialize_with_given_state,
-                                                                                               qubit_order=self._qubits,
+                                                                                               qubit_order=self.all_qubits,
                                                                                                initial_state=initial_state)
         self._current_state = initial_state_simulation.final_density_matrix
 
         circuit = Circuit(
             self._syndrome_circuit,
             [self._get_phase_corrections(ancilla_index=ancilla_index) for ancilla_index in range(self._num_ancilla_qubits)],
-            [H(ancilla) for ancilla in self._ancilla_qubits],
+            [H(ancilla) for ancilla in self.ancilla_qubits],
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     @property
     def _syndrome_circuit(self) -> Circuit:
         return Circuit(
-            [H(ancilla) for ancilla in self._ancilla_qubits],
-            [gate(self._data_qubits[target_index]).controlled_by(self._ancilla_qubits[generator])
+            [H(ancilla) for ancilla in self.ancilla_qubits],
+            [gate(self.data_qubits[target_index]).controlled_by(self.ancilla_qubits[generator])
              for generator, gates in enumerate(self._generators) for target_index, gate in enumerate(gates)],
-            [H(ancilla) for ancilla in self._ancilla_qubits],
+            [H(ancilla) for ancilla in self.ancilla_qubits],
         )
 
     def _get_phase_corrections(self, ancilla_index: int) -> List[List[Operation]]:
         fix_qubits = self._flip_corrections[ancilla_index]
         return [
-            [Z(fix_qubit).controlled_by(self._ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
+            [Z(fix_qubit).controlled_by(self.ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
         ]
-
-    def _correct_z_errors(self):
-        symptom_circuit = Circuit(
-            [H(ancilla) for ancilla in self._ancilla_qubits],
-            X(self._data_qubits[0]).controlled_by(self._ancilla_qubits[0]),
-            X(self._data_qubits[3]).controlled_by(self._ancilla_qubits[0]),
-            X(self._data_qubits[1]).controlled_by(self._ancilla_qubits[1]),
-            X(self._data_qubits[4]).controlled_by(self._ancilla_qubits[1]),
-            X(self._data_qubits[0]).controlled_by(self._ancilla_qubits[2]),
-            X(self._data_qubits[2]).controlled_by(self._ancilla_qubits[2]),
-            X(self._data_qubits[1]).controlled_by(self._ancilla_qubits[3]),
-            X(self._data_qubits[3]).controlled_by(self._ancilla_qubits[3]),
-            [H(ancilla) for ancilla in self._ancilla_qubits],
-        )
-        recovery_circuit = Circuit(
-            X(self._data_qubits[0]).controlled_by(self._ancilla_qubits, control_values=[0, 0, 0, 1]),
-        )
 
     def correct_errors(self) -> None:
         recoveries = [
             Recovery(
-                gate=Z(self._data_qubits[0]),
+                gate=Z(self.data_qubits[0]),
                 symptom=[1, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self._data_qubits[0]),
+                gate=X(self.data_qubits[0]),
                 symptom=[0, 0, 0, 1]
             ),
             Recovery(
-                gate=Z(self._data_qubits[1]),
+                gate=Z(self.data_qubits[1]),
                 symptom=[0, 1, 0, 1]
             ),
             Recovery(
-                gate=X(self._data_qubits[1]),
+                gate=X(self.data_qubits[1]),
                 symptom=[1, 0, 0, 0]
             ),
             Recovery(
-                gate=Z(self._data_qubits[2]),
+                gate=Z(self.data_qubits[2]),
                 symptom=[0, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self._data_qubits[2]),
+                gate=X(self.data_qubits[2]),
                 symptom=[1, 1, 0, 0]
             ),
             Recovery(
-                gate=Z(self._data_qubits[3]),
+                gate=Z(self.data_qubits[3]),
                 symptom=[1, 0, 0, 1]
             ),
             Recovery(
-                gate=X(self._data_qubits[3]),
+                gate=X(self.data_qubits[3]),
                 symptom=[0, 1, 1, 0]
             ),
             Recovery(
-                gate=Z(self._data_qubits[4]),
+                gate=Z(self.data_qubits[4]),
                 symptom=[0, 1, 0, 0]
             ),
             Recovery(
-                gate=X(self._data_qubits[4]),
+                gate=X(self.data_qubits[4]),
                 symptom=[0, 0, 1, 1]
             ),
 
         ]
 
-        syndrome_circuit = Circuit(
-            [H(ancilla) for ancilla in self._ancilla_qubits],
-            [gate(self._data_qubits[target_index]).controlled_by(self._ancilla_qubits[generator])
-             for generator, gates in enumerate(self._generators) for target_index, gate in enumerate(gates)],
-            [H(ancilla) for ancilla in self._ancilla_qubits],
-        )
         recovery_circuit = Circuit(
-            [recovery.gate.controlled_by(*self._ancilla_qubits, control_values=recovery.symptom)
+            [recovery.gate.controlled_by(*self.ancilla_qubits, control_values=recovery.symptom)
              for recovery in recoveries]
         )
         circuit = Circuit(
-            syndrome_circuit,
+            self._syndrome_circuit,
             recovery_circuit,
-            [R(ancilla) for ancilla in self._ancilla_qubits],
+            [R(ancilla) for ancilla in self.ancilla_qubits],
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)

@@ -1,10 +1,10 @@
 from cirq import density_matrix_from_state_vector, kron
-from numpy import sqrt
 
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
+from tests.error_correcting_codes.expected_states_utilities import ExpectedStatesUtilities
 
 
-class ExpectedStatesFiveQubit:
+class ExpectedStatesFiveQubit(ExpectedStatesUtilities):
     _num_ancillas = 4
 
     def get_logical_zero_density_matrix(self) -> DENSITY_MATRIX_TYPE:
