@@ -14,6 +14,8 @@ class CheckMatrix:
     def __post_init__(self):
         if self.matrix.shape[1] % 2:
             raise ValueError("Check matrix must have have an even number of columns.")
+        if self.matrix.shape[0] != self.num_physical_qubits - self.num_logical_qubits:
+            raise ValueError("Check matrix must have n-k rows.")
 
     @property
     def num_physical_qubits(self) -> int:

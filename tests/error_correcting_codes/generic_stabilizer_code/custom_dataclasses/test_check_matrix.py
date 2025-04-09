@@ -35,3 +35,8 @@ class TestStabilizersStandardizer:
         check_matrix = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES)
         rank = check_matrix.rank_of_pauli_x_portion
         assert rank == 3
+
+    def test_there_are_n_minus_k_rows(self):
+        different_number_of_logical_qubits_than_expected = 2
+        with pytest.raises(ValueError, match="Check matrix must have n-k rows."):
+            CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, num_logical_qubits=different_number_of_logical_qubits_than_expected)
