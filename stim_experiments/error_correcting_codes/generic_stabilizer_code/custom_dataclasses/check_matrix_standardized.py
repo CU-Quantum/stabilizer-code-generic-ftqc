@@ -25,3 +25,27 @@ class CheckMatrixStandardized(CheckMatrix):
         pauli_z_portion_zeros = self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits + self.rank_of_pauli_x_portion:-self.num_logical_qubits]
         if not allequal(pauli_z_portion_zeros, numpy.identity(self.num_physical_qubits - self.num_logical_qubits - self.rank_of_pauli_x_portion)):
             raise ValueError("The (n-k-r)x(n-k-r) submatrix beginning at index [r, n+r] must be the identity.")
+
+    @property
+    def a1_submatrix(self) -> numpy.ndarray:
+        return self.matrix[:self.rank_of_pauli_x_portion, self.rank_of_pauli_x_portion:self.num_physical_qubits - self.num_logical_qubits]
+
+    @property
+    def a2_submatrix(self) -> numpy.ndarray:
+        return self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits - self.num_logical_qubits:self.num_physical_qubits]
+
+    @property
+    def b_submatrix(self) -> numpy.ndarray:
+        return self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion]
+
+    @property
+    def c_submatrix(self) -> numpy.ndarray:
+        return self.matrix[:self.rank_of_pauli_x_portion, -self.num_logical_qubits:]
+
+    @property
+    def d_submatrix(self) -> numpy.ndarray:
+        return self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion]
+
+    @property
+    def e_submatrix(self) -> numpy.ndarray:
+        return self.matrix[self.rank_of_pauli_x_portion:, -self.num_logical_qubits:]

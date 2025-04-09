@@ -2,6 +2,7 @@ import re
 
 import pytest
 from numpy import array
+from numpy.ma import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
@@ -49,26 +50,32 @@ class TestStabilizersStandardizer:
         with pytest.raises(ValueError, match=re.escape("The (n-k-r)x(n-k-r) submatrix beginning at index [r, n+r] must be the identity.")):
             CheckMatrixStandardized(matrix=matrix_without_correct_identity_in_pauli_z_portion)
 
-    # def test_check_matrix_is_accessible(self):
-    #     steane_matrix_standardized = array([
-    #         [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0],
-    #     ])
-    #     check_matrix = CheckMatrixStandardized(matrix=steane_matrix_standardized)
-    #     assert check_matrix.matrix.tolist() == steane_matrix_standardized.tolist()
-    #
-    # def test_check_matrix_is_accessible(self):
-    #     steane_matrix_standardized = array([
-    #         [1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
-    #         [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0],
-    #     ])
-    #     check_matrix = CheckMatrixStandardized(matrix=steane_matrix_standardized)
-    #     assert check_matrix.matrix.tolist() == steane_matrix_standardized.tolist()
+    def test_can_retrieve_a1_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.a1_submatrix
+        assert submatrix.tolist() == [[0, 1, 1], [1, 0, 1], [1, 1, 1]]
+
+    def test_can_retrieve_a2_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.a2_submatrix
+        assert submatrix.tolist(), [[1], [1], [0]]
+
+    def test_can_retrieve_b_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.b_submatrix
+        assert submatrix.tolist() == [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+    def test_can_retrieve_c_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.c_submatrix
+        assert submatrix.tolist() == [[0], [0], [0]]
+
+    def test_can_retrieve_d_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.d_submatrix
+        assert submatrix.tolist() == [[1, 0, 1], [0, 1, 1], [1, 1, 1]]
+
+    def test_can_retrieve_e_submatrix(self):
+        matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
+        submatrix = matrix.e_submatrix
+        assert submatrix.tolist() == [[1], [1], [0]]
