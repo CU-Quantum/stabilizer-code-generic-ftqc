@@ -10,7 +10,6 @@ TYPE_CHECK_MATRIX = NDArray[NDArray[bool]]
 @dataclass
 class CheckMatrix:
     matrix: TYPE_CHECK_MATRIX
-    num_logical_qubits: int = 1
     qubit_order: List[int] = field(default_factory=list)
 
     def __post_init__(self):
@@ -21,8 +20,10 @@ class CheckMatrix:
             raise ValueError("Qubit order must be a permutation of the number of qubits.")
         if self.matrix.shape[1] % 2:
             raise ValueError("Check matrix must have have an even number of columns.")
-        if self.matrix.shape[0] != self.num_physical_qubits - self.num_logical_qubits:
-            raise ValueError("Check matrix must have n-k rows.")
+
+    @property
+    def num_logical_qubits(self) -> int:
+        return self.num_physical_qubits - self.matrix.shape[0]
 
     @property
     def num_physical_qubits(self) -> int:
