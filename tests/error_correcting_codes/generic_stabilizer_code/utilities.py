@@ -10,3 +10,25 @@ def get_check_matrix_values_steane():
         [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1],
         [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
     ])
+
+def get_check_matrix_values_steane_standardized():
+    return array([
+        [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0],
+    ])
+
+def get_check_matrix_values_4_qubit():
+    return array([
+        [1, 0, 0, 1, 0, 1, 1, 0],
+        [1, 1, 1, 1, 1, 0, 0, 1],
+    ])
+
+def get_check_matrix_values_4_qubit_standardized():
+    return array([
+        [1, 0, 0, 1, 0, 1, 1, 0],
+        [0, 1, 1, 0, 1, 1, 1, 1],
+    ])

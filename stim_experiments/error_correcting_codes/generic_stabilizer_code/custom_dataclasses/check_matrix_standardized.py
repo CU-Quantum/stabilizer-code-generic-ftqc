@@ -1,9 +1,29 @@
 from dataclasses import dataclass
 
 import numpy
+from numpy import array
 from numpy.ma.core import allequal
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
+    TYPE_CHECK_MATRIX
+
+
+@dataclass
+class CheckMatrixSubmatrices:
+    a1: TYPE_CHECK_MATRIX
+    a2: TYPE_CHECK_MATRIX
+    b: TYPE_CHECK_MATRIX
+    c: TYPE_CHECK_MATRIX
+    d: TYPE_CHECK_MATRIX
+    e: TYPE_CHECK_MATRIX
+
+    def __eq__(self, other):
+        return (self.a1.tolist() == other.a1.tolist()
+                and self.a2.tolist() == other.a2.tolist()
+                and self.b.tolist() == other.b.tolist()
+                and self.c.tolist() == other.c.tolist()
+                and self.d.tolist() == other.d.tolist()
+                and self.e.tolist() == other.e.tolist())
 
 
 @dataclass
@@ -28,28 +48,43 @@ class CheckMatrixStandardized(CheckMatrix):
             raise ValueError("The (n-k-r)x(n-k-r) submatrix beginning at index [r, n+r] must be the identity.")
 
     @property
-    def a1_submatrix(self) -> numpy.ndarray:
-        return self.matrix[:self.rank_of_pauli_x_portion, self.rank_of_pauli_x_portion:self.num_physical_qubits - self.num_logical_qubits]
+    def submatrices(self) -> CheckMatrixSubmatrices:
+        return CheckMatrixSubmatrices(
+            a1=self.matrix[:self.rank_of_pauli_x_portion, self.rank_of_pauli_x_portion:self.num_physical_qubits - self.num_logical_qubits],
+            a2=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits - self.num_logical_qubits:self.num_physical_qubits],
+            b=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
+            c=self.matrix[:self.rank_of_pauli_x_portion, -self.num_logical_qubits:],
+            d=self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
+            e=self.matrix[self.rank_of_pauli_x_portion:, -self.num_logical_qubits:],
+        )
 
     @property
-    def a2_submatrix(self) -> numpy.ndarray:
-        return self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits - self.num_logical_qubits:self.num_physical_qubits]
+    def logical_xs(self) -> TYPE_CHECK_MATRIX:
+        return numpy.concatenate(
+            [
+                numpy.zeros((self.num_logical_qubits, self.rank_of_pauli_x_portion)),
+                self.submatrices.e.transpose(),
+                numpy.identity(self.num_logical_qubits),
+                self.submatrices.c.transpose(),
+                numpy.zeros(self.submatrices.e.transpose().shape),
+                numpy.zeros((self.num_logical_qubits, self.num_logical_qubits))
+            ],
+            axis=1,
+        )
 
     @property
-    def b_submatrix(self) -> numpy.ndarray:
-        return self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion]
-
-    @property
-    def c_submatrix(self) -> numpy.ndarray:
-        return self.matrix[:self.rank_of_pauli_x_portion, -self.num_logical_qubits:]
-
-    @property
-    def d_submatrix(self) -> numpy.ndarray:
-        return self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion]
-
-    @property
-    def e_submatrix(self) -> numpy.ndarray:
-        return self.matrix[self.rank_of_pauli_x_portion:, -self.num_logical_qubits:]
+    def logical_zs(self) -> TYPE_CHECK_MATRIX:
+        return numpy.concatenate(
+            [
+                numpy.zeros((self.num_logical_qubits, self.rank_of_pauli_x_portion)),
+                numpy.zeros(self.submatrices.e.transpose().shape),
+                numpy.zeros((self.num_logical_qubits, self.num_logical_qubits)),
+                self.submatrices.a2.transpose(),
+                numpy.zeros(self.submatrices.e.transpose().shape),
+                numpy.identity(self.num_logical_qubits)
+            ],
+            axis=1,
+        )
 
     def __eq__(self, other):
         return self.matrix.tolist() == other.matrix.tolist() and self.qubit_order == other.qubit_order

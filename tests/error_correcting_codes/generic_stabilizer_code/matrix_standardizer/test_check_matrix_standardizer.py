@@ -1,3 +1,5 @@
+import copy
+
 from numpy import array
 from numpy.ma.core import allequal
 
@@ -6,7 +8,9 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     CheckMatrixStandardized
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_steane
+from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
+    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_steane, \
+    get_check_matrix_values_steane_standardized
 
 
 class TestCheckMatrixStandardizer:
@@ -24,13 +28,20 @@ class TestCheckMatrixStandardizer:
         standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=get_check_matrix_values_steane()))
         standardized_check = standardizer.get_standardized_matrix()
         assert standardized_check == CheckMatrixStandardized(
-            matrix=array([
-                [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1],
-                [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0],
-            ]),
+            matrix=get_check_matrix_values_steane_standardized(),
             qubit_order=[0,1,3,2,4,6,5],
         )
+
+    def test_4_qubit(self):
+        standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=get_check_matrix_values_4_qubit()))
+        standardized_check = standardizer.get_standardized_matrix()
+        assert standardized_check == CheckMatrixStandardized(
+            matrix=get_check_matrix_values_4_qubit_standardized(),
+            qubit_order=[0, 1, 2, 3],
+        )
+
+    def test_does_not_modify_original_check_matrix(self):
+        generators = get_check_matrix_values_4_qubit()
+        original_check_matrix = CheckMatrix(matrix=copy.deepcopy(generators))
+        CheckMatrixStandardizer(check_matrix=original_check_matrix).get_standardized_matrix()
+        assert original_check_matrix.matrix.tolist() == generators.tolist()

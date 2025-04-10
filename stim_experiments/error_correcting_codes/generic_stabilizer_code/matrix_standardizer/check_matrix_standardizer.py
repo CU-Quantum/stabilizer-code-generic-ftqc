@@ -1,3 +1,5 @@
+import copy
+
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
@@ -8,9 +10,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_stan
 
 
 class CheckMatrixStandardizer:
-    def __init__(self, check_matrix: CheckMatrix, num_logical_qubits: int = 1):
-        self._num_logical_qubits = num_logical_qubits
-        self._new_check_matrix = CheckMatrix(matrix=check_matrix.matrix)
+    def __init__(self, check_matrix: CheckMatrix):
+        self._new_check_matrix = CheckMatrix(matrix=copy.deepcopy(check_matrix.matrix))
 
     def get_standardized_matrix(self) -> CheckMatrixStandardized:
         self._set_first_identity_matrix()
@@ -26,7 +27,7 @@ class CheckMatrixStandardizer:
             self._set_rest_of_column_to_zero(row_index_in_identity_form=i, column_index=i)
 
     def _set_second_identity_matrix(self) -> None:
-        for i in range(self._new_check_matrix.num_physical_qubits - self._num_logical_qubits - self._new_check_matrix.rank_of_pauli_x_portion):
+        for i in range(self._new_check_matrix.num_physical_qubits - self._new_check_matrix.num_logical_qubits - self._new_check_matrix.rank_of_pauli_x_portion):
             row_index = self._new_check_matrix.rank_of_pauli_x_portion + i
             column_index = self._new_check_matrix.num_physical_qubits + self._new_check_matrix.rank_of_pauli_x_portion + i
             self._set_element_equal_to_one(row_index=row_index, column_index=column_index)
