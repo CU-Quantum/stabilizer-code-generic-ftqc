@@ -2,7 +2,6 @@ import re
 
 import pytest
 from numpy import array
-from numpy.ma import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
@@ -79,16 +78,3 @@ class TestStabilizersStandardizer:
         matrix = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
         submatrix = matrix.e_submatrix
         assert submatrix.tolist() == [[1], [1], [0]]
-
-    def test_can_set_qubit_order(self):
-        num_physical_qubits = 7
-        matrix_default = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix)
-        assert matrix_default.qubit_order == list(range(num_physical_qubits))
-
-        set_qubit_order = [1,0,2,3,4,5,6]
-        matrix_default = CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix, qubit_order=set_qubit_order)
-        assert matrix_default.qubit_order == set_qubit_order
-
-    def test_cannot_set_incorrect_number_of_qubits(self):
-        with pytest.raises(ValueError, match=re.escape("Qubit order must be a permutation of the number of qubits.")):
-            CheckMatrixStandardized(matrix=self._valid_standardized_check_matrix, qubit_order=[0,1,2,3,4,5,7])

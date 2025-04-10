@@ -1,5 +1,4 @@
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
 
 import numpy
 from numpy.ma.core import allequal
@@ -9,15 +8,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 
 @dataclass
 class CheckMatrixStandardized(CheckMatrix):
-    qubit_order: List[int] = field(default_factory=list)
-
     def __post_init__(self):
         super().__post_init__()
-        default_qubit_order = list(range(self.num_physical_qubits))
-        self.qubit_order = self.qubit_order or default_qubit_order
-
-        if sorted(self.qubit_order) != default_qubit_order:
-            raise ValueError("Qubit order must be a permutation of the number of qubits.")
 
         pauli_x_portion_identity = self.matrix[:self.rank_of_pauli_x_portion, :self.rank_of_pauli_x_portion]
         if not allequal(pauli_x_portion_identity, numpy.identity(self.rank_of_pauli_x_portion)):

@@ -1,3 +1,5 @@
+from typing import re
+
 import pytest
 from numpy import array
 
@@ -40,3 +42,60 @@ class TestStabilizersStandardizer:
         different_number_of_logical_qubits_than_expected = 2
         with pytest.raises(ValueError, match="Check matrix must have n-k rows."):
             CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, num_logical_qubits=different_number_of_logical_qubits_than_expected)
+
+    def test_can_set_qubit_order(self):
+        num_physical_qubits = 7
+        matrix_default = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES)
+        assert matrix_default.qubit_order == list(range(num_physical_qubits))
+
+        set_qubit_order = [1,0,2,3,4,5,6]
+        matrix_default = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, qubit_order=set_qubit_order)
+        assert matrix_default.qubit_order == set_qubit_order
+
+    def test_cannot_set_incorrect_number_of_qubits(self):
+        with pytest.raises(ValueError, match=re.escape("Qubit order must be a permutation of the number of qubits.")):
+            CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, qubit_order=[0,1,2,3,4,5,7])
+
+    def test_qubit_order_changes_after_swapping_qubits(self):
+        matrix = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, qubit_order=[0,1,2,3,4,5,6])
+        matrix.swap_qubits(column_indices=(0, 1))
+        assert matrix.qubit_order == [1,0,2,3,4,5,6]
+
+    def test_columns_are_swapped_after_swapping_qubits_in_pauli_x(self):
+        matrix = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, qubit_order=[0,1,2,3,4,5,6])
+        matrix.swap_qubits(column_indices=(0, 1))
+        first_and_second_columns_in_both_pauli_x_and_z_are_switched =[
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
+        ]
+        assert matrix.matrix.tolist() == first_and_second_columns_in_both_pauli_x_and_z_are_switched
+
+    def test_columns_are_swapped_after_swapping_qubits_in_pauli_z(self):
+        matrix = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES, qubit_order=[0,1,2,3,4,5,6])
+        matrix.swap_qubits(column_indices=(7, 8))
+        first_and_second_columns_in_both_pauli_x_and_z_are_switched =[
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
+        ]
+        assert matrix.matrix.tolist() == first_and_second_columns_in_both_pauli_x_and_z_are_switched
+
+    def test_add_rows(self):
+        matrix = CheckMatrix(matrix=CHECK_MATRIX_STEANE_VALUES)
+        matrix.add_rows(row_index=1, target_row_index=0)
+        second_row_is_added_to_first = [
+            [0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+        ]
+        assert matrix.matrix.tolist() == second_row_is_added_to_first
