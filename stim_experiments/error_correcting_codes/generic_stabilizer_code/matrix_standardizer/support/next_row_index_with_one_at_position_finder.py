@@ -11,4 +11,5 @@ class NextRowIndexWithOneAtPositionFinder:
         self._column_index = column_index
 
     def get_row_index(self) -> Optional[int]:
-        return next((self._row_index + i for i, row in enumerate(self._matrix[self._row_index:]) if row[self._column_index]), None)
+        start_index = self._row_index + 1
+        return next((start_index + i for i, row in enumerate(self._matrix[start_index:]) if row[self._column_index]), None)

@@ -20,6 +20,7 @@ class CheckMatrixStandardizer:
 
     def get_standardized_matrix(self) -> CheckMatrixStandardized:
         self._set_first_identity_matrix()
+        self._set_second_identity_matrix()
         return CheckMatrixStandardized(
             matrix=self._new_check_matrix.matrix,
             qubit_order=self._new_check_matrix.qubit_order,
@@ -31,7 +32,7 @@ class CheckMatrixStandardizer:
             self._set_rest_of_column_to_zero(row_index_in_identity_form=i, column_index=i)
 
     def _set_second_identity_matrix(self) -> None:
-        for i in range(self._new_check_matrix.rank_of_pauli_x_portion):
+        for i in range(self._new_check_matrix.num_physical_qubits - self._num_logical_qubits - self._new_check_matrix.rank_of_pauli_x_portion):
             row_index = self._new_check_matrix.rank_of_pauli_x_portion + i
             column_index = self._new_check_matrix.num_physical_qubits + self._new_check_matrix.rank_of_pauli_x_portion + i
             self._set_element_equal_to_one(row_index=row_index, column_index=column_index)
@@ -39,7 +40,7 @@ class CheckMatrixStandardizer:
 
 
     def _set_element_equal_to_one(self, row_index: int, column_index: int) -> None:
-            if not self._check_matrix.matrix[row_index, column_index]:
+            if not self._new_check_matrix.matrix[row_index, column_index]:
                 row_index_with_one_in_column = NextRowIndexWithOneAtPositionFinder(matrix=self._new_check_matrix.matrix,
                                                                                    row_index=row_index,
                                                                                    column_index=column_index).get_row_index()
@@ -53,7 +54,7 @@ class CheckMatrixStandardizer:
 
     def _set_rest_of_column_to_zero(self, row_index_in_identity_form: int, column_index: int) -> None:
         for i in range(len(self._new_check_matrix.matrix)):
-            if i != row_index_in_identity_form and self._new_check_matrix.matrix[row_index_in_identity_form, column_index]:
+            if i != row_index_in_identity_form and self._new_check_matrix.matrix[i, column_index]:
                 self._new_check_matrix.add_rows(row_index=row_index_in_identity_form, target_row_index=i)
 
 

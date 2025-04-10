@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_stan
 
 class TestNextRowWithOneAtPositionFinder:
     def test_trivial(self):
-        finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[1]]), row_index=0, column_index=0)
+        finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[1], [1]]), row_index=0, column_index=0)
         index = finder.get_row_index()
         assert index == 0
 
@@ -15,7 +15,7 @@ class TestNextRowWithOneAtPositionFinder:
         index = finder.get_row_index()
         assert index is None
 
-    def test_ensure_row_is_after_given_row_index(self):
-        finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[1, 0], [0, 0], [1, 1]]), row_index=1, column_index=0)
+    def test_ensure_nonzero_row_and_column(self):
+        finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[1, 0], [0, 0], [1, 1]]), row_index=1, column_index=1)
         index = finder.get_row_index()
         assert index == 2
