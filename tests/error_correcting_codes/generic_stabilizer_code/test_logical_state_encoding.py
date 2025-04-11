@@ -11,7 +11,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     CheckMatrixStandardized
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX, partial_trace
+from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ONE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, \
+    partial_trace
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.support.test_check_matrix_to_gates import CheckMatrixToGates
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit, \
@@ -30,6 +31,10 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._generators = generators
 
     def _encode_logical_qubit(self) -> None:
+        data_state = kron(*[KET_ZERO_DENSITY_MATRIX] * (self._num_data_qubits - self._check_matrix.num_logical_qubits), self._initial_logical_qubit_state_density_matrix)
+        ancilla_state = kron(*[KET_ZERO_DENSITY_MATRIX] * self._num_ancilla_qubits)
+        self._current_state = kron(data_state, ancilla_state)
+
         hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in range(self._check_matrix.rank_of_pauli_x_portion)]
         circuit = Circuit(
             self._encode_logical_nots(),
@@ -40,7 +45,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     def _encode_logical_nots(self) -> List[List[List[Operation]]]:
         return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.logical_xs,
                                            control_num=control_num,
-                                           control_index=self._check_matrix.num_physical_qubits - self._check_matrix.num_logical_qubits + control_num)
+                                           control_index=self._num_data_qubits - self._check_matrix.num_logical_qubits + control_num)
                 for control_num in range(self._check_matrix.num_logical_qubits)]
 
     def _encode_generators(self) -> List[List[List[Operation]]]:
@@ -86,8 +91,9 @@ class TestGenericStabilizerCode:
         current_state = code.get_current_state()
         assert allclose(current_state, expected_state, atol=1e-7)
 
-    # def test_logical_one(self):
-    #     expected_state = ExpectedStatesFiveQubit().get_logical_one_density_matrix()
-    #     code = FiveQubitCode(initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
-    #     current_state = code.get_current_state()
-    #     assert allclose(current_state, expected_state, atol=1e-7)
+    def test_logical_one_five_qubit(self):
+        size_of_code_plus_one_ancilla = 6
+        expected_state = partial_trace(ExpectedStatesFiveQubit().get_logical_one_density_matrix(), list(range(size_of_code_plus_one_ancilla)))
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
+        current_state = code.get_current_state()
+        assert allclose(current_state, expected_state, atol=1e-7)
