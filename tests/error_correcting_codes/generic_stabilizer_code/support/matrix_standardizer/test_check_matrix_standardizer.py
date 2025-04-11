@@ -1,12 +1,14 @@
 import copy
+from re import escape
 
+import pytest
 from numpy import array
 from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.check_matrix_standardizer import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_steane, \
@@ -15,14 +17,13 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 
 class TestCheckMatrixStandardizer:
     def test_empty(self):
-        standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[]])))
-        standardized_check = standardizer.get_standardized_matrix()
-        assert allequal(standardized_check, array([[]]))
+        with pytest.raises(ValueError, match=escape("The number of rows must be less than half the number of columns. Shape (1, 0) was provided.")):
+            CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[]])))
 
     def test_one(self):
         standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[1, 1]])))
         standardized_check = standardizer.get_standardized_matrix()
-        assert allequal(standardized_check, array([[1, 1]]))
+        assert allequal(standardized_check, CheckMatrix(matrix=array([[1, 1]])))
 
     def test_steane(self):
         standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=get_check_matrix_values_steane()))

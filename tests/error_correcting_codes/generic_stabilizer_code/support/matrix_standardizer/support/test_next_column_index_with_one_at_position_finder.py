@@ -1,7 +1,7 @@
 import pytest
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
     NextColumnIndexWithOneAtPositionFinder
 
 
@@ -12,7 +12,7 @@ class TestNextColumnWithOneAtPositionFinder:
         assert index == 1
 
     def test_column_does_not_exist(self):
-        with pytest.raises(IndexError, match="Could not find column after column 0 having value 1 at row 0."):
+        with pytest.raises(IndexError, match="Could not find column after column index 0 having value 1 at row 0."):
             finder = NextColumnIndexWithOneAtPositionFinder(matrix=array([[0, 0]]), row_index=0, column_index=0)
             finder.get_column_index()
 

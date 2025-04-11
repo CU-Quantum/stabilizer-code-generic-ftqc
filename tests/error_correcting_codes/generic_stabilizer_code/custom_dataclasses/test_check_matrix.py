@@ -1,4 +1,4 @@
-import re
+from re import escape
 
 import pytest
 from numpy import array
@@ -18,8 +18,8 @@ class TestStabilizersStandardizer:
         self._steane_matrix_values = get_check_matrix_values_steane()
 
     def test_must_have_even_number_of_columns(self):
-        with pytest.raises(ValueError, match="Check matrix must have have an even number of columns."):
-            CheckMatrix(matrix=array([[1]]))
+        with pytest.raises(ValueError, match=escape("Check matrix must have have an even number of columns. Shape (1, 3) was provided.")):
+            CheckMatrix(matrix=array([[1, 1, 1]]))
 
     def test_check_matrix_is_accessible(self):
         check_matrix = CheckMatrix(matrix=self._steane_matrix_values)
@@ -52,7 +52,7 @@ class TestStabilizersStandardizer:
         assert matrix_default.qubit_order == set_qubit_order
 
     def test_cannot_set_incorrect_number_of_qubits(self):
-        with pytest.raises(ValueError, match=re.escape("Qubit order must be a permutation of the number of qubits.")):
+        with pytest.raises(ValueError, match=escape("Qubit order must be a permutation of the number of qubits. Order [0, 1, 2, 3, 4, 5, 7] was provided.")):
             CheckMatrix(matrix=self._steane_matrix_values, qubit_order=[0,1,2,3,4,5,7])
 
     def test_qubit_order_changes_after_swapping_qubits(self):

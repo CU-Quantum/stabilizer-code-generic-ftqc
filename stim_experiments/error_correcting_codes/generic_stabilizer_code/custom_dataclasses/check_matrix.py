@@ -17,9 +17,11 @@ class CheckMatrix:
         self.qubit_order = self.qubit_order or default_qubit_order
 
         if sorted(self.qubit_order) != default_qubit_order:
-            raise ValueError("Qubit order must be a permutation of the number of qubits.")
+            raise ValueError(f"Qubit order must be a permutation of the number of qubits. Order {self.qubit_order} was provided.")
         if self.matrix.shape[1] % 2:
-            raise ValueError("Check matrix must have have an even number of columns.")
+            raise ValueError(f"Check matrix must have have an even number of columns. Shape {self.matrix.shape} was provided.")
+        if self.num_logical_qubits < 0:
+            raise ValueError(f"The number of rows must be less than half the number of columns. Shape {self.matrix.shape} was provided.")
 
     @property
     def num_logical_qubits(self) -> int:
@@ -32,7 +34,7 @@ class CheckMatrix:
     @property
     def rank_of_pauli_x_portion(self) -> int:
         pauli_x_portion = self.matrix[:, :self.num_physical_qubits]
-        return matrix_rank(pauli_x_portion)
+        return matrix_rank(pauli_x_portion) if pauli_x_portion.nbytes else 0
 
     def swap_qubits(self, column_indices: Tuple[int, int]) -> None:
         self._swap_qubit_order(column_indices=column_indices)

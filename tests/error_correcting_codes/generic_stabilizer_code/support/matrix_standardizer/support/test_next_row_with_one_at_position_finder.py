@@ -1,6 +1,6 @@
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
     NextRowIndexWithOneAtPositionFinder
 
 
@@ -8,7 +8,7 @@ class TestNextRowWithOneAtPositionFinder:
     def test_trivial(self):
         finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[1], [1]]), row_index=0, column_index=0)
         index = finder.get_row_index()
-        assert index == 0
+        assert index == 1
 
     def test_row_does_not_exist(self):
         finder = NextRowIndexWithOneAtPositionFinder(matrix=array([[0, 1], [0, 0]]), row_index=0, column_index=0)

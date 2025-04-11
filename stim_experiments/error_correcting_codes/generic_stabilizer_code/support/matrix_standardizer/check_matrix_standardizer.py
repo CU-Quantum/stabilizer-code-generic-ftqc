@@ -3,9 +3,9 @@ import copy
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
     NextColumnIndexWithOneAtPositionFinder
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
     NextRowIndexWithOneAtPositionFinder
 
 
@@ -32,7 +32,6 @@ class CheckMatrixStandardizer:
             column_index = self._new_check_matrix.num_physical_qubits + self._new_check_matrix.rank_of_pauli_x_portion + i
             self._set_element_equal_to_one(row_index=row_index, column_index=column_index)
             self._set_rest_of_column_to_zero(row_index_in_identity_form=row_index, column_index=column_index)
-
 
     def _set_element_equal_to_one(self, row_index: int, column_index: int) -> None:
             if not self._new_check_matrix.matrix[row_index, column_index]:
