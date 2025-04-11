@@ -38,27 +38,21 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _encode_logical_nots(self) -> List[List[List[Operation]]]:
-        return [self._get_controlled_logical_not_gates(control_num=control_num)
+        return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.logical_xs,
+                                           control_num=control_num,
+                                           control_index=self._check_matrix.num_physical_qubits - self._check_matrix.num_logical_qubits + control_num)
                 for control_num in range(self._check_matrix.num_logical_qubits)]
 
-    def _get_controlled_logical_not_gates(self, control_num: int) -> List[List[Operation]]:
-        logical_xs = self._check_matrix_standardized.logical_xs
-        logical_x_gates = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=logical_xs)).get_gates()
-
-        control_index = self._check_matrix.num_physical_qubits - self._check_matrix.num_logical_qubits + control_num
-        return [self._get_controlled_gates_at_qubit(gates=gates, control_index=control_index, target_index=target_index)
-                for target_index, gates in enumerate(logical_x_gates[control_num]) if target_index != control_index]
-
     def _encode_generators(self) -> List[List[List[Operation]]]:
-        return [self._get_controlled_generator_gates(control_num=control_num)
+        return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.matrix,
+                                           control_num=control_num,
+                                           control_index=control_num)
                 for control_num in range(self._check_matrix.rank_of_pauli_x_portion)]
 
-    def _get_controlled_generator_gates(self, control_num: int) -> List[List[Operation]]:
-        generators = self._check_matrix_standardized.matrix[:self._check_matrix_standardized.rank_of_pauli_x_portion]
-        generator_gates = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=generators)).get_gates()
-
-        return [self._get_controlled_gates_at_qubit(gates=gates, control_index=control_num, target_index=target_index)
-                for target_index, gates in enumerate(generator_gates[control_num]) if target_index != control_num]
+    def _get_controlled_gates(self, matrix_form_gates: TYPE_CHECK_MATRIX, control_num: int, control_index: int) -> List[List[Operation]]:
+        controlled_gates = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=matrix_form_gates)).get_gates()
+        return [self._get_controlled_gates_at_qubit(gates=gates, control_index=control_index, target_index=target_index)
+                for target_index, gates in enumerate(controlled_gates[control_num]) if target_index != control_index]
 
     def _get_controlled_gates_at_qubit(self, gates: List[Gate], control_index: int, target_index: int) -> List[Operation]:
         return [gate(self._get_qubit_at_index(target_index)).controlled_by(self._get_qubit_at_index(control_index))
