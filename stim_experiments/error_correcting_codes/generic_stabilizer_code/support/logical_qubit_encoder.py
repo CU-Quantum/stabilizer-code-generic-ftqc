@@ -38,12 +38,13 @@ class LogicalQubitEncoder:
     def _get_controlled_gates(self, matrix_form_gates: TYPE_CHECK_MATRIX, control_num: int, control_index: int) -> List[List[Operation]]:
         controlled_gates = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=matrix_form_gates)).get_gates()
         return [self._get_controlled_gates_at_qubit(gates=gates, control_index=control_index, target_index=target_index)
-                for target_index, gates in enumerate(controlled_gates[control_num]) if target_index != control_index]
+                for target_index, gates in enumerate(controlled_gates[control_num])]
 
     def _get_controlled_gates_at_qubit(self, gates: List[Gate], control_index: int, target_index: int) -> List[Operation]:
         control_qubit = self._get_qubit_at_index(control_index)
         target_qubit = self._get_qubit_at_index(target_index)
-        return [gate(target_qubit).controlled_by(control_qubit) for gate in gates]
+        operations = [gate(target_qubit) for gate in gates[target_qubit == control_qubit:]]  # ignore x gate in control qubit
+        return [operation if target_qubit == control_qubit else operation.controlled_by(control_qubit) for operation in operations]
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
         return self._data_qubits[self._check_matrix_standardized.qubit_order[qubit_index]]

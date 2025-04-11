@@ -64,50 +64,60 @@ class FiveQubitCode(ErrorCorrectingCode):
     def correct_errors(self) -> None:
         recoveries = [
             Recovery(
-                gate=Z(self.data_qubits[0]),
+                gate=Z,
+                qubit_index=0,
                 symptom=[1, 0, 1, 0]
             ),
             Recovery(
-                gate=Z(self.data_qubits[1]),
+                gate=Z,
+                qubit_index=1,
                 symptom=[0, 1, 0, 1]
             ),
             Recovery(
-                gate=Z(self.data_qubits[2]),
+                gate=Z,
+                qubit_index=2,
                 symptom=[0, 0, 1, 0]
             ),
             Recovery(
-                gate=Z(self.data_qubits[3]),
+                gate=Z,
+                qubit_index=3,
                 symptom=[1, 0, 0, 1]
             ),
             Recovery(
-                gate=Z(self.data_qubits[4]),
+                gate=Z,
+                qubit_index=4,
                 symptom=[0, 1, 0, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[0]),
+                gate=X,
+                qubit_index=0,
                 symptom=[0, 0, 0, 1]
             ),
             Recovery(
-                gate=X(self.data_qubits[1]),
+                gate=X,
+                qubit_index=1,
                 symptom=[1, 0, 0, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[2]),
+                gate=X,
+                qubit_index=2,
                 symptom=[1, 1, 0, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[3]),
+                gate=X,
+                qubit_index=3,
                 symptom=[0, 1, 1, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[4]),
+                gate=X,
+                qubit_index=4,
                 symptom=[0, 0, 1, 1]
             ),
 
         ]
 
         recovery_circuit = Circuit(
-            [recovery.gate.controlled_by(*self.ancilla_qubits, control_values=recovery.symptom)
+            [recovery.gate(self.data_qubits[recovery.qubit_index]).controlled_by(*self.ancilla_qubits, control_values=recovery.symptom)
              for recovery in recoveries]
         )
         circuit = Circuit(

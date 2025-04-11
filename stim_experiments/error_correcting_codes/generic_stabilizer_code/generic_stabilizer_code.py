@@ -1,8 +1,7 @@
 from functools import cached_property
-from typing import List
 
-from cirq import Circuit, Gate, H, LineQubit, Operation, kron
-from numpy import array, log2
+from cirq import Circuit, H, LineQubit, R, kron
+from numpy import log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
@@ -16,7 +15,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.mat
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX, binary_array_to_int, partial_trace
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
@@ -62,6 +61,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             [recovery.gate(self._get_qubit_at_index(recovery.qubit_index)).controlled_by(*self.ancilla_qubits,
                                                                                          control_values=recovery.symptom)
              for symptom_recoveries in recoveries.values() for recovery in symptom_recoveries],
+            [R(ancilla) for ancilla in self.ancilla_qubits],
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
