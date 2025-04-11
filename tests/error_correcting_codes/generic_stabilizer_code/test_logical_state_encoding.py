@@ -1,8 +1,9 @@
 from functools import cached_property
 from typing import List
 
+import pytest
 from cirq import Circuit, Gate, H, LineQubit, Operation, kron
-from numpy import allclose
+from numpy import allclose, log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import \
@@ -15,7 +16,8 @@ from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ONE_DENSITY_MATR
     partial_trace
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.support.test_check_matrix_to_gates import CheckMatrixToGates
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit, \
+from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
+    get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 
@@ -31,16 +33,29 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._generators = generators
 
     def _encode_logical_qubit(self) -> None:
-        data_state = kron(*[KET_ZERO_DENSITY_MATRIX] * (self._num_data_qubits - self._check_matrix.num_logical_qubits), self._initial_logical_qubit_state_density_matrix)
+        self._validate_initial_logical_state_size()
+        self._initialize_logical_state()
+        circuit = self._get_encoding_circuit()
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    def _validate_initial_logical_state_size(self) -> None:
+        num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state_density_matrix.shape[0]))
+        if num_qubits_in_initial_logical_state != self._check_matrix.num_logical_qubits:
+            raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
+
+    def _initialize_logical_state(self) -> None:
+        data_state = kron(*[KET_ZERO_DENSITY_MATRIX] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
+                          self._initial_logical_qubit_state_density_matrix)
         ancilla_state = kron(*[KET_ZERO_DENSITY_MATRIX] * self._num_ancilla_qubits)
         self._current_state = kron(data_state, ancilla_state)
 
-        hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in range(self._check_matrix.rank_of_pauli_x_portion)]
-        circuit = Circuit(
+    def _get_encoding_circuit(self) -> Circuit:
+        hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in
+                     range(self._check_matrix.rank_of_pauli_x_portion)]
+        return Circuit(
             self._encode_logical_nots(),
             zip(hadamards, self._encode_generators()),
         )
-        self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _encode_logical_nots(self) -> List[List[List[Operation]]]:
         return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.logical_xs,
@@ -97,3 +112,10 @@ class TestGenericStabilizerCode:
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
         current_state = code.get_current_state()
         assert allclose(current_state, expected_state, atol=1e-7)
+
+    def test_input_state_must_be_size_of_logical_qubits_for_code(self):
+        code_that_encodes_two_logical_bits = get_check_matrix_values_4_qubit()
+        logical_qubit_state_of_only_one_qubit = KET_ZERO_DENSITY_MATRIX
+        with pytest.raises(ValueError, match="These generators encode 2 logical qubits, but an initial state of 1 was given."):
+            GenericStabilizerCode(generators=code_that_encodes_two_logical_bits,
+                                  initial_logical_qubit_state_density_matrix=logical_qubit_state_of_only_one_qubit)
