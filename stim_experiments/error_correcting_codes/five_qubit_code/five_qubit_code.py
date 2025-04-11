@@ -1,16 +1,10 @@
-from dataclasses import dataclass
 from typing import List
 
 from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, Operation, R, X, Z, kron
 
+from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
-
-
-@dataclass
-class Recovery:
-    gate: Operation
-    symptom: List[int]
 
 
 class FiveQubitCode(ErrorCorrectingCode):

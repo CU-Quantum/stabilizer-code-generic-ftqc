@@ -3,7 +3,7 @@ from typing import List
 from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX, int_to_binary_array
 
 
 class SteaneCode(ErrorCorrectingCode):
@@ -48,7 +48,7 @@ class SteaneCode(ErrorCorrectingCode):
 
     def _correct_error(self, syndrome: Circuit, correction_gate: Gate) -> None:
         recovery = Circuit(
-            [correction_gate.controlled(num_controls=3, control_values=self._get_binary_array_for_ancillas(i + 1)).on(
+            [correction_gate.controlled(num_controls=3, control_values=int_to_binary_array(num=i + 1, num_elements=self._num_ancilla_qubits)).on(
                 *self.ancilla_qubits,
                 self.data_qubits[i]
             ) for i in range(self._num_data_qubits)]
@@ -59,6 +59,3 @@ class SteaneCode(ErrorCorrectingCode):
             [R(ancilla) for ancilla in self.ancilla_qubits],
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
-
-    def _get_binary_array_for_ancillas(self, num: int) -> List[int]:
-        return list(map(int, bin(num)[2:].rjust(self._num_ancilla_qubits, '0')))

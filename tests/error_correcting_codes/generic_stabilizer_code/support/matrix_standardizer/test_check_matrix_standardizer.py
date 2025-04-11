@@ -17,7 +17,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 
 class TestCheckMatrixStandardizer:
     def test_empty(self):
-        with pytest.raises(ValueError, match=escape("The number of rows must be less than half the number of columns. Shape (1, 0) was provided.")):
+        with pytest.raises(ValueError, match=escape("The number of rows must be at most than half the number of columns. Shape (1, 0) was provided.")):
             CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[]])))
 
     def test_one(self):

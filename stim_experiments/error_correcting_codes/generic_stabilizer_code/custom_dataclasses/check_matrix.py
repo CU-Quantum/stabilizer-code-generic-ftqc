@@ -21,7 +21,7 @@ class CheckMatrix:
         if self.matrix.shape[1] % 2:
             raise ValueError(f"Check matrix must have have an even number of columns. Shape {self.matrix.shape} was provided.")
         if self.num_logical_qubits < 0:
-            raise ValueError(f"The number of rows must be less than half the number of columns. Shape {self.matrix.shape} was provided.")
+            raise ValueError(f"The number of rows must be at most than half the number of columns. Shape {self.matrix.shape} was provided.")
 
     @property
     def num_logical_qubits(self) -> int:
