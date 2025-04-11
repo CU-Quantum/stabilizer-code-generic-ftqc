@@ -2,17 +2,20 @@ from functools import cached_property
 from typing import List
 
 from cirq import Circuit, Gate, H, LineQubit, Operation, kron
-from numpy import log2
+from numpy import array, log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.logical_qubit_encoder import \
+    LogicalQubitEncoder
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToGates
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
 
 
@@ -22,7 +25,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                  initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE = KET_ZERO_DENSITY_MATRIX):
         self._check_matrix = CheckMatrix(matrix=generators)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
-                         num_ancilla_qubits=1,
+                         num_ancilla_qubits=len(self._check_matrix.matrix),
                          initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix)
         self._generators = generators
 
@@ -44,40 +47,26 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._current_state = kron(data_state, ancilla_state)
 
     def _get_encoding_circuit(self) -> Circuit:
-        hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in
-                     range(self._check_matrix.rank_of_pauli_x_portion)]
-        return Circuit(
-            self._encode_logical_nots(),
-            zip(hadamards, self._encode_generators()),
+        return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
+                                   data_qubits=self.data_qubits).get_encoding_circuit()
+
+    def correct_errors(self) -> None:
+        recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
+        generators = CheckMatrixToGates(check_matrix=self._check_matrix_standardized).get_gates()
+        circuit = Circuit(
+            [H(ancilla) for ancilla in self.ancilla_qubits],
+            [gate(self._get_qubit_at_index(target_index)).controlled_by(ancilla)
+             for ancilla, generator in zip(self.ancilla_qubits, generators)
+             for target_index, qubit_gates in enumerate(generator) for gate in qubit_gates],
+            [H(ancilla) for ancilla in self.ancilla_qubits],
+            [recovery.gate(self._get_qubit_at_index(recovery.qubit_index)).controlled_by(*self.ancilla_qubits,
+                                                                                         control_values=recovery.symptom)
+             for symptom_recoveries in recoveries.values() for recovery in symptom_recoveries],
         )
-
-    def _encode_logical_nots(self) -> List[List[List[Operation]]]:
-        return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.logical_xs,
-                                           control_num=control_num,
-                                           control_index=self._num_data_qubits - self._check_matrix.num_logical_qubits + control_num)
-                for control_num in range(self._check_matrix.num_logical_qubits)]
-
-    def _encode_generators(self) -> List[List[List[Operation]]]:
-        return [self._get_controlled_gates(matrix_form_gates=self._check_matrix_standardized.matrix,
-                                           control_num=control_num,
-                                           control_index=control_num)
-                for control_num in range(self._check_matrix.rank_of_pauli_x_portion)]
-
-    def _get_controlled_gates(self, matrix_form_gates: TYPE_CHECK_MATRIX, control_num: int, control_index: int) -> List[List[Operation]]:
-        controlled_gates = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=matrix_form_gates)).get_gates()
-        return [self._get_controlled_gates_at_qubit(gates=gates, control_index=control_index, target_index=target_index)
-                for target_index, gates in enumerate(controlled_gates[control_num]) if target_index != control_index]
-
-    def _get_controlled_gates_at_qubit(self, gates: List[Gate], control_index: int, target_index: int) -> List[Operation]:
-        control_qubit = self._get_qubit_at_index(control_index)
-        target_qubit = self._get_qubit_at_index(target_index)
-        return [gate(target_qubit).controlled_by(control_qubit) for gate in gates]
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
         return self.data_qubits[self._check_matrix_standardized.qubit_order[qubit_index]]
-
-    def correct_errors(self) -> None:
-        pass
 
     @cached_property
     def _check_matrix_standardized(self) -> CheckMatrixStandardized:

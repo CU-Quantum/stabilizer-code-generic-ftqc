@@ -68,36 +68,36 @@ class FiveQubitCode(ErrorCorrectingCode):
                 symptom=[1, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[0]),
-                symptom=[0, 0, 0, 1]
-            ),
-            Recovery(
                 gate=Z(self.data_qubits[1]),
                 symptom=[0, 1, 0, 1]
-            ),
-            Recovery(
-                gate=X(self.data_qubits[1]),
-                symptom=[1, 0, 0, 0]
             ),
             Recovery(
                 gate=Z(self.data_qubits[2]),
                 symptom=[0, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[2]),
-                symptom=[1, 1, 0, 0]
-            ),
-            Recovery(
                 gate=Z(self.data_qubits[3]),
                 symptom=[1, 0, 0, 1]
             ),
             Recovery(
-                gate=X(self.data_qubits[3]),
-                symptom=[0, 1, 1, 0]
-            ),
-            Recovery(
                 gate=Z(self.data_qubits[4]),
                 symptom=[0, 1, 0, 0]
+            ),
+            Recovery(
+                gate=X(self.data_qubits[0]),
+                symptom=[0, 0, 0, 1]
+            ),
+            Recovery(
+                gate=X(self.data_qubits[1]),
+                symptom=[1, 0, 0, 0]
+            ),
+            Recovery(
+                gate=X(self.data_qubits[2]),
+                symptom=[1, 1, 0, 0]
+            ),
+            Recovery(
+                gate=X(self.data_qubits[3]),
+                symptom=[0, 1, 1, 0]
             ),
             Recovery(
                 gate=X(self.data_qubits[4]),

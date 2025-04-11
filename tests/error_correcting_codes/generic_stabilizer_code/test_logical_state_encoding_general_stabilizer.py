@@ -11,7 +11,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 
 
-class TestGenericStabilizerCode:
+class TestGenericStabilizerCodeGeneralStabilizer:
     def test_logical_zero_steane(self):
         size_of_code_plus_one_ancilla = 8
         expected_state = partial_trace(ExpectedStatesSteane().get_logical_zero_density_matrix(), list(range(size_of_code_plus_one_ancilla)))

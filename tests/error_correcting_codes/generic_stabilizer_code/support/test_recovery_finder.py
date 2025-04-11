@@ -40,12 +40,12 @@ class TestRecoveryFinder:
         assert recoveries == {
             1: [
                 Recovery(
-                    gate=X,
+                    gate=Z,
                     qubit_index=0,
                     symptom=[1]
                 ),
                 Recovery(
-                    gate=Z,
+                    gate=X,
                     qubit_index=0,
                     symptom=[1]
                 ),

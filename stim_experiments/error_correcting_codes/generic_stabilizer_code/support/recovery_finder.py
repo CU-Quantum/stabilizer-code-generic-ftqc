@@ -25,18 +25,25 @@ class RecoveryFinder:
         return recoveries_dict
 
     def _find_recoveries(self) -> List[Recovery]:
-        return [self._get_recovery_for_error(error=possible_error, qubit_index=qubit_index)
-                for qubit_index in range(self._check_matrix.num_physical_qubits)
-                for possible_error in (X, Z)]
+        possible_errors = [X, Z]
+        return [Recovery(gate=possible_errors[column_index < self._check_matrix.num_physical_qubits],
+                         qubit_index=column_index % self._check_matrix.num_physical_qubits,
+                         symptom=syndrome.tolist())
+                for column_index, syndrome in enumerate(self._check_matrix.matrix.transpose())]
 
-    def _get_recovery_for_error(self, error: Gate, qubit_index: int) -> Recovery:
-        return Recovery(
-            gate=error,
-            qubit_index=qubit_index,
-            symptom=[int(bool(stabilizers_on_qubits[qubit_index]) and [error] != stabilizers_on_qubits[qubit_index])
-                     for stabilizers_on_qubits in self._stabilizer_gates],
-        )
-
-    @cached_property
-    def _stabilizer_gates(self) -> List[List[List[Gate]]]:
-        return CheckMatrixToGates(self._check_matrix).get_gates()
+    # def _find_recoveries(self) -> List[Recovery]:
+    #     return [self._get_recovery_for_error(error=possible_error, qubit_index=qubit_index)
+    #             for qubit_index in range(self._check_matrix.num_physical_qubits)
+    #             for possible_error in (X, Z)]
+    #
+    # def _get_recovery_for_error(self, error: Gate, qubit_index: int) -> Recovery:
+    #     return Recovery(
+    #         gate=error,
+    #         qubit_index=qubit_index,
+    #         symptom=[int(bool(stabilizers_on_qubits[qubit_index]) and [error] != stabilizers_on_qubits[qubit_index])
+    #                  for stabilizers_on_qubits in self._stabilizer_gates],
+    #     )
+    #
+    # @cached_property
+    # def _stabilizer_gates(self) -> List[List[List[Gate]]]:
+    #     return CheckMatrixToGates(self._check_matrix).get_gates()
