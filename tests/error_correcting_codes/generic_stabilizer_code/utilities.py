@@ -1,7 +1,10 @@
 from numpy import array
 
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import \
+    TYPE_CHECK_MATRIX
 
-def get_check_matrix_values_steane():
+
+def get_check_matrix_values_steane() -> TYPE_CHECK_MATRIX:
     return array([
         [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -11,7 +14,7 @@ def get_check_matrix_values_steane():
         [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
     ])
 
-def get_check_matrix_values_steane_standardized():
+def get_check_matrix_values_steane_standardized() -> TYPE_CHECK_MATRIX:
     return array([
         [1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
         [0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -21,14 +24,22 @@ def get_check_matrix_values_steane_standardized():
         [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0],
     ])
 
-def get_check_matrix_values_4_qubit():
+def get_check_matrix_values_4_qubit() -> TYPE_CHECK_MATRIX:
     return array([
         [1, 0, 0, 1, 0, 1, 1, 0],
         [1, 1, 1, 1, 1, 0, 0, 1],
     ])
 
-def get_check_matrix_values_4_qubit_standardized():
+def get_check_matrix_values_4_qubit_standardized() -> TYPE_CHECK_MATRIX:
     return array([
         [1, 0, 0, 1, 0, 1, 1, 0],
         [0, 1, 1, 0, 1, 1, 1, 1],
+    ])
+
+def get_check_matrix_values_5_qubit() -> TYPE_CHECK_MATRIX:
+    return array([
+        [1, 0, 0, 1, 0, 0, 1, 1, 0, 0],
+        [0, 1, 0, 0, 1, 0, 0, 1, 1, 0],
+        [1, 0, 1, 0, 0, 0, 0, 0, 1, 1],
+        [0, 1, 0, 1, 0, 1, 0, 0, 0, 1],
     ])

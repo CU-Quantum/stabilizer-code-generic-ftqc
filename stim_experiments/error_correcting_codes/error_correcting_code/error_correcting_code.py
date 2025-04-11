@@ -9,7 +9,7 @@ from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MAT
 
 
 class ErrorCorrectingCode(ABC):
-    def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE, num_data_qubits: int, num_ancilla_qubits: int):
+    def __init__(self, num_data_qubits: int, num_ancilla_qubits: int, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE = KET_ZERO_DENSITY_MATRIX):
         self._initial_logical_qubit_state_density_matrix = initial_logical_qubit_state_density_matrix
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
