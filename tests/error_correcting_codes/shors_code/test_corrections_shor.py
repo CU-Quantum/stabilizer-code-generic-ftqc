@@ -1,5 +1,5 @@
 import pytest
-from cirq import X, Z
+from cirq import X, Y, Z
 
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX
@@ -24,9 +24,17 @@ class TestCorrectionsShor:
         assert self._helper.state_matches_expected_after_error(error_gate=Z, qubit_index=qubit_index)
 
     @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
+    def test_pauli_y_error_is_correctly_applied(self, qubit_index: int):
+        assert self._helper.state_matches_expected_after_error(error_gate=Y, qubit_index=qubit_index)
+
+    @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
     def test_bit_flip_error_is_corrected(self, qubit_index: int):
         self._helper.error_is_corrected(error_gate=X, qubit_index=qubit_index)
 
     @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
     def test_phase_flip_error_is_corrected(self, qubit_index: int):
         self._helper.error_is_corrected(error_gate=Z, qubit_index=qubit_index)
+
+    @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)
+    def test_pauli_y_error_is_corrected(self, qubit_index: int):
+        self._helper.error_is_corrected(error_gate=Y, qubit_index=qubit_index)

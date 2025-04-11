@@ -1,16 +1,10 @@
-from dataclasses import dataclass
 from typing import List
 
 from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, Operation, R, X, Z, kron
 
+from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
-
-
-@dataclass
-class Recovery:
-    gate: Operation
-    symptom: List[int]
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -70,50 +64,60 @@ class FiveQubitCode(ErrorCorrectingCode):
     def correct_errors(self) -> None:
         recoveries = [
             Recovery(
-                gate=Z(self.data_qubits[0]),
+                gate=Z,
+                qubit_index=0,
                 symptom=[1, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[0]),
-                symptom=[0, 0, 0, 1]
-            ),
-            Recovery(
-                gate=Z(self.data_qubits[1]),
+                gate=Z,
+                qubit_index=1,
                 symptom=[0, 1, 0, 1]
             ),
             Recovery(
-                gate=X(self.data_qubits[1]),
-                symptom=[1, 0, 0, 0]
-            ),
-            Recovery(
-                gate=Z(self.data_qubits[2]),
+                gate=Z,
+                qubit_index=2,
                 symptom=[0, 0, 1, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[2]),
-                symptom=[1, 1, 0, 0]
-            ),
-            Recovery(
-                gate=Z(self.data_qubits[3]),
+                gate=Z,
+                qubit_index=3,
                 symptom=[1, 0, 0, 1]
             ),
             Recovery(
-                gate=X(self.data_qubits[3]),
-                symptom=[0, 1, 1, 0]
-            ),
-            Recovery(
-                gate=Z(self.data_qubits[4]),
+                gate=Z,
+                qubit_index=4,
                 symptom=[0, 1, 0, 0]
             ),
             Recovery(
-                gate=X(self.data_qubits[4]),
+                gate=X,
+                qubit_index=0,
+                symptom=[0, 0, 0, 1]
+            ),
+            Recovery(
+                gate=X,
+                qubit_index=1,
+                symptom=[1, 0, 0, 0]
+            ),
+            Recovery(
+                gate=X,
+                qubit_index=2,
+                symptom=[1, 1, 0, 0]
+            ),
+            Recovery(
+                gate=X,
+                qubit_index=3,
+                symptom=[0, 1, 1, 0]
+            ),
+            Recovery(
+                gate=X,
+                qubit_index=4,
                 symptom=[0, 0, 1, 1]
             ),
 
         ]
 
         recovery_circuit = Circuit(
-            [recovery.gate.controlled_by(*self.ancilla_qubits, control_values=recovery.symptom)
+            [recovery.gate(self.data_qubits[recovery.qubit_index]).controlled_by(*self.ancilla_qubits, control_values=recovery.symptom)
              for recovery in recoveries]
         )
         circuit = Circuit(

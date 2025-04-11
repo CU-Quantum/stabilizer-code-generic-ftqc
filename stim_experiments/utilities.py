@@ -39,3 +39,11 @@ def partial_trace(rho: DENSITY_MATRIX_TYPE, keep_qubits: List[int]) -> DENSITY_M
 
     reduced_dim = 2 ** dim
     return reshaped_rho.reshape((reduced_dim, reduced_dim))
+
+
+def int_to_binary_array(num: int, num_elements: int) -> List[int]:
+    return list(map(int, bin(num)[2:].rjust(num_elements, '0')))
+
+
+def binary_array_to_int(binary_array: List[int]) -> int:
+    return int(''.join(map(str, binary_array)), 2)

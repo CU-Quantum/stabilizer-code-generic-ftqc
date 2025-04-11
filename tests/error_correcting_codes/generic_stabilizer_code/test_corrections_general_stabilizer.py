@@ -1,10 +1,12 @@
 import pytest
 from cirq import X, Y, Z
 
-from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
+    GenericStabilizerCode
 from tests.error_correcting_codes.corrections_test_helper import CorrectionsTestHelper
-from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
+from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
+    ExpectedStatesGenericFiveQubit
+from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 
 
 class TestCorrectionsFiveQubit:
@@ -12,8 +14,8 @@ class TestCorrectionsFiveQubit:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        code = FiveQubitCode(initial_logical_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
-        self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesFiveQubit(), code=code)
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+        self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesGenericFiveQubit(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _all_qubits)
     def test_bit_flip_error_is_correctly_applied(self, qubit_index: int):
