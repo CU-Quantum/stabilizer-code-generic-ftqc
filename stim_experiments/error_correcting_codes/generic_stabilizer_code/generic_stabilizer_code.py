@@ -16,6 +16,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.mat
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, binary_array_to_int, partial_trace
 
 
@@ -51,6 +52,17 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     def _get_encoding_circuit(self) -> Circuit:
         return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
                                    data_qubits=self.data_qubits).get_encoding_circuit()
+
+    def apply_operation(self, operation: LogicalOperation) -> None:
+        if operation.gate == LogicalGateLabel.X:
+            logical_nots = CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
+            logical_not_for_qubit = logical_nots[operation.qubit_indices[0]]
+            circuit = Circuit(
+                [gate(self._get_qubit_at_index(qubit_index=qubit_index))
+                 for qubit_index, qubit_gates in enumerate(logical_not_for_qubit)
+                 for gate in qubit_gates]
+            )
+            self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def correct_errors(self) -> None:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()

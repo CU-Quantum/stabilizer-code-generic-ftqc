@@ -11,7 +11,7 @@ class CorrectionsTestHelper:
         self._code = code
 
     def state_matches_expected_after_error(self, error_gate: Gate, qubit_index: int) -> bool:
-        self._code.apply_gate(error_gate, qubit_index=qubit_index)
+        self._code.apply_error(error_gate, qubit_index=qubit_index)
         current_state = self._code.get_current_state()
 
         initial_state = self._expected_states_utilities.get_logical_zero_density_matrix()
@@ -28,7 +28,7 @@ class CorrectionsTestHelper:
         return allclose(current_state, expected_state, atol=1e-7)
 
     def error_is_corrected(self, error_gate: Gate, qubit_index: int) -> bool:
-        self._code.apply_gate(error_gate, qubit_index=qubit_index)
+        self._code.apply_error(error_gate, qubit_index=qubit_index)
         self._code.correct_errors()
         current_state = self._code.get_current_state()
 

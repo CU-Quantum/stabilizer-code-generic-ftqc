@@ -5,6 +5,7 @@ from typing import List
 from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, kron
 from numpy._typing import NDArray
 
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
@@ -28,9 +29,13 @@ class ErrorCorrectingCode(ABC):
     def get_current_state(self) -> NDArray[NDArray[complex]]:
         return self._current_state
 
-    def apply_gate(self, gate: Gate, qubit_index: int) -> None:
+    def apply_error(self, gate: Gate, qubit_index: int) -> None:
         circuit = Circuit(gate(self.all_qubits[qubit_index]))
         self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    @abstractmethod
+    def apply_operation(self, operation: LogicalOperation) -> None:
+        pass
 
     def _get_state_after_circuit(self, circuit: Circuit) -> TYPE_DENSITY_MATRIX:
         simulator = DensityMatrixSimulator()
