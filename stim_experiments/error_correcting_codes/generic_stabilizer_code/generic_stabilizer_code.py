@@ -1,4 +1,5 @@
 from functools import cached_property
+from typing import Optional
 
 from cirq import Circuit, H, LineQubit, R, kron
 from numpy import log2
@@ -15,14 +16,16 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.mat
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX, binary_array_to_int, partial_trace
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, binary_array_to_int, partial_trace
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
-                 initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE = KET_ZERO_DENSITY_MATRIX):
+                 initial_logical_qubit_state_density_matrix: Optional[TYPE_DENSITY_MATRIX] = None):
         self._check_matrix = CheckMatrix(matrix=generators)
+        if initial_logical_qubit_state_density_matrix is None:
+            initial_logical_qubit_state_density_matrix = kron(*[KET_ZERO_DENSITY_MATRIX] * self._check_matrix.num_logical_qubits)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_ancilla_qubits=len(self._check_matrix.matrix),
                          initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix)

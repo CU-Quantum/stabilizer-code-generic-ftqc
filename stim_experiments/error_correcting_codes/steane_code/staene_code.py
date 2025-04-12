@@ -3,13 +3,13 @@ from typing import List
 from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX, int_to_binary_array
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, int_to_binary_array
 
 
 class SteaneCode(ErrorCorrectingCode):
     _stabilizer_indices = [(3, 4, 5, 6), (1, 2, 5, 6), (0, 2, 4, 6)]
 
-    def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
+    def __init__(self, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
         super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=7, num_ancilla_qubits=3)
 
     def _encode_logical_qubit(self) -> None:

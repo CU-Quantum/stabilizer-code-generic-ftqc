@@ -4,7 +4,7 @@ from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, 
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -24,7 +24,7 @@ class FiveQubitCode(ErrorCorrectingCode):
             [self.all_qubits[i] for i in (1,4)],
         ]
 
-    def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
+    def __init__(self, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
         super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix,
                          num_data_qubits=5,
                          num_ancilla_qubits=4)

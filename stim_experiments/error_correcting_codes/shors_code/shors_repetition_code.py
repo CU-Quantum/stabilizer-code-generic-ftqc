@@ -1,11 +1,11 @@
 from cirq import CX, Circuit, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
-    def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
+    def __init__(self, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
         super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=9, num_ancilla_qubits=2)
 
     def _encode_logical_qubit(self) -> None:

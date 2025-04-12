@@ -5,11 +5,11 @@ from typing import List
 from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, kron
 from numpy._typing import NDArray
 
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
 class ErrorCorrectingCode(ABC):
-    def __init__(self, num_data_qubits: int, num_ancilla_qubits: int, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE = KET_ZERO_DENSITY_MATRIX):
+    def __init__(self, num_data_qubits: int, num_ancilla_qubits: int, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
         self._initial_logical_qubit_state_density_matrix = initial_logical_qubit_state_density_matrix
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
@@ -32,7 +32,7 @@ class ErrorCorrectingCode(ABC):
         circuit = Circuit(gate(self.all_qubits[qubit_index]))
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
-    def _get_state_after_circuit(self, circuit: Circuit) -> DENSITY_MATRIX_TYPE:
+    def _get_state_after_circuit(self, circuit: Circuit) -> TYPE_DENSITY_MATRIX:
         simulator = DensityMatrixSimulator()
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
         return simulation.final_density_matrix
