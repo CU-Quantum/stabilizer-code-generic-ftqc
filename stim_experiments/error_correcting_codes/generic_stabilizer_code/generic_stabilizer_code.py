@@ -1,7 +1,7 @@
 from functools import cached_property
-from typing import Optional
+from typing import List, Optional
 
-from cirq import Circuit, H, LineQubit, R, kron
+from cirq import Circuit, Gate, H, LineQubit, R, kron
 from numpy import log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -54,15 +54,25 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
     def apply_operation(self, operation: LogicalOperation) -> None:
+        # TODO move this into superclass
+        logical_gates = self._get_logical_operation_gates(operation=operation)
+        if logical_gates is None:
+            # TODO test for this
+            raise ValueError(f"Unknown gate: {operation.gate}")
+        logical_gates_for_qubit = logical_gates[operation.qubit_index] # TODO test for multiple encoded bits, invalid qubit index, etc
+        circuit = Circuit(
+            [gate(self._get_qubit_at_index(qubit_index=qubit_index))
+             for qubit_index, qubit_gates in enumerate(logical_gates_for_qubit)
+             for gate in qubit_gates]
+        )
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    def _get_logical_operation_gates(self, operation: LogicalOperation) -> Optional[List[List[List[Gate]]]]:
+        # TODO make this an abstractmethod in superclass
         if operation.gate == LogicalGateLabel.X:
-            logical_nots = CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
-            logical_not_for_qubit = logical_nots[operation.qubit_indices[0]]
-            circuit = Circuit(
-                [gate(self._get_qubit_at_index(qubit_index=qubit_index))
-                 for qubit_index, qubit_gates in enumerate(logical_not_for_qubit)
-                 for gate in qubit_gates]
-            )
-            self._current_state = self._get_state_after_circuit(circuit=circuit)
+            return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
+        elif operation.gate == LogicalGateLabel.Z:
+            return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_zs)).get_gates()
 
     def correct_errors(self) -> None:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
