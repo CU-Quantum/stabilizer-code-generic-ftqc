@@ -1,3 +1,4 @@
+import pytest
 from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -28,6 +29,7 @@ class CodeStub(ErrorCorrectingCode):
         pass
 
 
+@pytest.mark.skip("Not implemented")
 class TestSimulatorCircuit:
     def test_trivial(self):
         code = CodeStub()

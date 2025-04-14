@@ -4,6 +4,7 @@ from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, 
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
@@ -60,6 +61,9 @@ class FiveQubitCode(ErrorCorrectingCode):
         return [
             [Z(fix_qubit).controlled_by(self.ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
         ]
+
+    def apply_operation(self, operation: LogicalOperation) -> None:
+        raise NotImplementedError()
 
     def correct_errors(self) -> None:
         recoveries = [

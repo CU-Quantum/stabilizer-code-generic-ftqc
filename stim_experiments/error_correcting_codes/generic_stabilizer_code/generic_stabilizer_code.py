@@ -54,7 +54,6 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
     def apply_operation(self, operation: LogicalOperation) -> None:
-        # TODO move this into superclass
         logical_gates = self._get_logical_operation_gates(operation=operation)
         if logical_gates is None:
             # TODO test for this
@@ -69,12 +68,12 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._modify_stabilizers(operation=operation)
 
     def _get_logical_operation_gates(self, operation: LogicalOperation) -> Optional[List[List[List[Gate]]]]:
-        # TODO make this an abstractmethod in superclass
         if operation.gate == LogicalGateLabel.X:
             return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
         elif operation.gate == LogicalGateLabel.Z:
             return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_zs)).get_gates()
         elif operation.gate == LogicalGateLabel.H:
+            # TODO don't think this works for multiple qubit encoding
             return [[[H]
                      for _ in range(self._check_matrix_standardized.num_physical_qubits)]
                     for _ in range(self._check_matrix_standardized.num_logical_qubits)]

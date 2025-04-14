@@ -3,6 +3,7 @@ from typing import List
 from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, int_to_binary_array
 
 
@@ -23,6 +24,9 @@ class SteaneCode(ErrorCorrectingCode):
         self._current_state = initial_state_simulation.final_density_matrix
 
         self.correct_errors()
+
+    def apply_operation(self, operation: LogicalOperation) -> None:
+        raise NotImplementedError()
 
     def correct_errors(self) -> None:
         self._correct_bit_flips()

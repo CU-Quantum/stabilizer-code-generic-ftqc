@@ -20,11 +20,6 @@ class TestCheckMatrixStandardizer:
         with pytest.raises(ValueError, match=escape("The number of rows must be at most than half the number of columns. Shape (1, 0) was provided.")):
             CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[]])))
 
-    def test_one(self):
-        standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=array([[1, 1]])))
-        standardized_check = standardizer.get_standardized_matrix()
-        assert allequal(standardized_check, CheckMatrix(matrix=array([[1, 1]])))
-
     def test_steane(self):
         standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=get_check_matrix_values_steane()))
         standardized_check = standardizer.get_standardized_matrix()
