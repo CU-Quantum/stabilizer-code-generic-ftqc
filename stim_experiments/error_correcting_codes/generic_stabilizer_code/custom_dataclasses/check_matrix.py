@@ -13,6 +13,7 @@ class CheckMatrix:
     qubit_order: List[int] = field(default_factory=list)
 
     def __post_init__(self):
+        # TODO test input matrix is unmodified
         default_qubit_order = list(range(self.num_physical_qubits))
         self.qubit_order = self.qubit_order or default_qubit_order
 
@@ -54,3 +55,7 @@ class CheckMatrix:
     def add_rows(self, row_index: int, target_row_index: int) -> None:
         self.matrix[target_row_index] += self.matrix[row_index]
         self.matrix[target_row_index] %= 2
+
+    def swap_xs_and_zs(self) -> None:
+        mid = self.num_physical_qubits
+        self.matrix[:, :mid], self.matrix[:, mid:] = self.matrix[:, mid:], self.matrix[:, :mid].copy()

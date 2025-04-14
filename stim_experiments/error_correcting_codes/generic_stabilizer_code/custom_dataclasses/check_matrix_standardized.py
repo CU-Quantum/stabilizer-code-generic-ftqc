@@ -43,23 +43,14 @@ class CheckMatrixStandardized(CheckMatrix):
         if any(pauli_z_portion_zeros.flatten()):
             raise ValueError("The (r)x(n-k-r) submatrix beginning at index [0, n+r] must be 0.")
 
-        pauli_z_portion_zeros = self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits + self.rank_of_pauli_x_portion:-self.num_logical_qubits]
-        if not allequal(pauli_z_portion_zeros, numpy.identity(self.num_physical_qubits - self.num_logical_qubits - self.rank_of_pauli_x_portion)):
+        pauli_z_portion_identity = self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits + self.rank_of_pauli_x_portion:-self.num_logical_qubits]
+        if not allequal(pauli_z_portion_identity, numpy.identity(self.num_physical_qubits - self.num_logical_qubits - self.rank_of_pauli_x_portion)):
             raise ValueError("The (n-k-r)x(n-k-r) submatrix beginning at index [r, n+r] must be the identity.")
 
-    @property
-    def submatrices(self) -> CheckMatrixSubmatrices:
-        return CheckMatrixSubmatrices(
-            a1=self.matrix[:self.rank_of_pauli_x_portion, self.rank_of_pauli_x_portion:self.num_physical_qubits - self.num_logical_qubits],
-            a2=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits - self.num_logical_qubits:self.num_physical_qubits],
-            b=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
-            c=self.matrix[:self.rank_of_pauli_x_portion, -self.num_logical_qubits:],
-            d=self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
-            e=self.matrix[self.rank_of_pauli_x_portion:, -self.num_logical_qubits:],
-        )
+        self.logical_xs = self._get_logical_xs()
+        self.logical_zs = self._get_logical_zs()
 
-    @property
-    def logical_xs(self) -> TYPE_CHECK_MATRIX:
+    def _get_logical_xs(self) -> TYPE_CHECK_MATRIX:
         return numpy.concatenate(
             [
                 numpy.zeros((self.num_logical_qubits, self.rank_of_pauli_x_portion)),
@@ -72,8 +63,7 @@ class CheckMatrixStandardized(CheckMatrix):
             axis=1,
         )
 
-    @property
-    def logical_zs(self) -> TYPE_CHECK_MATRIX:
+    def _get_logical_zs(self) -> TYPE_CHECK_MATRIX:
         return numpy.concatenate(
             [
                 numpy.zeros((self.num_logical_qubits, self.rank_of_pauli_x_portion)),
@@ -84,6 +74,17 @@ class CheckMatrixStandardized(CheckMatrix):
                 numpy.identity(self.num_logical_qubits)
             ],
             axis=1,
+        )
+
+    @property
+    def submatrices(self) -> CheckMatrixSubmatrices:
+        return CheckMatrixSubmatrices(
+            a1=self.matrix[:self.rank_of_pauli_x_portion, self.rank_of_pauli_x_portion:self.num_physical_qubits - self.num_logical_qubits],
+            a2=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits - self.num_logical_qubits:self.num_physical_qubits],
+            b=self.matrix[:self.rank_of_pauli_x_portion, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
+            c=self.matrix[:self.rank_of_pauli_x_portion, -self.num_logical_qubits:],
+            d=self.matrix[self.rank_of_pauli_x_portion:, self.num_physical_qubits:self.num_physical_qubits + self.rank_of_pauli_x_portion],
+            e=self.matrix[self.rank_of_pauli_x_portion:, -self.num_logical_qubits:],
         )
 
     def __eq__(self, other):

@@ -6,6 +6,7 @@ from typing import List
 class LogicalGateLabel(Enum):
     X = auto()
     Z = auto()
+    H = auto()
 
 
 @dataclass

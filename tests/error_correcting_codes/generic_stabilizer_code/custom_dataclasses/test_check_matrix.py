@@ -98,3 +98,16 @@ class TestStabilizersStandardizer:
             [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
         ]
         assert matrix.matrix.tolist() == second_row_is_added_to_first
+
+    def test_halves_can_be_swapped(self):
+        matrix = CheckMatrix(matrix=self._steane_matrix_values)
+        matrix.swap_xs_and_zs()
+        xs_and_zs_are_swapped = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1],
+            [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        ]
+        assert matrix.matrix.tolist() == xs_and_zs_are_swapped

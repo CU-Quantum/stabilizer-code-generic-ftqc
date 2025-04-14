@@ -66,6 +66,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
              for gate in qubit_gates]
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
+        self._modify_stabilizers(operation=operation)
 
     def _get_logical_operation_gates(self, operation: LogicalOperation) -> Optional[List[List[List[Gate]]]]:
         # TODO make this an abstractmethod in superclass
@@ -73,6 +74,14 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
         elif operation.gate == LogicalGateLabel.Z:
             return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_zs)).get_gates()
+        elif operation.gate == LogicalGateLabel.H:
+            return [[[H]
+                     for _ in range(self._check_matrix_standardized.num_physical_qubits)]
+                    for _ in range(self._check_matrix_standardized.num_logical_qubits)]
+
+    def _modify_stabilizers(self, operation: LogicalOperation) -> None:
+        if operation.gate == LogicalGateLabel.H:
+            self._check_matrix_standardized.swap_xs_and_zs()
 
     def correct_errors(self) -> None:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
