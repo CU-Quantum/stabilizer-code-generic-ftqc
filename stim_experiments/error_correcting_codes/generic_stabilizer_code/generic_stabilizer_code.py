@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List, Optional
 
-from cirq import Circuit, Gate, H, LineQubit, R, kron
+from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, kron
 from numpy import log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode

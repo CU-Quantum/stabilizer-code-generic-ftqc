@@ -10,6 +10,7 @@ KET_ZERO_STATE_VECTOR = KET_ZERO.state_vector()
 KET_ONE_STATE_VECTOR = KET_ONE.state_vector()
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
+KET_PLUS_DENSITY_MATRIX = density_matrix_from_state_vector((1 / numpy.sqrt(2)) * (KET_ZERO.state_vector() + KET_ONE.state_vector()))
 
 
 def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: List[int]) -> TYPE_DENSITY_MATRIX:

@@ -1,10 +1,10 @@
-from cirq import X, Z
-from numpy import allclose
+from cirq import KET_ONE, KET_ZERO, Z, density_matrix_from_state_vector
+from numpy import allclose, sqrt
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
 from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX
+from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_PLUS_DENSITY_MATRIX
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
@@ -22,10 +22,10 @@ class TestLogicalGates:
 
     def test_logical_z(self):
         operation = LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_PLUS_DENSITY_MATRIX)
         code.apply_operation(operation=operation)
         current_state = code.get_current_state()
-        expected_state = -ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix()
+        expected_state = ExpectedStatesGenericFiveQubit().get_logical_minus_density_matrix()
         assert allclose(current_state, expected_state)
 
 

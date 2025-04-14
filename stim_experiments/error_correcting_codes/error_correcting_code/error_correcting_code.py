@@ -2,10 +2,11 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import List
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, kron
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, Simulator, \
+    StateVectorTrialResult, kron
 from numpy._typing import NDArray
 
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
@@ -38,6 +39,9 @@ class ErrorCorrectingCode(ABC):
         pass
 
     def _get_state_after_circuit(self, circuit: Circuit) -> TYPE_DENSITY_MATRIX:
+        # simulator = Simulator()
+        # simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
+        # return simulation.final_state_vector
         simulator = DensityMatrixSimulator()
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
         return simulation.final_density_matrix
