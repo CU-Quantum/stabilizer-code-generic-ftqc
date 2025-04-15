@@ -12,7 +12,7 @@ def get_arbitrary_check_matrix_values():
     return array([[1, 1]])
 
 
-class TestStabilizersStandardizer:
+class TestCheckMatrix:
     @pytest.fixture(autouse=True)
     def _setup(self):
         self._steane_matrix_values = get_check_matrix_values_steane()
@@ -111,3 +111,9 @@ class TestStabilizersStandardizer:
             [1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0],
         ]
         assert matrix.matrix.tolist() == xs_and_zs_are_swapped
+
+    def test_input_matrix_is_unmodified(self):
+        matrix_values = get_check_matrix_values_steane()
+        matrix = CheckMatrix(matrix=matrix_values)
+        matrix.swap_xs_and_zs()
+        assert matrix_values.tolist() == get_check_matrix_values_steane().tolist()

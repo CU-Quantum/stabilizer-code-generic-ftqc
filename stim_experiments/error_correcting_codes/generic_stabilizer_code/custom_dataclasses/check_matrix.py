@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
@@ -13,9 +14,9 @@ class CheckMatrix:
     qubit_order: List[int] = field(default_factory=list)
 
     def __post_init__(self):
-        # TODO test input matrix is unmodified
         default_qubit_order = list(range(self.num_physical_qubits))
         self.qubit_order = self.qubit_order or default_qubit_order
+        self.matrix = deepcopy(self.matrix)
 
         if sorted(self.qubit_order) != default_qubit_order:
             raise ValueError(f"Qubit order must be a permutation of the number of qubits. Order {self.qubit_order} was provided.")
