@@ -1,3 +1,4 @@
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import List, Tuple
 
@@ -15,6 +16,7 @@ class CheckMatrix:
     def __post_init__(self):
         default_qubit_order = list(range(self.num_physical_qubits))
         self.qubit_order = self.qubit_order or default_qubit_order
+        self.matrix = deepcopy(self.matrix)
 
         if sorted(self.qubit_order) != default_qubit_order:
             raise ValueError(f"Qubit order must be a permutation of the number of qubits. Order {self.qubit_order} was provided.")
@@ -54,3 +56,7 @@ class CheckMatrix:
     def add_rows(self, row_index: int, target_row_index: int) -> None:
         self.matrix[target_row_index] += self.matrix[row_index]
         self.matrix[target_row_index] %= 2
+
+    def swap_xs_and_zs(self) -> None:
+        mid = self.num_physical_qubits
+        self.matrix[:, :mid], self.matrix[:, mid:] = self.matrix[:, mid:], self.matrix[:, :mid].copy()

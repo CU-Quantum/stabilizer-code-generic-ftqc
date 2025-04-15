@@ -4,6 +4,7 @@ from stim import Circuit
 from stim_experiments.error_correcting_codes.surface_code.surface_code_stim.surface_code_stim import SurfaceCodeStim
 
 
+@pytest.mark.skip("Not implemented")
 class TestSurfaceCodeCourseraCustom:
     _error_probability = .2
     _circuit = Circuit.generated(

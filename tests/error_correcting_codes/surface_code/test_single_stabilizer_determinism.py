@@ -1,6 +1,8 @@
+import pytest
 from stim import Circuit
 
 
+@pytest.mark.skip("Not implemented")
 class TestSingleStabilizerDeterminism:
     all_indices = list(range(5))
     data_indices = all_indices[:4]

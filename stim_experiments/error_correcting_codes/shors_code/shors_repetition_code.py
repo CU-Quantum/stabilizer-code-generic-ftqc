@@ -1,15 +1,21 @@
+from typing import List
+
 from cirq import CX, Circuit, H, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.utilities import DENSITY_MATRIX_TYPE, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
-    def __init__(self, initial_logical_qubit_state_density_matrix: DENSITY_MATRIX_TYPE):
-        super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=9, num_ancilla_qubits=2)
+    def __init__(self, initial_logical_qubit_state: TYPE_DENSITY_MATRIX):
+        super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
+                         num_data_qubits=9,
+                         num_ancilla_qubits=2,
+                         num_logical_qubits=1)
 
     def _encode_logical_qubit(self) -> None:
-        each_qubit_initial_state = ([self._initial_logical_qubit_state_density_matrix]
+        each_qubit_initial_state = ([self._initial_logical_qubit_state]
                                     + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits) - 1)])
         self._current_state = kron(*each_qubit_initial_state)
 
@@ -24,6 +30,13 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
         )
 
         self._current_state = self._get_state_after_circuit(circuit=circuit)
+
+    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
+        pass
+
+    @property
+    def _implemented_operations(self) -> List[LogicalGateLabel]:
+        return []
 
     def correct_errors(self):
         self._correct_bit_flips()

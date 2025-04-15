@@ -88,11 +88,12 @@ class TestStabilizersStandardizer:
         logical_xs = matrix.logical_xs
         assert logical_xs.tolist() == expected_xs
 
-    @pytest.mark.parametrize(['matrix_values', 'expected_xs'], [
+    @pytest.mark.parametrize(['matrix_values', 'expected_zs'], [
         (get_check_matrix_values_steane_standardized(), [[0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1]]),
         (get_check_matrix_values_4_qubit_standardized(), [[0, 0, 0, 0, 0, 1, 1, 0], [0, 0, 0, 0, 1, 0, 0, 1]]),
     ])
-    def test_determines_logical_z_operators(self, matrix_values: TYPE_CHECK_MATRIX, expected_xs: TYPE_CHECK_MATRIX):
+    def test_determines_logical_z_operators(self, matrix_values: TYPE_CHECK_MATRIX, expected_zs: TYPE_CHECK_MATRIX):
         matrix = CheckMatrixStandardized(matrix=matrix_values)
-        logical_xs = matrix.logical_zs
-        assert logical_xs.tolist() == expected_xs
+        logical_zs = matrix.logical_zs
+        assert logical_zs.tolist() == expected_zs
+

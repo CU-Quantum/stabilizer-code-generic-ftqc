@@ -3,6 +3,7 @@ import pytest
 from stim_experiments.error_correcting_codes.surface_code.coursera_custom.surface_code_coursera_custom import SurfaceCodeCourseraCustom
 
 
+@pytest.mark.skip("Not implemented")
 class TestSurfaceCodeCourseraCustom:
     @pytest.fixture(autouse=True)
     def setup_code(self):

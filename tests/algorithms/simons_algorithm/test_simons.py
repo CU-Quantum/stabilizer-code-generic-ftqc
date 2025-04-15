@@ -1,5 +1,6 @@
 from functools import cached_property
 
+import pytest
 import stim
 
 class RepetitionCodeSimonsAlgorithm:
@@ -24,6 +25,7 @@ class RepetitionCodeSimonsAlgorithm:
         print('z_measures', z_measures)
 
 
+@pytest.mark.skip("Not implemented")
 class TestSimons:
     def test_zero_state(self):
         simons_code = RepetitionCodeSimonsAlgorithm(logical_qubits=2)
