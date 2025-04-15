@@ -9,8 +9,6 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     TYPE_CHECK_MATRIX
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
-    ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesStateVector
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.logical_qubit_encoder import \
     LogicalQubitEncoder
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
@@ -32,6 +30,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             initial_logical_qubit_state = kron(*[KET_ZERO.state_vector()] * self._check_matrix.num_logical_qubits).reshape(2 ** self._check_matrix.num_logical_qubits,)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_ancilla_qubits=len(self._check_matrix.matrix),
+                         num_logical_qubits=self._check_matrix.num_logical_qubits,
                          initial_logical_qubit_state=initial_logical_qubit_state)
         self._generators = generators
 
@@ -57,9 +56,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
-    def apply_operation(self, operation: LogicalOperation) -> None:
-        if not 0 <= operation.qubit_index < self._check_matrix.num_logical_qubits:
-            raise ValueError(f"Qubit index must be between 0 and {self._check_matrix.num_logical_qubits - 1}. Was given {operation.qubit_index}.")
+    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
         self._apply_logical_hadamard(operation=operation) \
             if operation.gate == LogicalGateLabel.H \
             else self._apply_logical_x_or_z(operation=operation)
@@ -98,7 +95,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
 
     def _apply_logical_x_or_z(self, operation: LogicalOperation) -> None:
         logical_gates = self._get_logical_operation_gates(gate_label=operation.gate)
-        logical_gates_for_qubit = logical_gates[operation.qubit_index]  # TODO test for invalid qubit index, etc
+        logical_gates_for_qubit = logical_gates[operation.qubit_index]
         circuit = Circuit(
             [gate(self._get_qubit_at_index(qubit_index=qubit_index))
              for qubit_index, qubit_gates in enumerate(logical_gates_for_qubit)
@@ -113,6 +110,10 @@ class GenericStabilizerCode(ErrorCorrectingCode):
 
         operation_matrix = self._check_matrix_standardized.logical_xs if gate_label is LogicalGateLabel.X else self._check_matrix_standardized.logical_zs
         return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
+
+    @property
+    def _implemented_operations(self) -> List[LogicalGateLabel]:
+        return [LogicalGateLabel.X, LogicalGateLabel.Z, LogicalGateLabel.H]
 
     def correct_errors(self) -> None:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()

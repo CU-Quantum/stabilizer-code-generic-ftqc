@@ -8,7 +8,7 @@ from numpy._typing import NDArray
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
     ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesDensityMatrix, ErrorCorrectingCodeUtilitiesStateVector
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
 
@@ -16,10 +16,12 @@ class ErrorCorrectingCode(ABC):
     def __init__(self,
                  num_data_qubits: int,
                  num_ancilla_qubits: int,
+                 num_logical_qubits: int,
                  initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
+        self._num_logical_qubits = num_logical_qubits
         self._initial_logical_qubit_state = initial_logical_qubit_state
 
         self._current_state = array([])
@@ -34,8 +36,20 @@ class ErrorCorrectingCode(ABC):
         pass
 
     @abstractmethod
-    def apply_operation(self, operation: LogicalOperation) -> None:
+    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
         pass
+
+    @property
+    @abstractmethod
+    def _implemented_operations(self) -> List[LogicalGateLabel]:
+        pass
+
+    def apply_operation(self, operation: LogicalOperation) -> None:
+        if operation.gate not in self._implemented_operations:
+            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self._implemented_operations]}.")
+        if not 0 <= operation.qubit_index < self._num_logical_qubits:
+            raise ValueError(f"Qubit index must be between 0 and {self._num_logical_qubits - 1}. Was given {operation.qubit_index}.")
+        self._perform_apply_operation(operation=operation)
 
     def get_current_state(self) -> NDArray[NDArray[complex]]:
         return self._current_state

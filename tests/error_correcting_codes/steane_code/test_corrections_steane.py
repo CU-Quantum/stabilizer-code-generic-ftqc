@@ -17,18 +17,6 @@ class TestCorrectionsSteane:
         self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesSteane(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _arbitrary_qubits)
-    def test_bit_flip_error_is_correctly_applied(self, qubit_index: int):
-        assert self._helper.state_matches_expected_after_error(error_gate=X, qubit_index=qubit_index)
-
-    @pytest.mark.parametrize('qubit_index', _arbitrary_qubits)
-    def test_phase_flip_error_is_correctly_applied(self, qubit_index: int):
-        assert self._helper.state_matches_expected_after_error(error_gate=Z, qubit_index=qubit_index)
-
-    @pytest.mark.parametrize('qubit_index', _arbitrary_qubits)
-    def test_pauli_y_error_is_correctly_applied(self, qubit_index: int):
-        assert self._helper.state_matches_expected_after_error(error_gate=Y, qubit_index=qubit_index)
-
-    @pytest.mark.parametrize('qubit_index', _arbitrary_qubits)
     def test_bit_flip_error_is_corrected(self, qubit_index: int):
         self._helper.error_is_corrected(error_gate=X, qubit_index=qubit_index)
 

@@ -4,7 +4,7 @@ from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, 
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 
 
@@ -28,7 +28,8 @@ class FiveQubitCode(ErrorCorrectingCode):
     def __init__(self, initial_logical_qubit_state: TYPE_DENSITY_MATRIX):
         super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
                          num_data_qubits=5,
-                         num_ancilla_qubits=4)
+                         num_ancilla_qubits=4,
+                         num_logical_qubits=1)
 
     def _encode_logical_qubit(self) -> None:
         initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
@@ -62,8 +63,12 @@ class FiveQubitCode(ErrorCorrectingCode):
             [Z(fix_qubit).controlled_by(self.ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
         ]
 
-    def apply_operation(self, operation: LogicalOperation) -> None:
-        raise NotImplementedError()
+    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
+        pass
+
+    @property
+    def _implemented_operations(self) -> List[LogicalGateLabel]:
+        return []
 
     def correct_errors(self) -> None:
         recoveries = [

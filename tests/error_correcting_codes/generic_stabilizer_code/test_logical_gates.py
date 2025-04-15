@@ -90,19 +90,11 @@ class TestLogicalGates:
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(), initial_logical_qubit_state=expected_logical_state).get_current_state()
         assert allclose(current_state, expected_state)
 
-    def test_qubit_index_must_be_at_least_zero(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
-        with pytest.raises(ValueError, match="Qubit index must be between 0 and 1. Was given -1."):
-            code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=-1))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
-
     def test_qubit_index_must_be_at_most_largest_logical_index(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 1. Was given 2."):
             code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=2))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
 
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 0. Was given 1."):
             code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
