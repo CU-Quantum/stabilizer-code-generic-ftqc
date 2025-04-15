@@ -58,6 +58,8 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
     def apply_operation(self, operation: LogicalOperation) -> None:
+        if not 0 <= operation.qubit_index < self._check_matrix.num_logical_qubits:
+            raise ValueError(f"Qubit index must be between 0 and {self._check_matrix.num_logical_qubits - 1}. Was given {operation.qubit_index}.")
         self._apply_logical_hadamard(operation=operation) \
             if operation.gate == LogicalGateLabel.H \
             else self._apply_logical_x_or_z(operation=operation)
@@ -96,8 +98,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
 
     def _apply_logical_x_or_z(self, operation: LogicalOperation) -> None:
         logical_gates = self._get_logical_operation_gates(gate_label=operation.gate)
-        logical_gates_for_qubit = logical_gates[
-            operation.qubit_index]  # TODO test for multiple encoded bits, invalid qubit index, etc
+        logical_gates_for_qubit = logical_gates[operation.qubit_index]  # TODO test for invalid qubit index, etc
         circuit = Circuit(
             [gate(self._get_qubit_at_index(qubit_index=qubit_index))
              for qubit_index, qubit_gates in enumerate(logical_gates_for_qubit)
