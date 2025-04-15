@@ -1,8 +1,8 @@
 from functools import cached_property
 from typing import List, Optional
 
-from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, kron
-from numpy import log2
+from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, Z, kron
+from numpy import array, log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
@@ -54,6 +54,30 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
     def apply_operation(self, operation: LogicalOperation) -> None:
+        if operation.gate == LogicalGateLabel.H:
+            logical_xs, logical_zs = (
+            self._get_logical_operation_gates(operation=LogicalOperation(label, qubit_index=operation.qubit_index))
+            for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
+
+            logical_cz = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
+                 for qubit_index, qubit_gates in enumerate(logical_zs[operation.qubit_index])
+                 for gate in qubit_gates]
+            logical_cx = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
+                 for qubit_index, qubit_gates in enumerate(logical_xs[operation.qubit_index])
+                 for gate in qubit_gates]
+
+            circuit = Circuit(
+                H(self.ancilla_qubits[0]),
+                logical_cx,
+                H(self.ancilla_qubits[0]),
+                logical_cz,
+                H(self.ancilla_qubits[0]),
+                logical_cz,
+                R(self.ancilla_qubits[0]),
+            )
+            self._current_state = self._get_state_after_circuit(circuit=circuit)
+            return
+
         logical_gates = self._get_logical_operation_gates(operation=operation)
         if logical_gates is None:
             # TODO test for this
@@ -65,7 +89,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
              for gate in qubit_gates]
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
-        self._modify_stabilizers(operation=operation)
+        # self._modify_stabilizers(operation=operation)
 
     def _get_logical_operation_gates(self, operation: LogicalOperation) -> Optional[List[List[List[Gate]]]]:
         if operation.gate == LogicalGateLabel.X:
@@ -73,10 +97,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         elif operation.gate == LogicalGateLabel.Z:
             return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_zs)).get_gates()
         elif operation.gate == LogicalGateLabel.H:
-            # TODO don't think this works for multiple qubit encoding
-            return [[[H]
-                     for _ in range(self._check_matrix_standardized.num_physical_qubits)]
-                    for _ in range(self._check_matrix_standardized.num_logical_qubits)]
+            pass
 
     def _modify_stabilizers(self, operation: LogicalOperation) -> None:
         if operation.gate == LogicalGateLabel.H:

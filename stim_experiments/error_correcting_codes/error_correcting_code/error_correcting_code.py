@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import List
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, Simulator, \
-    StateVectorTrialResult, kron
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, kron
 from numpy._typing import NDArray
 
 from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
