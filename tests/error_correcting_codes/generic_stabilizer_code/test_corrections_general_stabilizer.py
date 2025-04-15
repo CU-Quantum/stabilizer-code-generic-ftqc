@@ -3,6 +3,7 @@ from cirq import X, Y, Z
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
+from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX
 from tests.error_correcting_codes.corrections_test_helper import CorrectionsTestHelper
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
@@ -14,7 +15,7 @@ class TestCorrectionsFiveQubit:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
         self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesGenericFiveQubit(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _all_qubits)

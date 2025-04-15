@@ -51,6 +51,7 @@ class ErrorCorrectingCode(ABC):
 
     @property
     def _error_correcting_code_utilities(self) -> ErrorCorrectingCodeUtilities:
+        # TODO test that this correctly chooses utilities type
         is_state_vector = len(self._initial_logical_qubit_state.shape) == 1
         return ErrorCorrectingCodeUtilitiesStateVector() if is_state_vector else ErrorCorrectingCodeUtilitiesDensityMatrix()
 
