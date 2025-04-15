@@ -33,7 +33,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._generators = generators
 
     def _encode_logical_qubit(self) -> None:
-        self._validate_initial_logical_state_size()
+        # self._validate_initial_logical_state_size()
         self._initialize_logical_state()
         circuit = self._get_encoding_circuit()
         self._current_state = self._get_state_after_circuit(circuit=circuit)
@@ -44,9 +44,9 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
 
     def _initialize_logical_state(self) -> None:
-        data_state = kron(*[KET_ZERO_DENSITY_MATRIX] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
+        data_state = kron(*[KET_ZERO.state_vector()] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
                           self._initial_logical_qubit_state_density_matrix)
-        ancilla_state = kron(*[KET_ZERO_DENSITY_MATRIX] * self._num_ancilla_qubits)
+        ancilla_state = kron(*[KET_ZERO.state_vector()] * self._num_ancilla_qubits)
         self._current_state = kron(data_state, ancilla_state)
 
     def _get_encoding_circuit(self) -> Circuit:

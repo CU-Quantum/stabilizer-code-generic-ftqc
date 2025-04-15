@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import List
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit, kron
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, KET_ZERO, LineQubit, Simulator, \
+    StateVectorTrialResult, kron
 from numpy._typing import NDArray
 
 from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
@@ -15,7 +16,7 @@ class ErrorCorrectingCode(ABC):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
 
-        self._current_state = kron(*[KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits))])
+        self._current_state = kron(*[KET_ZERO.state_vector() for _ in range(len(self.all_qubits))])
         self._encode_logical_qubit()
 
     @abstractmethod
@@ -38,12 +39,12 @@ class ErrorCorrectingCode(ABC):
         pass
 
     def _get_state_after_circuit(self, circuit: Circuit) -> TYPE_DENSITY_MATRIX:
-        # simulator = Simulator()
-        # simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
-        # return simulation.final_state_vector
-        simulator = DensityMatrixSimulator()
-        simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
-        return simulation.final_density_matrix
+        simulator = Simulator()
+        simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
+        return simulation.final_state_vector
+        # simulator = DensityMatrixSimulator()
+        # simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
+        # return simulation.final_density_matrix
 
     @cached_property
     def data_qubits(self) -> List[LineQubit]:
