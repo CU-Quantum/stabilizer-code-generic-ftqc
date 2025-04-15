@@ -104,10 +104,6 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _get_logical_operation_gates(self, gate_label: LogicalGateLabel) -> Optional[List[List[List[Gate]]]]:
-        if gate_label not in (LogicalGateLabel.X, LogicalGateLabel.Z):
-            # TODO test for this
-            raise ValueError(f"Unknown gate: {gate_label}")
-
         operation_matrix = self._check_matrix_standardized.logical_xs if gate_label is LogicalGateLabel.X else self._check_matrix_standardized.logical_zs
         return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
 
