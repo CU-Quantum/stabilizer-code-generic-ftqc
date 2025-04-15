@@ -10,25 +10,19 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
     _num_ancillas = 4
 
     def get_logical_zero_density_matrix(self) -> TYPE_DENSITY_MATRIX:
-        data_qubits = self._get_logical_zero_state_vector()
-        ancilla_qubits = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
-        state_vector = kron(data_qubits, ancilla_qubits)
+        state_vector = self.get_logical_zero_state_vector()
         return density_matrix_from_state_vector(state_vector=state_vector)
 
     def get_logical_one_density_matrix(self) -> TYPE_DENSITY_MATRIX:
-        data_qubits = self._get_logical_one_state_vector()
-        ancilla_qubits = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
-        state_vector = kron(data_qubits, ancilla_qubits)
+        state_vector = self.get_logical_one_state_vector()
         return density_matrix_from_state_vector(state_vector=state_vector)
 
     def get_logical_minus_density_matrix(self) -> TYPE_DENSITY_MATRIX:
-        data_qubits = (1/sqrt(2)) * (self._get_logical_zero_state_vector() - self._get_logical_one_state_vector())
-        ancilla_qubits = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
-        state_vector = kron(data_qubits, ancilla_qubits)
+        state_vector = (1/sqrt(2)) * (self.get_logical_zero_state_vector() - self.get_logical_one_state_vector())
         return density_matrix_from_state_vector(state_vector=state_vector)
 
-    def _get_logical_zero_state_vector(self) -> NDArray[complex]:
-        return (1/4) * (
+    def get_logical_zero_state_vector(self) -> NDArray[complex]:
+        data_qubits = (1/4) * (
                 kron(*[KET_ZERO_STATE_VECTOR] * 5)
                 + kron(KET_ONE_STATE_VECTOR,
                         KET_ZERO_STATE_VECTOR,
@@ -106,9 +100,12 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
                         KET_ZERO_STATE_VECTOR,
                         KET_ONE_STATE_VECTOR)
         )
+        ancilla_qubits = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
+        return kron(data_qubits, ancilla_qubits).reshape(2 ** (5 + self._num_ancillas),)
 
-    def _get_logical_one_state_vector(self) -> NDArray[complex]:
-        return (1 / 4) * (
+
+    def get_logical_one_state_vector(self) -> NDArray[complex]:
+        data_qubits = (1 / 4) * (
                 - kron(*[KET_ONE_STATE_VECTOR] * 5)
                 - kron(KET_ZERO_STATE_VECTOR,
                        KET_ONE_STATE_VECTOR,
@@ -186,3 +183,5 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
                        KET_ONE_STATE_VECTOR,
                        KET_ZERO_STATE_VECTOR)
         )
+        ancilla_qubits = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
+        return kron(data_qubits, ancilla_qubits).reshape(2 ** (5 + self._num_ancillas), )

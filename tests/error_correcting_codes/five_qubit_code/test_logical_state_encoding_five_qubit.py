@@ -8,12 +8,12 @@ from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit imp
 class TestLogicalStateEncodingSteane:
     def test_logical_zero(self):
         expected_state = ExpectedStatesFiveQubit().get_logical_zero_density_matrix()
-        code = FiveQubitCode(initial_logical_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
+        code = FiveQubitCode(initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
         current_state = code.get_current_state()
         assert allclose(current_state, expected_state, atol=1e-7)
 
     def test_logical_one(self):
         expected_state = ExpectedStatesFiveQubit().get_logical_one_density_matrix()
-        code = FiveQubitCode(initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
+        code = FiveQubitCode(initial_logical_qubit_state=KET_ONE_DENSITY_MATRIX)
         current_state = code.get_current_state()
         assert allclose(current_state, expected_state, atol=1e-7)

@@ -13,7 +13,7 @@ class TestCorrectionsSteane:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        code = SteaneCode(initial_logical_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
+        code = SteaneCode(initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
         self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesSteane(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _arbitrary_qubits)

@@ -12,7 +12,7 @@ class TestCorrectionsFiveQubit:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        code = FiveQubitCode(initial_logical_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
+        code = FiveQubitCode(initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
         self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesFiveQubit(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _all_qubits)

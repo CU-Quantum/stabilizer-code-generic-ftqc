@@ -1,10 +1,12 @@
-from typing import List
+from typing import List, Union
 
 import numpy
 from cirq import KET_ONE, KET_ZERO, density_matrix_from_state_vector
 from numpy._typing import NDArray
 
+TYPE_STATE_VECTOR = NDArray[complex]
 TYPE_DENSITY_MATRIX = NDArray[NDArray[complex]]
+TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = Union[TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR]
 
 KET_ZERO_STATE_VECTOR = KET_ZERO.state_vector()
 KET_ONE_STATE_VECTOR = KET_ONE.state_vector()

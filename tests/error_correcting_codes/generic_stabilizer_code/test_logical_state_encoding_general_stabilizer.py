@@ -27,7 +27,7 @@ class TestGenericStabilizerCodeGeneralStabilizer:
 
     def test_logical_one_five_qubit(self):
         expected_state = ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix()
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_DENSITY_MATRIX)
         current_state = code.get_current_state()
         assert allclose(current_state, expected_state, atol=1e-7)
 
@@ -36,4 +36,4 @@ class TestGenericStabilizerCodeGeneralStabilizer:
         logical_qubit_state_of_only_one_qubit = KET_ZERO_DENSITY_MATRIX
         with pytest.raises(ValueError, match="These generators encode 2 logical qubits, but an initial state of 1 was given."):
             GenericStabilizerCode(generators=code_that_encodes_two_logical_bits,
-                                  initial_logical_qubit_state_density_matrix=logical_qubit_state_of_only_one_qubit)
+                                  initial_logical_qubit_state=logical_qubit_state_of_only_one_qubit)

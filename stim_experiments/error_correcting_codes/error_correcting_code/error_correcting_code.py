@@ -1,22 +1,28 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import List
+from typing import List, Optional, Union
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, KET_ZERO, LineQubit, Simulator, \
-    StateVectorTrialResult, kron
+from cirq import Circuit, Gate, KET_ZERO, LineQubit, kron
+from numpy import array
 from numpy._typing import NDArray
 
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
+    ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesDensityMatrix, ErrorCorrectingCodeUtilitiesStateVector
 from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalOperation
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR
 
 
 class ErrorCorrectingCode(ABC):
-    def __init__(self, num_data_qubits: int, num_ancilla_qubits: int, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
-        self._initial_logical_qubit_state_density_matrix = initial_logical_qubit_state_density_matrix
+    def __init__(self,
+                 num_data_qubits: int,
+                 num_ancilla_qubits: int,
+                 initial_logical_qubit_state: Union[TYPE_STATE_VECTOR, TYPE_DENSITY_MATRIX],
+                 ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
+        self._initial_logical_qubit_state = initial_logical_qubit_state
 
-        self._current_state = kron(*[KET_ZERO.state_vector() for _ in range(len(self.all_qubits))])
+        self._current_state = array([])
         self._encode_logical_qubit()
 
     @abstractmethod
@@ -39,12 +45,14 @@ class ErrorCorrectingCode(ABC):
         pass
 
     def _get_state_after_circuit(self, circuit: Circuit) -> TYPE_DENSITY_MATRIX:
-        simulator = Simulator()
-        simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
-        return simulation.final_state_vector
-        # simulator = DensityMatrixSimulator()
-        # simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=self.all_qubits, initial_state=self._current_state)
-        # return simulation.final_density_matrix
+        return self._error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                             qubit_order=self.all_qubits,
+                                                                             initial_state=self._current_state)
+
+    @property
+    def _error_correcting_code_utilities(self) -> ErrorCorrectingCodeUtilities:
+        is_state_vector = len(self._initial_logical_qubit_state.shape) == 1
+        return ErrorCorrectingCodeUtilitiesStateVector() if is_state_vector else ErrorCorrectingCodeUtilitiesDensityMatrix()
 
     @cached_property
     def data_qubits(self) -> List[LineQubit]:

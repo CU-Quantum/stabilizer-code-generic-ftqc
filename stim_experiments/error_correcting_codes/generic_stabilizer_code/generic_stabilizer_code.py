@@ -1,15 +1,16 @@
 from functools import cached_property
-from typing import List, Optional
+from typing import List, Optional, Union
 
-import cirq
-from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, Z, kron
-from numpy import array, log2
+from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, kron
+from numpy import log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
+    ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesStateVector
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.logical_qubit_encoder import \
     LogicalQubitEncoder
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
@@ -18,37 +19,39 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, binary_array_to_int, partial_trace
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
-                 initial_logical_qubit_state_density_matrix: Optional[TYPE_DENSITY_MATRIX] = None):
+                 initial_logical_qubit_state: Optional[Union[TYPE_STATE_VECTOR, TYPE_DENSITY_MATRIX]] = None,
+                 ):
         self._check_matrix = CheckMatrix(matrix=generators)
-        if initial_logical_qubit_state_density_matrix is None:
-            initial_logical_qubit_state_density_matrix = kron(*[KET_ZERO_DENSITY_MATRIX] * self._check_matrix.num_logical_qubits)
+        if initial_logical_qubit_state is None:
+            initial_logical_qubit_state = kron(*[KET_ZERO.state_vector()] * self._check_matrix.num_logical_qubits).reshape(2 ** self._check_matrix.num_logical_qubits,)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_ancilla_qubits=len(self._check_matrix.matrix),
-                         initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix)
+                         initial_logical_qubit_state=initial_logical_qubit_state)
         self._generators = generators
 
     def _encode_logical_qubit(self) -> None:
-        # self._validate_initial_logical_state_size()
+        self._validate_initial_logical_state_size()
         self._initialize_logical_state()
         circuit = self._get_encoding_circuit()
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _validate_initial_logical_state_size(self) -> None:
-        num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state_density_matrix.shape[0]))
+        num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state.shape[0]))
         if num_qubits_in_initial_logical_state != self._check_matrix.num_logical_qubits:
             raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
 
     def _initialize_logical_state(self) -> None:
-        data_state = kron(*[KET_ZERO.state_vector()] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
-                          self._initial_logical_qubit_state_density_matrix)
-        ancilla_state = kron(*[KET_ZERO.state_vector()] * self._num_ancilla_qubits)
-        self._current_state = kron(data_state, ancilla_state)
+        data_state = kron(*[self._error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
+                          self._initial_logical_qubit_state)
+        ancilla_state = kron(*[self._error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
+        initial_state = kron(data_state, ancilla_state)
+        self._current_state = self._error_correcting_code_utilities.reshape_state(state=initial_state, num_qubits=len(self.all_qubits))
 
     def _get_encoding_circuit(self) -> Circuit:
         return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
@@ -78,22 +81,6 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                 H(self.ancilla_qubits[0]),
             )
 
-            # encoding_circuit = self._get_encoding_circuit()
-            # target_qubit = self.data_qubits[self._check_matrix_standardized.num_physical_qubits - self._check_matrix_standardized.num_logical_qubits + operation.qubit_index]
-            # relevant_moments = list(encoding_circuit.findall_operations(lambda x: target_qubit in x.qubits))
-            #
-            # circuit = Circuit(
-            #     cirq.inverse(encoding_circuit),
-            #     H(target_qubit),
-            #     encoding_circuit,
-            # )
-            #
-            # circuit = Circuit(
-            #     X(target_qubit).controlled_by(self.data_qubits[0]),
-            #     X(target_qubit).controlled_by(self.data_qubits[1]),
-            #     H(target_qubit),
-            #     Z(self.data_qubits[1]).controlled_by(self.data_qubits[0]),
-            # )
             self._current_state = self._get_state_after_circuit(circuit=circuit)
             return
 

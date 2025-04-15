@@ -12,7 +12,7 @@ class TestCorrectionsShor:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        code = ShorsRepetitionCode(initial_logical_qubit_state_density_matrix=KET_ZERO_DENSITY_MATRIX)
+        code = ShorsRepetitionCode(initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
         self._helper = CorrectionsTestHelper(expected_states_utilities=ExpectedStatesShor(), code=code)
 
     @pytest.mark.parametrize('qubit_index', _qubit_indices_in_different_positions_in_different_blocks)

@@ -25,13 +25,13 @@ class FiveQubitCode(ErrorCorrectingCode):
             [self.all_qubits[i] for i in (1,4)],
         ]
 
-    def __init__(self, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
-        super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix,
+    def __init__(self, initial_logical_qubit_state: TYPE_DENSITY_MATRIX):
+        super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
                          num_data_qubits=5,
                          num_ancilla_qubits=4)
 
     def _encode_logical_qubit(self) -> None:
-        initial_state = kron(self._initial_logical_qubit_state_density_matrix, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
+        initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
         initialize_with_given_state = Circuit(
             [CX(self.data_qubits[0], data_qubit) for data_qubit in self.data_qubits[1:]],
         )

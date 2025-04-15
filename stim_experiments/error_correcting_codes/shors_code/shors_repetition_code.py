@@ -6,11 +6,11 @@ from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ZERO_DENSITY_MAT
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
-    def __init__(self, initial_logical_qubit_state_density_matrix: TYPE_DENSITY_MATRIX):
-        super().__init__(initial_logical_qubit_state_density_matrix=initial_logical_qubit_state_density_matrix, num_data_qubits=9, num_ancilla_qubits=2)
+    def __init__(self, initial_logical_qubit_state: TYPE_DENSITY_MATRIX):
+        super().__init__(initial_logical_qubit_state=initial_logical_qubit_state, num_data_qubits=9, num_ancilla_qubits=2)
 
     def _encode_logical_qubit(self) -> None:
-        each_qubit_initial_state = ([self._initial_logical_qubit_state_density_matrix]
+        each_qubit_initial_state = ([self._initial_logical_qubit_state]
                                     + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits) - 1)])
         self._current_state = kron(*each_qubit_initial_state)
 
