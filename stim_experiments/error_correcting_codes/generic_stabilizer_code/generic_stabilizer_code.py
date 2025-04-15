@@ -1,6 +1,7 @@
 from functools import cached_property
 from typing import List, Optional
 
+import cirq
 from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, Z, kron
 from numpy import array, log2
 
@@ -69,12 +70,30 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             circuit = Circuit(
                 H(self.ancilla_qubits[0]),
                 logical_cx,
-                H(self.ancilla_qubits[0]),
                 logical_cz,
                 H(self.ancilla_qubits[0]),
+                logical_cx,
+                X(self.ancilla_qubits[0]),
                 logical_cz,
-                R(self.ancilla_qubits[0]),
+                H(self.ancilla_qubits[0]),
             )
+
+            # encoding_circuit = self._get_encoding_circuit()
+            # target_qubit = self.data_qubits[self._check_matrix_standardized.num_physical_qubits - self._check_matrix_standardized.num_logical_qubits + operation.qubit_index]
+            # relevant_moments = list(encoding_circuit.findall_operations(lambda x: target_qubit in x.qubits))
+            #
+            # circuit = Circuit(
+            #     cirq.inverse(encoding_circuit),
+            #     H(target_qubit),
+            #     encoding_circuit,
+            # )
+            #
+            # circuit = Circuit(
+            #     X(target_qubit).controlled_by(self.data_qubits[0]),
+            #     X(target_qubit).controlled_by(self.data_qubits[1]),
+            #     H(target_qubit),
+            #     Z(self.data_qubits[1]).controlled_by(self.data_qubits[0]),
+            # )
             self._current_state = self._get_state_after_circuit(circuit=circuit)
             return
 
