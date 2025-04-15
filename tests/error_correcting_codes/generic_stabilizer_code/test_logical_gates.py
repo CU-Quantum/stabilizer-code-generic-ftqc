@@ -1,5 +1,5 @@
-from cirq import KET_ONE, KET_PLUS, KET_ZERO, Z, density_matrix_from_state_vector, kron
-from numpy import allclose, sqrt
+from cirq import KET_ONE, KET_PLUS, KET_ZERO, Z, kron
+from numpy import allclose
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode

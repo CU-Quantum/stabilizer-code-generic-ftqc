@@ -58,56 +58,60 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                    data_qubits=self.data_qubits).get_encoding_circuit()
 
     def apply_operation(self, operation: LogicalOperation) -> None:
-        if operation.gate == LogicalGateLabel.H:
-            logical_xs, logical_zs = (
-            self._get_logical_operation_gates(operation=LogicalOperation(label, qubit_index=operation.qubit_index))
-            for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
+        self._apply_logical_hadamard(operation=operation) \
+            if operation.gate == LogicalGateLabel.H \
+            else self._apply_logical_x_or_z(operation=operation)
 
-            logical_cz = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-                 for qubit_index, qubit_gates in enumerate(logical_zs[operation.qubit_index])
-                 for gate in qubit_gates]
-            logical_cx = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-                 for qubit_index, qubit_gates in enumerate(logical_xs[operation.qubit_index])
-                 for gate in qubit_gates]
+    def _apply_logical_hadamard(self, operation: LogicalOperation) -> None:
+        should_use_transversal = self._check_matrix_standardized.num_logical_qubits == 1
+        self._hadamard_all_data_qubits() if should_use_transversal else self._universal_logical_hadamard(operation)
 
-            circuit = Circuit(
-                H(self.ancilla_qubits[0]),
-                logical_cx,
-                logical_cz,
-                H(self.ancilla_qubits[0]),
-                logical_cx,
-                X(self.ancilla_qubits[0]),
-                logical_cz,
-                H(self.ancilla_qubits[0]),
-            )
+    def _hadamard_all_data_qubits(self) -> None:
+        circuit = Circuit(
+            [H(qubit) for qubit in self.data_qubits],
+        )
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
+        self._check_matrix_standardized.swap_xs_and_zs()
 
-            self._current_state = self._get_state_after_circuit(circuit=circuit)
-            return
+    def _universal_logical_hadamard(self, operation):
+        logical_xs, logical_zs = (self._get_logical_operation_gates(gate_label=label)
+                                  for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
+        logical_cz = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
+                      for qubit_index, qubit_gates in enumerate(logical_zs[operation.qubit_index])
+                      for gate in qubit_gates]
+        logical_cx = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
+                      for qubit_index, qubit_gates in enumerate(logical_xs[operation.qubit_index])
+                      for gate in qubit_gates]
+        circuit = Circuit(
+            H(self.ancilla_qubits[0]),
+            logical_cx,
+            logical_cz,
+            H(self.ancilla_qubits[0]),
+            logical_cx,
+            X(self.ancilla_qubits[0]),
+            logical_cz,
+            H(self.ancilla_qubits[0]),
+        )
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
 
-        logical_gates = self._get_logical_operation_gates(operation=operation)
-        if logical_gates is None:
-            # TODO test for this
-            raise ValueError(f"Unknown gate: {operation.gate}")
-        logical_gates_for_qubit = logical_gates[operation.qubit_index] # TODO test for multiple encoded bits, invalid qubit index, etc
+    def _apply_logical_x_or_z(self, operation: LogicalOperation) -> None:
+        logical_gates = self._get_logical_operation_gates(gate_label=operation.gate)
+        logical_gates_for_qubit = logical_gates[
+            operation.qubit_index]  # TODO test for multiple encoded bits, invalid qubit index, etc
         circuit = Circuit(
             [gate(self._get_qubit_at_index(qubit_index=qubit_index))
              for qubit_index, qubit_gates in enumerate(logical_gates_for_qubit)
              for gate in qubit_gates]
         )
         self._current_state = self._get_state_after_circuit(circuit=circuit)
-        # self._modify_stabilizers(operation=operation)
 
-    def _get_logical_operation_gates(self, operation: LogicalOperation) -> Optional[List[List[List[Gate]]]]:
-        if operation.gate == LogicalGateLabel.X:
-            return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_xs)).get_gates()
-        elif operation.gate == LogicalGateLabel.Z:
-            return CheckMatrixToGates(check_matrix=CheckMatrix(self._check_matrix_standardized.logical_zs)).get_gates()
-        elif operation.gate == LogicalGateLabel.H:
-            pass
+    def _get_logical_operation_gates(self, gate_label: LogicalGateLabel) -> Optional[List[List[List[Gate]]]]:
+        if gate_label not in (LogicalGateLabel.X, LogicalGateLabel.Z):
+            # TODO test for this
+            raise ValueError(f"Unknown gate: {gate_label}")
 
-    def _modify_stabilizers(self, operation: LogicalOperation) -> None:
-        if operation.gate == LogicalGateLabel.H:
-            self._check_matrix_standardized.swap_xs_and_zs()
+        operation_matrix = self._check_matrix_standardized.logical_xs if gate_label is LogicalGateLabel.X else self._check_matrix_standardized.logical_zs
+        return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
 
     def correct_errors(self) -> None:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
