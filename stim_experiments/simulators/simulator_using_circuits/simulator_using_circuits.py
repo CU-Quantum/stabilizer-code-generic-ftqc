@@ -55,6 +55,14 @@ class SimulatorUsingCircuits:
                 ),
                 encoding=encoding
             )]
+        elif transformation_operation.gate == TransformationGate.H:
+            return [SimulationOperation(
+                operation=LogicalOperation(
+                    gate=LogicalGateLabel.H,
+                    qubit_index=target_index_on_encoding,
+                ),
+                encoding=encoding
+            )]
         raise ValueError(f"Unimplemented transformation gate {transformation_operation.gate}.") # TODO test this
 
     @cached_property
