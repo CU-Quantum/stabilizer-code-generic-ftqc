@@ -73,14 +73,14 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _universal_logical_hadamard(self, operation):
-        logical_xs, logical_zs = (self._get_logical_operation_gates(gate_label=label)
-                                  for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
-        logical_cz = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-                      for qubit_index, qubit_gates in enumerate(logical_zs[operation.qubit_index])
-                      for gate in qubit_gates]
-        logical_cx = [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-                      for qubit_index, qubit_gates in enumerate(logical_xs[operation.qubit_index])
-                      for gate in qubit_gates]
+        logical_operations = (self._get_logical_operation_gates(gate_label=label)
+                              for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
+        logical_cx, logical_cz = (
+            [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
+             for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index])
+             for gate in qubit_gates]
+            for logical_operation in logical_operations
+        )
         circuit = Circuit(
             H(self.ancilla_qubits[0]),
             logical_cx,
