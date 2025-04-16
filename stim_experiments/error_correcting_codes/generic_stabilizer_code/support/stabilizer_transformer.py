@@ -8,6 +8,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 class TransformationGate(Enum):
     H = auto()
     X = auto()
+    Z = auto()
     CX = auto()
     CZ = auto()
 
@@ -53,6 +54,8 @@ class StabilizerTransformer:
                 elif operation.gate == TransformationGate.X:
                     if target_has_z_operator:
                         row[index_z_target] *= -1
+                elif operation.gate == TransformationGate.Z:
+                    raise NotImplementedError
 
 
     def get_current_check_matrix(self) -> CheckMatrix:

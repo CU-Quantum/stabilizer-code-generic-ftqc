@@ -35,12 +35,12 @@ class TestSimulatorCircuit:
             measurements={},
         )
 
-    # def test_logical_z(self):
-    #     code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state_density_matrix=KET_ONE_DENSITY_MATRIX)
-    #     simulator = SimulatorUsingCircuits(error_correcting_code=code)
-    #     operations = [LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)]
-    #     result = simulator.simulate(operations=operations)
-    #     assert result == SimulatorResult(
-    #         state=ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix(),
-    #         measurements={},
-    #     )
+    def test_logical_z(self):
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)
+        operations = [TransformationOperation(gate=TransformationGate.Z, target_qubit_index=0)]
+        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        result = simulator.simulate()
+        assert result == SimulatorResult(
+            encodings=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=-KET_ONE_STATE_VECTOR)],
+            measurements={},
+        )

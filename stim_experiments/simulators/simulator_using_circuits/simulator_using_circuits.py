@@ -1,4 +1,3 @@
-from math import ceil
 from typing import List
 
 from proto.utils import cached_property
@@ -8,6 +7,24 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
+
+
+class TransformationOperationToLogicalOperations:
+    def __init__(self, transformation_operation: TransformationOperation):
+        self._transformation = transformation_operation
+
+    def get_logical_operation(self) -> List[LogicalOperation]:
+        if self._transformation.gate == TransformationGate.X:
+            return [LogicalOperation(
+                gate=LogicalGateLabel.X,
+                qubit_index=self._transformation.target_qubit_index,
+            )]
+        elif self._transformation.gate == TransformationGate.Z:
+            return [LogicalOperation(
+                gate=LogicalGateLabel.Z,
+                qubit_index=self._transformation.target_qubit_index,
+            )]
+        raise ValueError(f"Unknown transformation gate {self._transformation.gate}.")
 
 
 class SimulatorUsingCircuits:
@@ -21,11 +38,9 @@ class SimulatorUsingCircuits:
     def simulate(self) -> SimulatorResult:
         for operation in self._operations:
             encoding = self._logical_qubits[0]
-            logical_operation = LogicalOperation(
-                gate=self._transformation_gate_to_logical_gate[operation.gate],
-                qubit_index=operation.target_qubit_index,
-            )
-            encoding.apply_operation(operation=logical_operation)
+            logical_operations = TransformationOperationToLogicalOperations(transformation_operation=operation).get_logical_operation()
+            for logical_operation in logical_operations:
+                encoding.apply_operation(operation=logical_operation)
         return SimulatorResult(
             encodings=self._logical_qubits,
             measurements={},
