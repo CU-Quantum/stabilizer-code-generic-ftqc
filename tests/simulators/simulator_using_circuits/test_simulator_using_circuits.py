@@ -1,5 +1,6 @@
 from typing import List
 
+from cirq import kron
 from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -53,5 +54,18 @@ class TestSimulatorCircuit:
         assert result == SimulatorResult(
             encodings=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_STATE_VECTOR),
                        GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)],
+            measurements={},
+        )
+
+    def test_multiple_logical_qubits_single_encoding(self):
+        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
+        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        result = simulator.simulate()
+        assert result == SimulatorResult(
+            encodings=[GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
+                                             initial_logical_qubit_state=kron(KET_ZERO_STATE_VECTOR,
+                                                                              KET_ONE_STATE_VECTOR).flatten()),
+                       ],
             measurements={},
         )

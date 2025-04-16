@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from math import ceil
 from typing import List
 
@@ -10,6 +11,12 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.sta
 from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
 
 
+@dataclass
+class SimulationOperation:
+    operation: LogicalOperation
+    encoding: ErrorCorrectingCode
+
+
 class SimulatorUsingCircuits:
     def __init__(self, error_correcting_code: ErrorCorrectingCode, operations: List[TransformationOperation]):
         self._error_correcting_code = error_correcting_code
@@ -20,27 +27,33 @@ class SimulatorUsingCircuits:
 
     def simulate(self) -> SimulatorResult:
         for operation in self._operations:
-            encoding_number = operation.target_qubit_index // self._error_correcting_code.num_logical_qubits
-            encoding = self._encodings[encoding_number]
-            logical_operations = self._transformation_operation_to_logical_operations(transformation_operation=operation)
-            for logical_operation in logical_operations:
-                encoding.apply_operation(operation=logical_operation)
+            simulation_operations = self._transformation_operation_to_simulation_operations(transformation_operation=operation)
+            for simulation_operation in simulation_operations:
+                simulation_operation.encoding.apply_operation(operation=simulation_operation.operation)
         return SimulatorResult(
             encodings=self._encodings,
             measurements={},
         )
 
-    def _transformation_operation_to_logical_operations(self, transformation_operation: TransformationOperation) -> List[LogicalOperation]:
+    def _transformation_operation_to_simulation_operations(self, transformation_operation: TransformationOperation) -> List[SimulationOperation]:
         target_index_on_encoding = transformation_operation.target_qubit_index % self._error_correcting_code.num_logical_qubits
+        encoding_number = transformation_operation.target_qubit_index // self._error_correcting_code.num_logical_qubits
+        encoding = self._encodings[encoding_number]
         if transformation_operation.gate == TransformationGate.X:
-            return [LogicalOperation(
-                gate=LogicalGateLabel.X,
-                qubit_index=target_index_on_encoding,
+            return [SimulationOperation(
+                operation=LogicalOperation(
+                    gate=LogicalGateLabel.X,
+                    qubit_index=target_index_on_encoding,
+                ),
+                encoding=encoding
             )]
         elif transformation_operation.gate == TransformationGate.Z:
-            return [LogicalOperation(
-                gate=LogicalGateLabel.Z,
-                qubit_index=target_index_on_encoding,
+            return [SimulationOperation(
+                operation=LogicalOperation(
+                    gate=LogicalGateLabel.Z,
+                    qubit_index=target_index_on_encoding,
+                ),
+                encoding=encoding
             )]
         raise ValueError(f"Unimplemented transformation gate {transformation_operation.gate}.") # TODO test this
 
