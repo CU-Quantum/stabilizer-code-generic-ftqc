@@ -10,7 +10,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.sta
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_5_qubit
 
@@ -42,5 +42,16 @@ class TestSimulatorCircuit:
         result = simulator.simulate()
         assert result == SimulatorResult(
             encodings=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=-KET_ONE_STATE_VECTOR)],
+            measurements={},
+        )
+
+    def test_multiple_encodings(self):
+        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+        operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
+        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        result = simulator.simulate()
+        assert result == SimulatorResult(
+            encodings=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_STATE_VECTOR),
+                       GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)],
             measurements={},
         )

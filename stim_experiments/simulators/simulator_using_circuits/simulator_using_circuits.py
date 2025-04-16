@@ -1,3 +1,4 @@
+from math import ceil
 from typing import List
 
 from proto.utils import cached_property
@@ -7,24 +8,6 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
-
-
-class TransformationOperationToLogicalOperations:
-    def __init__(self, transformation_operation: TransformationOperation):
-        self._transformation = transformation_operation
-
-    def get_logical_operation(self) -> List[LogicalOperation]:
-        if self._transformation.gate == TransformationGate.X:
-            return [LogicalOperation(
-                gate=LogicalGateLabel.X,
-                qubit_index=self._transformation.target_qubit_index,
-            )]
-        elif self._transformation.gate == TransformationGate.Z:
-            return [LogicalOperation(
-                gate=LogicalGateLabel.Z,
-                qubit_index=self._transformation.target_qubit_index,
-            )]
-        raise ValueError(f"Unknown transformation gate {self._transformation.gate}.")
 
 
 class SimulatorUsingCircuits:
@@ -37,24 +20,38 @@ class SimulatorUsingCircuits:
 
     def simulate(self) -> SimulatorResult:
         for operation in self._operations:
-            encoding = self._logical_qubits[0]
-            logical_operations = TransformationOperationToLogicalOperations(transformation_operation=operation).get_logical_operation()
+            encoding_number = operation.target_qubit_index // self._error_correcting_code.num_logical_qubits
+            encoding = self._encodings[encoding_number]
+            logical_operations = self._transformation_operation_to_logical_operations(transformation_operation=operation)
             for logical_operation in logical_operations:
                 encoding.apply_operation(operation=logical_operation)
         return SimulatorResult(
-            encodings=self._logical_qubits,
+            encodings=self._encodings,
             measurements={},
         )
 
+    def _transformation_operation_to_logical_operations(self, transformation_operation: TransformationOperation) -> List[LogicalOperation]:
+        target_index_on_encoding = transformation_operation.target_qubit_index % self._error_correcting_code.num_logical_qubits
+        if transformation_operation.gate == TransformationGate.X:
+            return [LogicalOperation(
+                gate=LogicalGateLabel.X,
+                qubit_index=target_index_on_encoding,
+            )]
+        elif transformation_operation.gate == TransformationGate.Z:
+            return [LogicalOperation(
+                gate=LogicalGateLabel.Z,
+                qubit_index=target_index_on_encoding,
+            )]
+        raise ValueError(f"Unimplemented transformation gate {transformation_operation.gate}.") # TODO test this
+
     @cached_property
-    def _logical_qubits(self) -> List[ErrorCorrectingCode]:
-        num_encodings = 1
-        # num_encodings = ceil(self._num_logical_qubits / self._error_correcting_code.num_logical_qubits)  # tests codes with multiple logical qubit encodings
+    def _encodings(self) -> List[ErrorCorrectingCode]:
+        num_encodings = ceil(self._num_logical_qubits / self._error_correcting_code.num_logical_qubits)
         return [self._error_correcting_code.create_new() for _ in range(num_encodings)]
 
     @property
     def _num_logical_qubits(self) -> int:
-        unique_indices = {qubit_index for operation in self._operations
-                          for qubit_index in (operation.control_qubit_index, operation.target_qubit_index)
-                          if qubit_index is not None}
-        return len(unique_indices)
+        largest_index = max(qubit_index for operation in self._operations
+                            for qubit_index in (operation.control_qubit_index, operation.target_qubit_index)
+                            if qubit_index is not None)
+        return largest_index + 1
