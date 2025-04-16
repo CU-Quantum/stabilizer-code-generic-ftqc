@@ -5,7 +5,7 @@ from typing import List, Optional
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 
 
-class TransformationGates(Enum):
+class TransformationGate(Enum):
     H = auto()
     X = auto()
     CX = auto()
@@ -14,7 +14,7 @@ class TransformationGates(Enum):
 
 @dataclass
 class TransformationOperation:
-    gate: TransformationGates
+    gate: TransformationGate
     target_qubit_index: int
     control_qubit_index: Optional[int] = None
 
@@ -32,25 +32,25 @@ class StabilizerTransformer:
                 target_has_z_operator = row[index_z_target]
                 control_has_x_operator = row[operation.control_qubit_index]
                 control_has_z_operator = row[index_z_control]
-                if operation.gate == TransformationGates.CX:
+                if operation.gate == TransformationGate.CX:
                     if control_has_x_operator:
                         row[operation.target_qubit_index] = (row[operation.target_qubit_index] + 1) % 2
                     if target_has_z_operator:
                         row[index_z_control] = (row[index_z_control] + 1) % 2
-                elif operation.gate == TransformationGates.CZ:
+                elif operation.gate == TransformationGate.CZ:
                     if control_has_x_operator:
                         row[index_z_control] = (row[index_z_control] + 1) % 2
                     if control_has_z_operator:
                         row[index_z_target] = (row[index_z_target] + 1) % 2 * row[index_z_control]
                         row[index_z_control] = 0
-                elif operation.gate == TransformationGates.H:
+                elif operation.gate == TransformationGate.H:
                     if target_has_x_operator:
                         row[operation.target_qubit_index] = 0
                         row[index_z_target] = (row[index_z_target] + 1) % 2
                     if target_has_z_operator:
                         row[operation.target_qubit_index] = (row[operation.target_qubit_index] + 1) % 2
                         row[index_z_target] = 0
-                elif operation.gate == TransformationGates.X:
+                elif operation.gate == TransformationGate.X:
                     if target_has_z_operator:
                         row[index_z_target] *= -1
 

@@ -13,6 +13,13 @@ from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
 
 class ErrorCorrectingCode(ABC):
+    def __new__(cls, *args, **kwargs):
+        cls._saved_init_args = (args, kwargs)
+        return super().__new__(cls)
+
+    def create_new(self) -> 'ErrorCorrectingCode':
+        return self.__class__(*self._saved_init_args[0], **self._saved_init_args[1])
+
     def __init__(self,
                  num_data_qubits: int,
                  num_ancilla_qubits: int,
@@ -79,3 +86,7 @@ class ErrorCorrectingCode(ABC):
     @cached_property
     def all_qubits(self) -> List[LineQubit]:
         return LineQubit.range(self._num_data_qubits + self._num_ancilla_qubits)
+
+    @property
+    def num_logical_qubits(self) -> int:
+        return self._num_logical_qubits

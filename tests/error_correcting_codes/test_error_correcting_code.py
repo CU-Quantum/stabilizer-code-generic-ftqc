@@ -109,3 +109,15 @@ class TestErrorCorrectingCode:
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 0. Was given 1."):
             code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
         code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
+
+    def test_can_retrieve_num_logical_qubits(self):
+        expected_num_qubits = 2
+        code = CodeStub(num_logical_qubits=expected_num_qubits)
+        assert code.num_logical_qubits == expected_num_qubits
+
+    def test_can_create_new(self):
+        num_qubits = 2
+        code = CodeStub(num_logical_qubits=num_qubits)
+        code.apply_operation(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+        new_code = code.create_new()
+        assert code.operation_applied and not new_code.operation_applied and new_code.num_logical_qubits == num_qubits
