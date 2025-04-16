@@ -6,7 +6,7 @@ from proto.utils import cached_property
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
-    TransformationOperation
+    TransformationGate, TransformationOperation
 from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
 
 
@@ -14,13 +14,20 @@ class SimulatorUsingCircuits:
     def __init__(self, error_correcting_code: ErrorCorrectingCode, operations: List[TransformationOperation]):
         self._error_correcting_code = error_correcting_code
         self._operations = operations
+        self._transformation_gate_to_logical_gate = {
+            TransformationGate.X: LogicalGateLabel.X,
+        }
 
     def simulate(self) -> SimulatorResult:
         for operation in self._operations:
             encoding = self._logical_qubits[0]
-            encoding.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+            logical_operation = LogicalOperation(
+                gate=self._transformation_gate_to_logical_gate[operation.gate],
+                qubit_index=operation.target_qubit_index,
+            )
+            encoding.apply_operation(operation=logical_operation)
         return SimulatorResult(
-            state=self._error_correcting_code.get_current_state(),
+            encodings=self._logical_qubits,
             measurements={},
         )
 

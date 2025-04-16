@@ -1,20 +1,19 @@
 from dataclasses import dataclass
 from typing import Dict, List
 
-from numpy import allclose
 from numpy._typing import NDArray
 
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX
+from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
 
 @dataclass
 class SimulatorResult:
-    state: List[TYPE_DENSITY_MATRIX]
+    encodings: List[ErrorCorrectingCode]
     measurements: Dict[str, NDArray[bool]]
 
     def __eq__(self, other):
         keys = zip(self.measurements, other.measurements)
         values = zip(self.measurements.values(), other.measurements.values())
-        return (all(allclose(qubit_state, other_state, atol=1e-7) for qubit_state, other_state in zip(self.state, other.state))
+        return (self.encodings == other.encodings
                 and all(key == other_key for key, other_key in keys)
                 and all(value == other_value for value, other_value in values))

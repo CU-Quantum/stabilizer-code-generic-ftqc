@@ -5,6 +5,7 @@ from typing import List
 from cirq import Circuit, Gate, LineQubit
 from numpy import array
 from numpy._typing import NDArray
+from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
     ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesDensityMatrix, ErrorCorrectingCodeUtilitiesStateVector
@@ -90,3 +91,6 @@ class ErrorCorrectingCode(ABC):
     @property
     def num_logical_qubits(self) -> int:
         return self._num_logical_qubits
+
+    def __eq__(self, other):
+        return allequal(self.get_current_state(), other.get_current_state())

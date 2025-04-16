@@ -21,7 +21,7 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=[])
         result = simulator.simulate()
         assert result == SimulatorResult(
-            state=[],
+            encodings=[],
             measurements={},
         )
 
@@ -31,7 +31,7 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         assert result == SimulatorResult(
-            state=[KET_ONE_STATE_VECTOR],
+            encodings=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)],
             measurements={},
         )
 
