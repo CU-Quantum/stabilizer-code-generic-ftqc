@@ -39,6 +39,7 @@ class CheckMatrix:
         return matrix_rank(pauli_x_portion) if pauli_x_portion.nbytes else 0
 
     def swap_qubits(self, column_indices: Tuple[int, int]) -> None:
+        # TODO ensure column indices are less than num physical qubits
         self._swap_qubit_order(column_indices=column_indices)
         self._swap_columns(column_indices=column_indices)
 

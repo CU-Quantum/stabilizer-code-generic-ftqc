@@ -4,12 +4,12 @@ from numpy import allclose
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_PLUS_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_5_qubit
+    get_check_matrix_values_5_qubit, get_check_matrix_values_8_qubit
 
 
 class TestLogicalGates:
@@ -98,3 +98,15 @@ class TestLogicalGates:
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 0. Was given 1."):
             code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+
+    def test_multiqubit_encoding_corrects_errors_in_hadamard_basis(self):
+        code = GenericStabilizerCode(generators=get_check_matrix_values_8_qubit())
+        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+        code.apply_error(Z, 0)
+        code.correct_errors()
+        current_state = code.get_current_state()
+
+        expected_state_code = GenericStabilizerCode(generators=get_check_matrix_values_8_qubit())
+        expected_state_code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+        expected_state = expected_state_code.get_current_state()
+        assert allclose(current_state, expected_state)

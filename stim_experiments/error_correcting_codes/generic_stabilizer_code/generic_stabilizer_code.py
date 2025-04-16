@@ -16,7 +16,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.mat
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR
 
 
@@ -69,8 +69,8 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         circuit = Circuit(
             [H(qubit) for qubit in self.data_qubits],
         )
-        self._current_state = self._get_state_after_circuit(circuit=circuit)
         self._check_matrix_standardized.swap_xs_and_zs()
+        self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _universal_logical_hadamard(self, operation):
         logical_xs, logical_zs = (self._get_logical_operation_gates(gate_label=label)
@@ -91,6 +91,38 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             logical_cz,
             H(self.ancilla_qubits[0]),
         )
+
+        # check_with_ancilla: List[List[int]] = self._check_matrix_standardized.matrix.tolist()
+        # for i, row in enumerate(check_with_ancilla):
+        #     check_with_ancilla[i].insert(self._check_matrix_standardized.num_physical_qubits, 0)
+        #     check_with_ancilla[i].append(0)
+        # transformer = StabilizerTransformer(check_matrix=CheckMatrix(matrix=array(check_with_ancilla)))
+        # operations = []
+        # for operation in circuit.all_operations():
+        #     d = {
+        #         X: TransformationGates.X,
+        #         H: TransformationGates.H,
+        #         CZ: TransformationGates.CZ,
+        #         CNOT: TransformationGates.CX
+        #     }
+        #     operations.append(
+        #         TransformationOperation(
+        #             gate=d[operation.gate],
+        #             target_qubit_index=operation.qubits[len(operation.qubits) - 1].x,
+        #             control_qubit_index=operation.qubits[0].x if len(operation.qubits) > 1 else None,
+        #         )
+        #     )
+        # transformer.apply(operations)
+        # new_matrix = transformer.get_current_check_matrix()
+        # new_matrix_without_ancilla = concatenate([
+        #     new_matrix.matrix[:, :self._check_matrix_standardized.num_physical_qubits],
+        #     new_matrix.matrix[:, self._check_matrix_standardized.num_physical_qubits + 1:-1]
+        #     ],
+        #     axis=1,
+        # )
+        # for i, row in enumerate(new_matrix_without_ancilla):
+        #     self._check_matrix_standardized.matrix[i] = row
+
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
     def _apply_logical_x_or_z(self, operation: LogicalOperation) -> None:

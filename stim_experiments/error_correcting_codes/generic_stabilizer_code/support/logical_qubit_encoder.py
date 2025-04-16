@@ -43,7 +43,7 @@ class LogicalQubitEncoder:
     def _get_controlled_gates_at_qubit(self, gates: List[Gate], control_index: int, target_index: int) -> List[Operation]:
         control_qubit = self._get_qubit_at_index(control_index)
         target_qubit = self._get_qubit_at_index(target_index)
-        operations = [gate(target_qubit) for gate in gates[target_qubit == control_qubit:]]  # ignore x gate in control qubit
+        operations = [gate(target_qubit) for gate in gates[target_qubit == control_qubit:]]  # ignores x gate in control qubit
         return [operation if target_qubit == control_qubit else operation.controlled_by(control_qubit) for operation in operations]
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
