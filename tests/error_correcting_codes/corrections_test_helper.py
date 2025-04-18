@@ -11,7 +11,7 @@ class CorrectionsTestHelper:
         self._code = code
 
     def error_is_corrected(self, error_gate: Gate, qubit_index: int) -> bool:
-        self._code.apply_error(error_gate, qubit_index=qubit_index)
+        self._code.get_error_circuit(error_gate, qubit_index=qubit_index)
         self._code.correct_errors()
         current_state = self._code.get_current_state()
 

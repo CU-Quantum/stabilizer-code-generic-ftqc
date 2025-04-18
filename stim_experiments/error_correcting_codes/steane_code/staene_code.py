@@ -16,7 +16,7 @@ class SteaneCode(ErrorCorrectingCode):
                          num_ancilla_qubits=3,
                          num_logical_qubits=1)
 
-    def _encode_logical_qubit(self) -> None:
+    def encode_logical_qubit(self) -> None:
         initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
         initialize_with_given_state = Circuit(
             [CX(self.data_qubits[0], data_qubit) for data_qubit in self.data_qubits[1:]],
@@ -28,7 +28,7 @@ class SteaneCode(ErrorCorrectingCode):
 
         self.correct_errors()
 
-    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
 
     @property

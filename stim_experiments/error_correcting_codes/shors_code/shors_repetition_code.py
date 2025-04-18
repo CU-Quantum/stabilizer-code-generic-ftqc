@@ -14,7 +14,7 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
                          num_ancilla_qubits=2,
                          num_logical_qubits=1)
 
-    def _encode_logical_qubit(self) -> None:
+    def encode_logical_qubit(self) -> None:
         each_qubit_initial_state = ([self._initial_logical_qubit_state]
                                     + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits) - 1)])
         self._current_state = kron(*each_qubit_initial_state)
@@ -31,7 +31,7 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
 
         self._current_state = self._get_state_after_circuit(circuit=circuit)
 
-    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
 
     @property
