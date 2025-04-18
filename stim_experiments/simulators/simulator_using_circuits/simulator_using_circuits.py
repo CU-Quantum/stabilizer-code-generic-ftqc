@@ -113,17 +113,17 @@ class SimulatorUsingCircuits:
                 SimulationOperation(
                     operation=LogicalOperation(
                         gate=LogicalGateLabel.Z,
-                        qubit_index=target_index_on_encoding,
+                        qubit_index=control_index_on_encoding,
                     ),
-                    encoding=encoding_target
+                    encoding=encoding_control
                 ),
                 SimulationOperation(
                     operation=LogicalOperation(
                         gate=LogicalGateLabel.X,
-                        qubit_index=control_index_on_encoding,
+                        qubit_index=target_index_on_encoding,
                     ),
-                    encoding=encoding_control
-                )
+                    encoding=encoding_target
+                ),
             ]
         raise ValueError(f"Unimplemented transformation gate {transformation_operation.gate}.") # TODO test this
 
