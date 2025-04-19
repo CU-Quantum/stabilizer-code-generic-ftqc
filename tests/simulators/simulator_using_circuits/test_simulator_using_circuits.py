@@ -13,8 +13,7 @@ from stim_experiments.simulators.custom_dataclasses.simulator_result import Simu
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_5_qubit
+from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
@@ -136,3 +135,12 @@ class TestSimulatorCircuit:
             current_state=expected_state,
             measurements={},
         )
+
+    def test_measurements(self):
+        assert False
+
+    def test_entanglement(self):
+        assert False
+
+    def test_multiple_codes(self):
+        assert False
