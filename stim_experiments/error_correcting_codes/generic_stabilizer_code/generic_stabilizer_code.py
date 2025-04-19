@@ -40,9 +40,9 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._validate_initial_logical_state_size()
         initial_state = self._initialize_logical_state()
         circuit = self._get_encoding_circuit()
-        return self._error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=self.all_qubits,
-                                                                             initial_state=initial_state)
+        return self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                            qubit_order=self.all_qubits,
+                                                                            initial_state=initial_state)
 
     def _validate_initial_logical_state_size(self) -> None:
         num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state.shape[0]))
@@ -50,11 +50,11 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
 
     def _initialize_logical_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        data_state = kron(*[self._error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
+        data_state = kron(*[self.error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
                           self._initial_logical_qubit_state)
-        ancilla_state = kron(*[self._error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
+        ancilla_state = kron(*[self.error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
         initial_state = kron(data_state, ancilla_state)
-        return self._error_correcting_code_utilities.reshape_state(state=initial_state, num_qubits=len(self.all_qubits))
+        return self.error_correcting_code_utilities.reshape_state(state=initial_state, num_qubits=len(self.all_qubits))
 
     def _get_encoding_circuit(self) -> Circuit:
         return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
@@ -115,7 +115,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     def _implemented_operations(self) -> List[LogicalGateLabel]:
         return [LogicalGateLabel.X, LogicalGateLabel.Z, LogicalGateLabel.H]
 
-    def correct_errors(self) -> Circuit:
+    def get_error_correction_circuit(self) -> Circuit:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
         generators = CheckMatrixToGates(check_matrix=self._check_matrix_standardized).get_gates()
         circuit = Circuit(

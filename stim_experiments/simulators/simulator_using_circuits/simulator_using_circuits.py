@@ -72,7 +72,7 @@ class SimulatorUsingCircuits:
 
     def _initialize_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         qubit_states = [encoding.encode_logical_qubit() for encoding in self._encodings]
-        return kron(*qubit_states, shape_len=len(qubit_states[0].shape))
+        return kron(*qubit_states, shape_len=len(qubit_states[0].shape)) if qubit_states else array([])
 
     def _transformation_operation_to_simulation_operations(self, transformation_operation: TransformationOperation) -> List[SimulationOperation]:
         target_index_on_encoding = transformation_operation.target_qubit_index % self._error_correcting_code.num_logical_qubits
@@ -143,7 +143,8 @@ class SimulatorUsingCircuits:
 
     @property
     def _num_logical_qubits(self) -> int:
-        largest_index = max(qubit_index for operation in self._operations
-                            for qubit_index in (operation.control_qubit_index, operation.target_qubit_index)
-                            if qubit_index is not None)
+        qubit_indices_in_operations = [qubit_index for operation in self._operations
+                                       for qubit_index in (operation.control_qubit_index, operation.target_qubit_index)
+                                       if qubit_index is not None]
+        largest_index = max(qubit_indices_in_operations) if qubit_indices_in_operations else -1
         return largest_index + 1

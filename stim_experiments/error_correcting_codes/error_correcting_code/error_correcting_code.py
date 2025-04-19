@@ -41,7 +41,7 @@ class ErrorCorrectingCode(ABC):
         pass
 
     @abstractmethod
-    def correct_errors(self) -> None:
+    def get_error_correction_circuit(self) -> Circuit:
         pass
 
     @abstractmethod
@@ -64,7 +64,7 @@ class ErrorCorrectingCode(ABC):
         return Circuit(gate(self.all_qubits[qubit_index]))
 
     @property
-    def _error_correcting_code_utilities(self) -> ErrorCorrectingCodeUtilities:
+    def error_correcting_code_utilities(self) -> ErrorCorrectingCodeUtilities:
         return get_error_correcting_code_utilities(state=self._initial_logical_qubit_state)
 
     @cached_property

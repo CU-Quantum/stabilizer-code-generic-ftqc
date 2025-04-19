@@ -1,4 +1,5 @@
 from cirq import kron
+from numpy import array
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
@@ -18,7 +19,7 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=[])
         result = simulator.simulate()
         assert result == SimulatorResult(
-            current_state=[],
+            current_state=array([]),
             measurements={},
         )
 
@@ -27,8 +28,10 @@ class TestSimulatorCircuit:
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=0)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
+        expected_state = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(),
+                                               initial_logical_qubit_state=KET_ONE_STATE_VECTOR).encode_logical_qubit()
         assert result == SimulatorResult(
-            current_state=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)],
+            current_state=expected_state,
             measurements={},
         )
 
@@ -37,8 +40,10 @@ class TestSimulatorCircuit:
         operations = [TransformationOperation(gate=TransformationGate.Z, target_qubit_index=0)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
+        expected_state = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(),
+                                               initial_logical_qubit_state=-KET_ONE_STATE_VECTOR).encode_logical_qubit()
         assert result == SimulatorResult(
-            current_state=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=-KET_ONE_STATE_VECTOR)],
+            current_state=expected_state,
             measurements={},
         )
 
@@ -47,11 +52,12 @@ class TestSimulatorCircuit:
         operations = [TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
+        expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
+                                               initial_logical_qubit_state=kron(KET_PLUS_STATE_VECTOR,
+                                                                                KET_ZERO_STATE_VECTOR).flatten()
+                                               ).encode_logical_qubit()
         assert result == SimulatorResult(
-            current_state=[GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
-                                                 initial_logical_qubit_state=kron(KET_PLUS_STATE_VECTOR,
-                                                                              KET_ZERO_STATE_VECTOR).flatten())
-                           ],
+            current_state=expected_state,
             measurements={},
         )
 
@@ -60,9 +66,15 @@ class TestSimulatorCircuit:
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
+        expected_state = kron(
+            GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(),
+                                  initial_logical_qubit_state=KET_ZERO_STATE_VECTOR).encode_logical_qubit(),
+            GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(),
+                                  initial_logical_qubit_state=KET_ONE_STATE_VECTOR).encode_logical_qubit()
+        ).flatten()
+
         assert result == SimulatorResult(
-            current_state=[GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_STATE_VECTOR),
-                           GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_STATE_VECTOR)],
+            current_state=expected_state,
             measurements={},
         )
 
@@ -71,11 +83,12 @@ class TestSimulatorCircuit:
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
-        assert result == SimulatorResult(
-            current_state=[GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
+        expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                  initial_logical_qubit_state=kron(KET_ZERO_STATE_VECTOR,
-                                                                              KET_ONE_STATE_VECTOR).flatten()),
-                           ],
+                                                                                  KET_ONE_STATE_VECTOR).flatten()
+                                               ).encode_logical_qubit()
+        assert result == SimulatorResult(
+            current_state=expected_state,
             measurements={},
         )
 

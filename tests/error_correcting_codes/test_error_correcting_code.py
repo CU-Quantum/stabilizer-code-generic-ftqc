@@ -2,7 +2,7 @@ from re import escape
 from typing import List
 
 import pytest
-from cirq import LineQubit, X
+from cirq import Circuit, LineQubit, X
 from numpy import kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -16,17 +16,22 @@ class CodeStub(ErrorCorrectingCode):
                  initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = KET_ZERO_STATE_VECTOR,
                  num_data_qubits: int = 1,
                  num_ancilla_qubits: int = 0,
-                 num_logical_qubits: int = 1):
-        super().__init__(num_data_qubits=num_data_qubits, num_ancilla_qubits=num_ancilla_qubits, num_logical_qubits=num_logical_qubits, initial_logical_qubit_state=initial_state)
+                 num_logical_qubits: int = 1,
+                 qubit_start_index: int = 0):
+        super().__init__(num_data_qubits=num_data_qubits,
+                         num_ancilla_qubits=num_ancilla_qubits,
+                         num_logical_qubits=num_logical_qubits,
+                         initial_logical_qubit_state=initial_state,
+                         qubit_start_index=qubit_start_index)
         self.operation_applied = False
 
-    def encode_logical_qubit(self) -> None:
-        self._current_state = self._initial_logical_qubit_state
+    def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
+        return self._initial_logical_qubit_state
 
-    def correct_errors(self) -> None:
+    def get_error_correction_circuit(self) -> Circuit:
         pass
 
-    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         self.operation_applied = True
 
     @property
@@ -37,33 +42,53 @@ class CodeStub(ErrorCorrectingCode):
 class TestErrorCorrectingCode:
     def test_encodes_logical_qubit(self):
         code = CodeStub(initial_state=KET_ZERO_DENSITY_MATRIX)
-        current_state = code.get_current_state()
+        current_state = code.encode_logical_qubit()
         assert current_state.tolist() == KET_ZERO_DENSITY_MATRIX.tolist()
 
     def test_correctly_applies_errors(self):
         code = CodeStub(initial_state=KET_ZERO_STATE_VECTOR)
-        code.get_error_circuit(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.tolist() == KET_ONE_STATE_VECTOR.tolist()
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0),
+        )
+        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                             qubit_order=code.all_qubits,
+                                                                             initial_state=state,)
+        assert state.tolist() == KET_ONE_STATE_VECTOR.tolist()
 
         initial_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR).flatten()
         code = CodeStub(initial_state=initial_state_two_qubits, num_data_qubits=2)
-        code.get_error_circuit(gate=X, qubit_index=1)
-        current_state = code.get_current_state()
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=1),
+        )
+        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                             qubit_order=code.all_qubits,
+                                                                             initial_state=state,)
         expected_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
-        assert current_state.tolist() == expected_state_two_qubits.tolist()
+        assert state.tolist() == expected_state_two_qubits.tolist()
 
     def test_correctly_chooses_density_matrix_type(self):
         code = CodeStub(initial_state=KET_ZERO_DENSITY_MATRIX)
-        code.get_error_circuit(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.shape == (2, 2)
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0)
+        )
+        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                             qubit_order=code.all_qubits,
+                                                                             initial_state=state,)
+        assert state.shape == (2, 2)
 
     def test_correctly_chooses_state_vector_type(self):
         code = CodeStub(initial_state=KET_ONE_STATE_VECTOR)
-        code.get_error_circuit(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.shape == (2,)
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0)
+        )
+        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                             qubit_order=code.all_qubits,
+                                                                             initial_state=state,)
+        assert state.shape == (2,)
 
     def test_can_get_data_qubits(self):
         expected_num_qubits = 2
