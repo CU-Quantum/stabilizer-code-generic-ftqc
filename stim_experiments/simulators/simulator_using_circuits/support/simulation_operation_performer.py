@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import List
 
 from cirq import Circuit, H, LineQubit, M, kron
@@ -27,10 +28,25 @@ class SimulationOperationPerformer:
         result = self._error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                                qubit_order=self._qubits + [self._ancilla_qubit],
                                                                                initial_state=state)
+
+        combined_measurements = self._combine_measurements(new_measurements=result.measurements)
+
         return StateAndMeasurements(
             state=self._trace_out_ancilla(result=result),
-            measurements=result.measurements,
+            measurements=combined_measurements,
         )
+
+    def _combine_measurements(self, new_measurements: dict[int, list[int]]) -> dict[int, list[int]]:
+        if not new_measurements:
+            return self._current_state.measurements
+        new_measurement = list(new_measurements.values())[0][0]
+        local_qubit_index = self._operation.control_encoding.qubit_index
+        first_qubit_x = self._operation.control_encoding.encoding.all_qubits[0].x
+        global_qubit_index = first_qubit_x + local_qubit_index
+
+        combined_measurements = deepcopy(self._current_state.measurements)
+        combined_measurements[global_qubit_index].append(new_measurement)
+        return combined_measurements
 
     def _get_circuit(self) -> Circuit:
         if self._operation.target_encoding:
@@ -77,7 +93,7 @@ class SimulationOperationPerformer:
 
     def _trace_out_ancilla(self, result: StateAndMeasurements) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         if is_state_vector(state=result.state):
-            measured_one = bool(result.measurements and result.measurements[0])
+            measured_one = bool(result.measurements and list(result.measurements.values())[0][0])
             return result.state[[not (i + measured_one) % 2 for i in range(len(result.state))]]  # take every other value depending on ancilla in |0> or |1>
         else:
             return partial_trace(rho=result.state, keep_qubits=list(range(len(self._qubits))))

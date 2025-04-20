@@ -27,7 +27,6 @@ class SimulatorUsingCircuits:
     def simulate(self) -> StateAndMeasurements:
         state = StateAndMeasurements(
             state=self._initialize_state(),
-            measurements=array([])
         )
         for operation in self._operations:
             simulation_operation = self._transformation_operation_to_simulation_operations(transformation_operation=operation)

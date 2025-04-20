@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Mapping
 
 from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, Simulator, \
     StateVectorTrialResult
-from numpy import array
+from numpy._typing import NDArray
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -29,6 +29,10 @@ class ErrorCorrectingCodeUtilities(ABC):
     def reshape_state(self, state: TYPE_DENSITY_MATRIX, num_qubits: int) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         pass
 
+    @staticmethod
+    def _cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements: Mapping[str, NDArray[int]]) -> dict[int, list[int]]:
+        return {int(key.strip('q()')): value.tolist() for key, value in measurements.items() if len(value) > 0}
+
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
@@ -44,7 +48,7 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
-            measurements=array(list(simulation.measurements.values())).flatten(),
+            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
         )
 
     def reshape_state(self, state: TYPE_DENSITY_MATRIX, num_qubits: int) -> TYPE_DENSITY_MATRIX:
@@ -61,7 +65,7 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
         simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,
-            measurements=array(list(simulation.measurements.values())).flatten(),
+            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
         )
 
     def reshape_state(self, state: TYPE_STATE_VECTOR, num_qubits: int) -> TYPE_STATE_VECTOR:

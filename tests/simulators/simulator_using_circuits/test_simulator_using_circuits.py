@@ -13,6 +13,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.sta
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from tests.utilities import states_are_equal
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
@@ -59,7 +60,7 @@ class TestSimulatorCircuit:
         result = simulator.simulate()
         assert result == StateAndMeasurements(
             state=array([]),
-            measurements=array([]),
+            measurements={},
         )
 
     def test_logical_x(self):
@@ -71,7 +72,7 @@ class TestSimulatorCircuit:
         expected_state = KET_ONE_STATE_VECTOR
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_logical_z(self):
@@ -82,7 +83,7 @@ class TestSimulatorCircuit:
         expected_state = -KET_ONE_STATE_VECTOR
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_logical_h(self):
@@ -93,7 +94,7 @@ class TestSimulatorCircuit:
         expected_state = KET_PLUS_STATE_VECTOR
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_multiple_encodings(self):
@@ -104,7 +105,7 @@ class TestSimulatorCircuit:
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_multiple_logical_qubits_single_encoding(self):
@@ -115,7 +116,7 @@ class TestSimulatorCircuit:
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_logical_cx_with_active_control(self):
@@ -129,7 +130,7 @@ class TestSimulatorCircuit:
         expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_logical_cx_with_inactive_control(self):
@@ -142,14 +143,14 @@ class TestSimulatorCircuit:
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
             state=expected_state,
-            measurements=array([]),
+            measurements={},
         )
 
     def test_entanglement(self):
         arbitrary_seed = 0
         numpy.random.seed(arbitrary_seed)
         num_trials = 5
-        observables = []
+        results: list[StateAndMeasurements] = []
         for trial in range(num_trials):
             code = LogicalBitsEncodingStub(num_logical_bits=1)
             operations = [
@@ -158,8 +159,11 @@ class TestSimulatorCircuit:
             ]
             simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
             result = simulator.simulate()
-            observables.append(result.measurements[0])
+            results.append(result)
+        observables = [result.measurements[0][0] for result in results if result.measurements[0]]
         assert any(observables) and not all(observables)
+        assert all(states_are_equal(result.state, KET_ONE_STATE_VECTOR if result.measurements[0][0] else KET_ZERO_STATE_VECTOR)
+                   for result in results)
 
     def test_multiple_codes(self):
         assert False
