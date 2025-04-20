@@ -51,10 +51,10 @@ class TestErrorCorrectingCode:
         circuit = Circuit(
             code.get_error_circuit(gate=X, qubit_index=0),
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state,)
-        assert state.tolist() == KET_ONE_STATE_VECTOR.tolist()
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.tolist() == KET_ONE_STATE_VECTOR.tolist()
 
         initial_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR).flatten()
         code = CodeStub(initial_state=initial_state_two_qubits, num_data_qubits=2)
@@ -62,11 +62,11 @@ class TestErrorCorrectingCode:
         circuit = Circuit(
             code.get_error_circuit(gate=X, qubit_index=1),
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state,)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
         expected_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
-        assert state.tolist() == expected_state_two_qubits.tolist()
+        assert state_and_measurements.state.tolist() == expected_state_two_qubits.tolist()
 
     def test_correctly_chooses_density_matrix_type(self):
         code = CodeStub(initial_state=KET_ZERO_DENSITY_MATRIX)
@@ -74,10 +74,10 @@ class TestErrorCorrectingCode:
         circuit = Circuit(
             code.get_error_circuit(gate=X, qubit_index=0)
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state,)
-        assert state.shape == (2, 2)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.shape == (2, 2)
 
     def test_correctly_chooses_state_vector_type(self):
         code = CodeStub(initial_state=KET_ONE_STATE_VECTOR)
@@ -85,10 +85,10 @@ class TestErrorCorrectingCode:
         circuit = Circuit(
             code.get_error_circuit(gate=X, qubit_index=0)
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state,)
-        assert state.shape == (2,)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.shape == (2,)
 
     def test_can_get_data_qubits(self):
         expected_num_qubits = 2

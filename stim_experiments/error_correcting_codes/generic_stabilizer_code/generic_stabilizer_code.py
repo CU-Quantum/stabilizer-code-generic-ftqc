@@ -40,9 +40,10 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         self._validate_initial_logical_state_size()
         initial_state = self._initialize_logical_state()
         circuit = self._get_encoding_circuit()
-        return self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                            qubit_order=self.all_qubits,
-                                                                            initial_state=initial_state)
+        state_and_measurements = self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=self.all_qubits,
+                                                                                              initial_state=initial_state)
+        return state_and_measurements.state
 
     def _validate_initial_logical_state_size(self) -> None:
         num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state.shape[0]))

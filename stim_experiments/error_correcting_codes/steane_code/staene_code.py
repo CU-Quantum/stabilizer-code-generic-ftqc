@@ -28,9 +28,10 @@ class SteaneCode(ErrorCorrectingCode):
                                                                                                initial_state=initial_state)
         initial_state = initial_state_simulation.final_density_matrix
 
-        return self.error_correcting_code_utilities.get_state_after_circuit(circuit=self.get_error_correction_circuit(),
-                                                                            qubit_order=self.all_qubits,
-                                                                            initial_state=initial_state)
+        state_and_measurements = self.error_correcting_code_utilities.get_state_after_circuit(circuit=self.get_error_correction_circuit(),
+                                                                                              qubit_order=self.all_qubits,
+                                                                                              initial_state=initial_state)
+        return state_and_measurements.state
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass

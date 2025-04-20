@@ -24,7 +24,7 @@ class TestLogicalGates:
                                                                                      qubit_order=code.all_qubits,
                                                                                      initial_state=state)
         expected_state = ExpectedStatesGenericFiveQubit().get_logical_one_state_vector()
-        assert allclose(current_state, expected_state)
+        assert allclose(current_state.state, expected_state)
 
     def test_logical_z(self):
         operation = LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
@@ -37,7 +37,7 @@ class TestLogicalGates:
                                                                                      qubit_order=code.all_qubits,
                                                                                      initial_state=state)
         expected_state = ExpectedStatesGenericFiveQubit().get_logical_minus_density_matrix()
-        assert allclose(current_state, expected_state)
+        assert allclose(current_state.state, expected_state)
 
     def test_logical_h_corrects_in_hadamard_basis(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_DENSITY_MATRIX)
@@ -45,9 +45,10 @@ class TestLogicalGates:
         circuit = Circuit(
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
+        state = state_and_measurements.state
         assert not allclose(state, ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix())
 
         circuit = Circuit(
@@ -55,10 +56,10 @@ class TestLogicalGates:
             code.get_error_correction_circuit(),
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0)),
         )
-        current_state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                                     qubit_order=code.all_qubits,
-                                                                                     initial_state=state)
-        assert allclose(current_state, ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix())
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
+        assert allclose(state_and_measurements.state, ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix())
 
     def test_logical_logical_z_has_logical_x_effect_after_logical_h(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
@@ -66,20 +67,21 @@ class TestLogicalGates:
         circuit = Circuit(
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
+        state = state_and_measurements.state
         assert not allclose(state, ExpectedStatesGenericFiveQubit().get_logical_zero_density_matrix())
 
         circuit = Circuit(
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)),
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
         )
-        current_state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                                     qubit_order=code.all_qubits,
-                                                                                     initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
         expected_state = ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix()
-        assert allclose(current_state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state)
 
     def test_logical_logical_x_on_one_out_of_multiple_encoded_qubits(self):
         initial_state = kron(KET_ZERO_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX)
@@ -89,14 +91,14 @@ class TestLogicalGates:
         circuit = Circuit(
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=1))
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
 
         expected_logical_state = kron(KET_ZERO_DENSITY_MATRIX, KET_ONE_DENSITY_MATRIX)
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
-        assert allclose(state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state)
 
     def test_logical_h_on_one_out_of_multiple_encoded_qubits(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -105,14 +107,14 @@ class TestLogicalGates:
         circuit = Circuit(
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
 
         expected_logical_state = kron(KET_ZERO.state_vector(), KET_PLUS.state_vector(), shape_len=1)
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
-        assert allclose(state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state)
 
     def test_two_logical_h_on_one_out_of_multiple_encoded_qubits_is_identity(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -122,12 +124,12 @@ class TestLogicalGates:
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1)),
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
 
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit()).encode_logical_qubit()
-        assert allclose(state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state)
 
     def test_logical_logical_hzh_on_one_out_of_multiple_encoded_qubits_is_logical_x(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -139,14 +141,14 @@ class TestLogicalGates:
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=1)),
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1)),
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
 
         expected_logical_state = kron(KET_ZERO.state_vector(), KET_ONE.state_vector(), shape_len=1)
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
-        assert allclose(state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state)
 
     def test_qubit_index_must_be_at_most_largest_logical_index(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -165,16 +167,16 @@ class TestLogicalGates:
             code.get_error_circuit(Z, 0),
             code.get_error_correction_circuit(),
         )
-        state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                             qubit_order=code.all_qubits,
-                                                                             initial_state=state)
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state)
 
         expected_state_code = GenericStabilizerCode(generators=get_check_matrix_values_8_qubit())
         expected_state = code.encode_logical_qubit()
         circuit = Circuit(
-         expected_state_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+            expected_state_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
         )
         expected_state = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                                       qubit_order=code.all_qubits,
                                                                                       initial_state=expected_state)
-        assert allclose(state, expected_state)
+        assert allclose(state_and_measurements.state, expected_state.state)

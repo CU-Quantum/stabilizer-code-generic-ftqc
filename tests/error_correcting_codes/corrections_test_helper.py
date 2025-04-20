@@ -20,4 +20,4 @@ class CorrectionsTestHelper:
                                                                                    qubit_order=self._code.all_qubits,
                                                                                    initial_state=state)
         expected_state = self._expected_states_utilities.get_logical_zero_density_matrix()
-        return allclose(current_state, expected_state, atol=1e-7)
+        return allclose(current_state.state, expected_state, atol=1e-7)

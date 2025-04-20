@@ -23,31 +23,35 @@ class SimulationOperationPerformer:
     def perform_operation(self) -> StateAndMeasurements:
         ancilla_state = self._error_correcting_code_utilities.zero_state
         state = kron(self._current_state.state, ancilla_state, shape_len=len(self._current_state.state.shape))
-
-        if self._operation.target_encoding:
-            if self._operation.control_encoding:
-                target_controlled_by_ancilla = [operation.controlled_by(self._ancilla_qubit) for operation in self._target_circuit.all_operations()]
-                circuit = Circuit(
-                    self._control_controlled_by_ancilla,
-                    target_controlled_by_ancilla,
-                    self._control_controlled_by_ancilla,
-                )
-            else:
-                circuit = self._target_circuit
-        elif self._operation.control_encoding:
-            circuit = Circuit(
-                self._control_controlled_by_ancilla,
-                M(self._ancilla_qubit)
-            )
-        else:
-            raise ValueError('Was given a SimulationOperation with no encoding.')
-
+        circuit = self._get_circuit()
         result = self._error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                                qubit_order=self._qubits + [self._ancilla_qubit],
                                                                                initial_state=state)
         return StateAndMeasurements(
             state=self._trace_out_ancilla(result=result),
             measurements=result.measurements,
+        )
+
+    def _get_circuit(self) -> Circuit:
+        if self._operation.target_encoding:
+            return self._get_controlled_circuit() if self._operation.control_encoding else self._target_circuit
+        elif self._operation.control_encoding:
+            return self._get_measurement_circuit()
+        else:
+            raise ValueError('Was given a SimulationOperation with no encoding.')
+
+    def _get_controlled_circuit(self) -> Circuit:
+        target_controlled_by_ancilla = [operation.controlled_by(self._ancilla_qubit) for operation in self._target_circuit.all_operations()]
+        return Circuit(
+            self._control_controlled_by_ancilla,
+            target_controlled_by_ancilla,
+            self._control_controlled_by_ancilla,
+        )
+
+    def _get_measurement_circuit(self) -> Circuit:
+        return Circuit(
+            self._control_controlled_by_ancilla,
+            M(self._ancilla_qubit)
         )
 
     @cached_property

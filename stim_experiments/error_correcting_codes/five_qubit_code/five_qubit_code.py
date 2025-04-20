@@ -47,9 +47,10 @@ class FiveQubitCode(ErrorCorrectingCode):
             [self._get_phase_corrections(ancilla_index=ancilla_index) for ancilla_index in range(self._num_ancilla_qubits)],
             [H(ancilla) for ancilla in self.ancilla_qubits],
         )
-        return self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                            qubit_order=self.all_qubits,
-                                                                            initial_state=initial_state,)
+        state_and_measurements = self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=self.all_qubits,
+                                                                                              initial_state=initial_state,)
+        return state_and_measurements.state
 
     @property
     def _syndrome_circuit(self) -> Circuit:
