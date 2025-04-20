@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import List
+from typing import List, Optional
 
 from cirq import Circuit, Gate, LineQubit
 from numpy import array
@@ -45,7 +45,7 @@ class ErrorCorrectingCode(ABC):
         pass
 
     @abstractmethod
-    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         pass
 
     @property

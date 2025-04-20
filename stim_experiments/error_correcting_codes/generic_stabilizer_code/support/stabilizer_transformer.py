@@ -6,18 +6,19 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 
 
 class TransformationGate(Enum):
-    H = auto()
-    X = auto()
-    Z = auto()
     CX = auto()
     CZ = auto()
+    H = auto()
+    M = auto()
+    X = auto()
+    Z = auto()
 
 
 @dataclass
 class TransformationOperation:
     gate: TransformationGate
     target_qubit_index: int
-    control_qubit_index: Optional[int] = None
+    control_qubit_index: Optional[int] = None  # TODO add validation to ensure no control on single qubit operations
 
 
 class StabilizerTransformer:

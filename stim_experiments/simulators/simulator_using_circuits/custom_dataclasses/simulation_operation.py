@@ -12,7 +12,12 @@ class ControlEncoding:
 
 
 @dataclass
-class SimulationOperation:
+class TargetEncoding:
     operation: LogicalOperation
     encoding: ErrorCorrectingCode
+
+
+@dataclass
+class SimulationOperation:
+    target_encoding: Optional[TargetEncoding] = None
     control_encoding: Optional[ControlEncoding] = None

@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
-    ControlEncoding, SimulationOperation
+    ControlEncoding, SimulationOperation, TargetEncoding
 
 
 class TransformationOperationToSimulationOperationConverter:
@@ -15,6 +15,13 @@ class TransformationOperationToSimulationOperationConverter:
         self._encodings = encodings
 
     def get_simulation_operation(self) -> SimulationOperation:
+        if self._transformation_operation.gate == TransformationGate.M:
+            return SimulationOperation(
+                control_encoding=ControlEncoding(
+                    encoding=self._target_encoding,
+                    qubit_index=self._target_index_on_encoding
+                )
+            )
         operation = self._get_target_operation()
         if self._transformation_operation.control_qubit_index is not None:
             operation = self._add_control(operation)
@@ -22,16 +29,23 @@ class TransformationOperationToSimulationOperationConverter:
 
     def _get_target_operation(self) -> SimulationOperation:
         logical_gate_label = self._get_logical_gate_label()
-        target_encoding = self._get_encoding(qubit_index=self._transformation_operation.target_qubit_index)
-        target_index_on_encoding = self._get_index_on_encoding(
-            qubit_index=self._transformation_operation.target_qubit_index)
         return SimulationOperation(
-            operation=LogicalOperation(
-                gate=logical_gate_label,
-                qubit_index=target_index_on_encoding,
+            target_encoding=TargetEncoding(
+                operation=LogicalOperation(
+                    gate=logical_gate_label,
+                    qubit_index=self._target_index_on_encoding,
+                ),
+                encoding=self._target_encoding,
             ),
-            encoding=target_encoding
         )
+
+    @property
+    def _target_encoding(self) -> ErrorCorrectingCode:
+        return self._get_encoding(qubit_index=self._transformation_operation.target_qubit_index)
+
+    @property
+    def _target_index_on_encoding(self) -> int:
+        return self._get_index_on_encoding(qubit_index=self._transformation_operation.target_qubit_index)
 
     def _add_control(self, operation: SimulationOperation) -> SimulationOperation:
         encoding_control = self._get_encoding(qubit_index=self._transformation_operation.control_qubit_index)
@@ -51,6 +65,8 @@ class TransformationOperationToSimulationOperationConverter:
             return LogicalGateLabel.H
         elif self._transformation_operation.gate == TransformationGate.CX:
             return LogicalGateLabel.X
+        elif self._transformation_operation.gate == TransformationGate.CZ:
+            return LogicalGateLabel.Z
         raise ValueError(f"Unimplemented transformation gate {self._transformation_operation.gate}.") # TODO test this
 
     def _get_encoding(self, qubit_index: int) -> ErrorCorrectingCode:

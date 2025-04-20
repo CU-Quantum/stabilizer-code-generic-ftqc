@@ -6,9 +6,10 @@ from numpy import array
 from proto.utils import cached_property
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+    StateAndMeasurements
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationOperation
-from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     SimulationOperation
 from stim_experiments.simulators.simulator_using_circuits.support.ansformation_operation_to_simulation_operation import \
@@ -23,15 +24,15 @@ class SimulatorUsingCircuits:
         self._error_correcting_code = error_correcting_code
         self._operations = operations
 
-    def simulate(self) -> SimulatorResult:
-        state = self._initialize_state()
+    def simulate(self) -> StateAndMeasurements:
+        state = StateAndMeasurements(
+            state=self._initialize_state(),
+            measurements=array([])
+        )
         for operation in self._operations:
             simulation_operation = self._transformation_operation_to_simulation_operations(transformation_operation=operation)
-            state = SimulationOperationPerformer(operation=simulation_operation, current_state=state, qubits=self._all_qubits).get_state()
-        return SimulatorResult(
-            current_state=state,
-            measurements={},
-        )
+            state = SimulationOperationPerformer(operation=simulation_operation, current_state=state, qubits=self._all_qubits).perform_operation()
+        return state
 
     def _initialize_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         qubit_states = [encoding.encode_logical_qubit() for encoding in self._encodings]

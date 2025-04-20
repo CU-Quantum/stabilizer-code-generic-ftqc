@@ -1,19 +1,18 @@
 from typing import List, Optional
 
+import numpy.random
 from cirq import Circuit, H, X, Z, kron
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
-    GenericStabilizerCode
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+    StateAndMeasurements
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
-from stim_experiments.simulators.custom_dataclasses.simulator_result import SimulatorResult
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
@@ -58,20 +57,21 @@ class TestSimulatorCircuit:
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=[])
         result = simulator.simulate()
-        assert result == SimulatorResult(
-            current_state=array([]),
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=array([]),
+            measurements=array([]),
         )
 
     def test_logical_x(self):
+        # TODO move these state checks into the performer tests
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=0)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         expected_state = KET_ONE_STATE_VECTOR
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
     def test_logical_z(self):
@@ -80,24 +80,20 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         expected_state = -KET_ONE_STATE_VECTOR
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
     def test_logical_h(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
         operations = [TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)]
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
-        expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
-                                               initial_logical_qubit_state=kron(KET_PLUS_STATE_VECTOR,
-                                                                                KET_ZERO_STATE_VECTOR).flatten()
-                                               ).encode_logical_qubit()
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        expected_state = KET_PLUS_STATE_VECTOR
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
     def test_multiple_encodings(self):
@@ -106,9 +102,9 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
     def test_multiple_logical_qubits_single_encoding(self):
@@ -117,12 +113,12 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
-    def test_logical_cx(self):
+    def test_logical_cx_with_active_control(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
@@ -131,16 +127,39 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        assert result == SimulatorResult(
-            current_state=expected_state,
-            measurements={},
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
         )
 
-    def test_measurements(self):
-        assert False
+    def test_logical_cx_with_inactive_control(self):
+        code = LogicalBitsEncodingStub(num_logical_bits=1)
+        operations = [
+            TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0)
+        ]
+        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        result = simulator.simulate()
+        expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements=array([]),
+        )
 
     def test_entanglement(self):
-        assert False
+        arbitrary_seed = 0
+        numpy.random.seed(arbitrary_seed)
+        num_trials = 5
+        observables = []
+        for trial in range(num_trials):
+            code = LogicalBitsEncodingStub(num_logical_bits=1)
+            operations = [
+                TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
+                TransformationOperation(TransformationGate.M, target_qubit_index=0)
+            ]
+            simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+            result = simulator.simulate()
+            observables.append(result.measurements[0])
+        assert any(observables) and not all(observables)
 
     def test_multiple_codes(self):
         assert False
