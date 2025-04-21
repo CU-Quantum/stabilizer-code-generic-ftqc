@@ -16,14 +16,14 @@ class CheckMatrixToGates:
     def _get_operations(self, row: List[bool], qubit_index: int) -> List[Gate]:
         operations = []
         if row[qubit_index]:
-            is_negative = row[qubit_index] == -1  # TODO test for negative numbers
+            is_negative = row[qubit_index] == -1
             if is_negative:
                 operations.append(Z)
             operations.append(X)
             if is_negative:
                 operations.append(Z)
         if row[qubit_index + self._check_matrix.num_physical_qubits]:
-            is_negative = row[qubit_index + self._check_matrix.num_physical_qubits] == -1  # TODO test for negative numbers
+            is_negative = row[qubit_index + self._check_matrix.num_physical_qubits] == -1
             if is_negative:
                 operations.append(X)
             operations.append(Z)

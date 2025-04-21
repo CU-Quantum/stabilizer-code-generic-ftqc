@@ -32,3 +32,13 @@ class TestCheckMatrixToGates:
             [[X], [Z], [Z], [X]],
             [[X, Z], [X], [X], [X, Z]],
         ]
+
+    def test_minus_x_gate(self):
+        converter = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=array([[-1, 0]])))
+        gates = converter.get_gates()
+        assert gates == [[[Z, X, Z]]]
+
+    def test_minus_z_gate(self):
+        converter = CheckMatrixToGates(check_matrix=CheckMatrix(matrix=array([[0, -1]])))
+        gates = converter.get_gates()
+        assert gates == [[[X, Z, X]]]
