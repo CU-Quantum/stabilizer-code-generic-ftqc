@@ -12,7 +12,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.utilities import states_are_equal
 
@@ -65,41 +65,7 @@ class TestSimulatorCircuit:
             measurements={},
         )
 
-    def test_logical_x(self):
-        # TODO move these state checks into the performer tests
-        code = LogicalBitsEncodingStub(num_logical_bits=1)
-        operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
-        result = simulator.simulate()
-        expected_state = KET_ONE_STATE_VECTOR
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_logical_z(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=1, initial_logical_qubit_state=KET_ONE_STATE_VECTOR)
-        operations = [TransformationOperation(gate=TransformationGate.Z, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
-        result = simulator.simulate()
-        expected_state = -KET_ONE_STATE_VECTOR
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_logical_h(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=1)
-        operations = [TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
-        result = simulator.simulate()
-        expected_state = KET_PLUS_STATE_VECTOR
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_multiple_encodings(self):
+    def test_creates_enough_encodings_necessary_for_operations(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
         simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
@@ -116,33 +82,6 @@ class TestSimulatorCircuit:
         simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_logical_cx_with_active_control(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=1)
-        operations = [
-            TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
-            TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0)
-        ]
-        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
-        result = simulator.simulate()
-        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_logical_cx_with_inactive_control(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=1)
-        operations = [
-            TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0)
-        ]
-        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
-        result = simulator.simulate()
-        expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
             state=expected_state,
             measurements={},
