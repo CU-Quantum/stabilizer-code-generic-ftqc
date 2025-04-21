@@ -132,3 +132,36 @@ class TestSimulationOperationPerformer:
                 state=initial_state,
                 measurements={0: [expected_measurement]}
             )
+
+    def test_ancilla_qubit_in_provided_qubits(self):
+        qubits = [LineQubit(0), LineQubit(1)]
+        ancilla_qubit = qubits[1]
+
+        code = ErrorCorrectingCodeStub()
+
+        operation = SimulationOperation(
+            target_encoding=TargetEncoding(
+                operation=LogicalOperation(
+                    LogicalGateLabel.X,
+                    qubit_index=0
+                ),
+                encoding=code,
+            )
+        )
+
+        initial_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+
+        performer = SimulationOperationPerformer(
+            operation=operation,
+            current_state=StateAndMeasurements(state=initial_state,),
+            qubits=qubits,
+            ancilla_qubit=ancilla_qubit
+        )
+
+        result = performer.perform_operation()
+
+        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements={},
+        )

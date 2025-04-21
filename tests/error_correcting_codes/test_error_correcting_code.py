@@ -150,3 +150,18 @@ class TestErrorCorrectingCode:
         code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
         new_code = code.create_new()
         assert code.operation_applied and not new_code.operation_applied and new_code.num_logical_qubits == num_qubits
+
+    def test_validates_provided_ancilla_qubits_count(self):
+        expected_num_ancilla_qubits = 3
+        provided_ancilla_qubits = LineQubit.range(2)
+
+        code = CodeStub(num_ancilla_qubits=expected_num_ancilla_qubits, provided_ancilla_qubits=provided_ancilla_qubits)
+        with pytest.raises(ValueError, match="Number of provided ancilla qubits \\(2\\) does not match the required number \\(3\\)."):
+            _ = code.ancilla_qubits
+
+    def test_accepts_correct_number_of_provided_ancilla_qubits(self):
+        expected_num_ancilla_qubits = 3
+        provided_ancilla_qubits = LineQubit.range(3)  # 3 qubits
+
+        code = CodeStub(num_ancilla_qubits=expected_num_ancilla_qubits, provided_ancilla_qubits=provided_ancilla_qubits)
+        assert code.ancilla_qubits == provided_ancilla_qubits

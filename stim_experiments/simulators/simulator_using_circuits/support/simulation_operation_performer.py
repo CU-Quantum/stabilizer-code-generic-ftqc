@@ -37,7 +37,7 @@ class SimulationOperationPerformer:
         )
 
     def _run_simulation(self, circuit: Circuit) -> StateAndMeasurements:
-        if self._ancilla_qubit in self._qubits:  # TODO test this condition
+        if self._ancilla_qubit in self._qubits:
             return self._error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                                  qubit_order=self._qubits,
                                                                                  initial_state=self._current_state.state)

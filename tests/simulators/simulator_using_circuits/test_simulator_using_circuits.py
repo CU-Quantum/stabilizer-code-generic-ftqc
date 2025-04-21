@@ -17,7 +17,6 @@ from stim_experiments.utilities import KET_ONE_STATE_VECTOR, \
 from tests.utilities import states_are_equal
 
 
-# TODO simulate error correction
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
     def __init__(self,
                  num_logical_bits: int,

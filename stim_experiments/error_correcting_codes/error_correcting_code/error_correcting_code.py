@@ -3,7 +3,6 @@ from functools import cached_property
 from typing import List, Optional
 
 from cirq import Circuit, Gate, LineQubit
-from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
     ErrorCorrectingCodeUtilities
@@ -29,7 +28,7 @@ class ErrorCorrectingCode(ABC):
                  num_logical_qubits: int,
                  initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int,
-                 provided_ancilla_qubits: Optional[List[LineQubit]] = None,  # TODO test can provide ancillas
+                 provided_ancilla_qubits: Optional[List[LineQubit]] = None,
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
@@ -79,7 +78,9 @@ class ErrorCorrectingCode(ABC):
 
     @cached_property
     def ancilla_qubits(self) -> List[LineQubit]:
-        # TODO ensure provided ancillas match expected ancillas if provided
+        if self._provided_ancilla_qubits is not None and len(self._provided_ancilla_qubits) != self._num_ancilla_qubits:
+            raise ValueError(f"Number of provided ancilla qubits ({len(self._provided_ancilla_qubits)}) does not match "
+                             f"the required number ({self._num_ancilla_qubits}).")
         new_ancilla_qubits = LineQubit.range(self._qubit_start_index + self._num_data_qubits,
                                              self._qubit_start_index + self._num_data_qubits + self._num_ancilla_qubits)
         return self._provided_ancilla_qubits or new_ancilla_qubits
@@ -87,6 +88,3 @@ class ErrorCorrectingCode(ABC):
     @property
     def num_logical_qubits(self) -> int:
         return self._num_logical_qubits
-
-    def __eq__(self, other):
-        return allequal(self.get_current_state(), other.get_current_state())
