@@ -5,7 +5,7 @@ from cirq import Circuit, H, X, Z, kron
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
@@ -147,3 +147,14 @@ class TestTransformationOperationToSimulationOperationConverter:
                 qubit_index=0,
             )
         )
+
+    def test_validates_operation(self):
+        encodings = [
+            ErrorCorrectingCodeStub(),
+        ]
+        invalid_transformation_operation = TransformationOperation(gate=TransformationGate.X, target_qubit_index=0, control_qubit_index=1)
+        converter = TransformationOperationToSimulationOperationConverter(
+            transformation_operation=invalid_transformation_operation,
+            encodings=encodings)
+        with pytest.raises(ValueError):
+            converter.get_simulation_operation()

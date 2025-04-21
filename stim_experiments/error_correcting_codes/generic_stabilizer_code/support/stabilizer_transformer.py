@@ -1,24 +1,8 @@
-from dataclasses import dataclass
-from enum import Enum, auto
-from typing import List, Optional
+from typing import List
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
-
-
-class TransformationGate(Enum):
-    CX = auto()
-    CZ = auto()
-    H = auto()
-    M = auto()
-    X = auto()
-    Z = auto()
-
-
-@dataclass
-class TransformationOperation:
-    gate: TransformationGate
-    target_qubit_index: int
-    control_qubit_index: Optional[int] = None  # TODO add validation to ensure no control on single qubit operations
+from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+    TransformationGate, TransformationOperation
 
 
 class StabilizerTransformer:
