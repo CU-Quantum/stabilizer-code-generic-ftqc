@@ -1,5 +1,5 @@
 from re import escape
-from typing import List
+from typing import Optional
 
 import pytest
 from cirq import Circuit, LineQubit, X
@@ -17,12 +17,15 @@ class CodeStub(ErrorCorrectingCode):
                  num_data_qubits: int = 1,
                  num_ancilla_qubits: int = 0,
                  num_logical_qubits: int = 1,
-                 qubit_start_index: int = 0):
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[list[LineQubit]] = None,
+                 ):
         super().__init__(num_data_qubits=num_data_qubits,
                          num_ancilla_qubits=num_ancilla_qubits,
                          num_logical_qubits=num_logical_qubits,
                          initial_logical_qubit_state=initial_state,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
         self.operation_applied = False
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
@@ -33,9 +36,10 @@ class CodeStub(ErrorCorrectingCode):
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         self.operation_applied = True
+        return Circuit()
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         return [LogicalGateLabel.Z, LogicalGateLabel.H]
 
 

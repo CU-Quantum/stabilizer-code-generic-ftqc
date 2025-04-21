@@ -2,7 +2,7 @@ from typing import List, Optional
 
 import numpy.random
 import pytest
-from cirq import Circuit, H, X, Z, kron
+from cirq import Circuit, H, X, Z, kron, LineQubit
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -18,21 +18,25 @@ from tests.utilities import states_are_equal
 
 
 # TODO simulate error correction
-# TODO allow sharing ancilla qubits
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
-    def __init__(self, num_logical_bits: int,
+    def __init__(self,
+                 num_logical_bits: int,
+                 num_ancilla_bits: int = 0,
                  initial_logical_qubit_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                 qubit_start_index: int = 0):
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[List[LineQubit]] = None, ):
         if initial_logical_qubit_state is None:
             initial_logical_qubit_state = kron(*[KET_ZERO_STATE_VECTOR] * num_logical_bits, shape_len=1)
         super().__init__(num_data_qubits=num_logical_bits,
-                         num_ancilla_qubits=0,
+                         num_ancilla_qubits=num_ancilla_bits,
                          num_logical_qubits=num_logical_bits,
                          initial_logical_qubit_state=initial_logical_qubit_state,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        return self._initial_logical_qubit_state
+        ancillas_state = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancilla_qubits, shape_len=1)
+        return kron(self._initial_logical_qubit_state, ancillas_state, shape_len=1)
 
     def get_error_correction_circuit(self) -> Circuit:
         pass
@@ -63,6 +67,32 @@ class TestSimulatorCircuit:
         result = simulator.simulate()
         assert result == StateAndMeasurements(
             state=array([]),
+            measurements={},
+        )
+
+    @pytest.mark.parametrize('codes', [
+        LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2),
+        [
+            LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=1),
+            LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2)
+        ]
+    ])
+    def test_shared_ancilla_qubits(self, codes: ErrorCorrectingCode | list[ErrorCorrectingCode]):
+        operations_requiring_two_encodings = [
+            TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
+            TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)
+        ]
+        simulator = SimulatorUsingCircuits(
+            error_correcting_codes=codes,
+            operations=operations_requiring_two_encodings,
+        )
+        result = simulator.simulate()
+
+        expected_states_data = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
+        only_two_ancilla = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        expected_state = kron(expected_states_data, only_two_ancilla, shape_len=1)
+        assert result == StateAndMeasurements(
+            state=expected_state,
             measurements={},
         )
 

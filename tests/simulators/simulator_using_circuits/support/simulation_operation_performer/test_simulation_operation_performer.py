@@ -1,6 +1,6 @@
 import numpy.random
 import pytest
-from cirq import kron
+from cirq import LineQubit, kron
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
@@ -20,10 +20,9 @@ class TestSimulationOperationPerformer:
         operation = SimulationOperation()
         with pytest.raises(ValueError, match="Was given a SimulationOperation with no encoding."):
             performer = SimulationOperationPerformer(operation=operation,
-                                                     current_state=StateAndMeasurements(
-                                                         state=KET_ZERO_STATE_VECTOR,
-                                                     ),
-                                                     qubits=code.all_qubits)
+                                                     current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
+                                                     qubits=code.all_qubits,
+                                                     ancilla_qubit=LineQubit(len(code.all_qubits)))
             performer.perform_operation()
 
     def test_target_operation_only(self):
@@ -38,10 +37,9 @@ class TestSimulationOperationPerformer:
             )
         )
         performer = SimulationOperationPerformer(operation=operation,
-                                                 current_state=StateAndMeasurements(
-                                                     state=KET_ZERO_STATE_VECTOR,
-                                                 ),
-                                                 qubits=code.all_qubits)
+                                                 current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
+                                                 qubits=code.all_qubits,
+                                                 ancilla_qubit=LineQubit(len(code.all_qubits)))
         result = performer.perform_operation()
         assert result == StateAndMeasurements(
             state=KET_ONE_STATE_VECTOR,
@@ -67,10 +65,9 @@ class TestSimulationOperationPerformer:
         initial_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         qubits = target_code.all_qubits + control_code.all_qubits
         performer = SimulationOperationPerformer(operation=operation,
-                                                 current_state=StateAndMeasurements(
-                                                     state=initial_state,
-                                                 ),
-                                                 qubits=qubits)
+                                                 current_state=StateAndMeasurements(state=initial_state,),
+                                                 qubits=qubits,
+                                                 ancilla_qubit=LineQubit(len(qubits)))
         result = performer.perform_operation()
         expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
@@ -100,7 +97,8 @@ class TestSimulationOperationPerformer:
                                                  current_state=StateAndMeasurements(
                                                      state=initial_state,
                                                  ),
-                                                 qubits=qubits)
+                                                 qubits=qubits,
+                                                 ancilla_qubit=LineQubit(len(qubits)))
         result = performer.perform_operation()
         assert result == StateAndMeasurements(
             state=initial_state,
@@ -127,7 +125,8 @@ class TestSimulationOperationPerformer:
                                                      current_state=StateAndMeasurements(
                                                          state=initial_state,
                                                      ),
-                                                     qubits=qubits)
+                                                     qubits=qubits,
+                                                     ancilla_qubit=LineQubit(len(qubits)))
             result = performer.perform_operation()
             assert result == StateAndMeasurements(
                 state=initial_state,

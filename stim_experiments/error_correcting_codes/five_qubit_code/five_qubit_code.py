@@ -1,6 +1,7 @@
-from typing import List
+from typing import Optional
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, Operation, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, LineQubit, Operation, R, X, Z, \
+    kron
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -25,12 +26,16 @@ class FiveQubitCode(ErrorCorrectingCode):
             [self.all_qubits[i] for i in (1,4)],
         ]
 
-    def __init__(self, initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, qubit_start_index: int = 0):
+    def __init__(self,
+                 initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
         super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
                          num_data_qubits=5,
                          num_ancilla_qubits=4,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
@@ -61,7 +66,7 @@ class FiveQubitCode(ErrorCorrectingCode):
             [H(ancilla) for ancilla in self.ancilla_qubits],
         )
 
-    def _get_phase_corrections(self, ancilla_index: int) -> List[List[Operation]]:
+    def _get_phase_corrections(self, ancilla_index: int) -> list[list[Operation]]:
         fix_qubits = self._flip_corrections[ancilla_index]
         return [
             [Z(fix_qubit).controlled_by(self.ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
@@ -71,7 +76,7 @@ class FiveQubitCode(ErrorCorrectingCode):
         pass
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         return []
 
     def get_error_correction_circuit(self) -> Circuit:

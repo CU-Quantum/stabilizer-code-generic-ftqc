@@ -1,6 +1,6 @@
-from typing import List
+from typing import Optional
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, R, X, Z, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -11,12 +11,16 @@ from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, \
 class SteaneCode(ErrorCorrectingCode):
     _stabilizer_indices = [(3, 4, 5, 6), (1, 2, 5, 6), (0, 2, 4, 6)]
 
-    def __init__(self, initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, qubit_start_index: int = 0):
+    def __init__(self,
+                 initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
         super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
                          num_data_qubits=7,
                          num_ancilla_qubits=3,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
@@ -37,7 +41,7 @@ class SteaneCode(ErrorCorrectingCode):
         pass
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         return []
 
     def get_error_correction_circuit(self) -> Circuit:

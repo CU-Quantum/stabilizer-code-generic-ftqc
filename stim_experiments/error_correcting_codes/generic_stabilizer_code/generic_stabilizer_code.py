@@ -2,7 +2,6 @@ from functools import cached_property
 from typing import List, Optional, Union
 
 from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, kron
-from numpy import log2
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
@@ -17,7 +16,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
+    get_num_qubits_in_state
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
@@ -46,7 +46,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         return state_and_measurements.state
 
     def _validate_initial_logical_state_size(self) -> None:
-        num_qubits_in_initial_logical_state = int(log2(self._initial_logical_qubit_state.shape[0]))
+        num_qubits_in_initial_logical_state = get_num_qubits_in_state(self._initial_logical_qubit_state)
         if num_qubits_in_initial_logical_state != self._check_matrix.num_logical_qubits:
             raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
 

@@ -1,6 +1,7 @@
 from functools import cached_property
 
 import numpy
+from cirq import LineQubit
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -38,7 +39,8 @@ class TestMultipleMeasurementsOneOneQubit:
         performer = SimulationOperationPerformer(
             operation=self._measurement_operation_on_first_qubit,
             current_state=state_and_measurements,
-            qubits=self._control_code.all_qubits
+            qubits=self._control_code.all_qubits,
+            ancilla_qubit=LineQubit(len(self._control_code.all_qubits)),
         )
         return performer.perform_operation()
 

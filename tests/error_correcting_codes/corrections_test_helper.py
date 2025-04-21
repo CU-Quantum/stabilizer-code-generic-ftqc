@@ -1,5 +1,5 @@
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, LineQubit
-from numpy import allclose, log2
+from cirq import Circuit, Gate
+from numpy import allclose
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from tests.error_correcting_codes.expected_states_utilities import ExpectedStatesUtilities

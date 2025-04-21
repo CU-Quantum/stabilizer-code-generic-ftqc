@@ -1,6 +1,6 @@
-from typing import List
+from typing import Optional
 
-from cirq import Circuit, X, Z
+from cirq import Circuit, LineQubit, X, Z
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -8,12 +8,14 @@ from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):
-    def __init__(self, qubit_start_index: int = 0):
+    def __init__(self, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
         super().__init__(num_data_qubits=1,
                          num_ancilla_qubits=0,
                          num_logical_qubits=1,
                          initial_logical_qubit_state=KET_ZERO_STATE_VECTOR,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits,
+                         )
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         return self._initial_logical_qubit_state
@@ -28,5 +30,5 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
             return Circuit(Z(self.data_qubits[0]))
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         return [LogicalGateLabel.X, LogicalGateLabel.Z]

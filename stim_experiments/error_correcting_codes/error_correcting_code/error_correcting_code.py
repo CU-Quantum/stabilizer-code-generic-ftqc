@@ -18,8 +18,9 @@ class ErrorCorrectingCode(ABC):
         instance._saved_init_args = (args, kwargs)
         return instance
 
-    def create_new(self, qubit_start_index: int = 0) -> 'ErrorCorrectingCode':
+    def create_new(self, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[List[LineQubit]] = None) -> 'ErrorCorrectingCode':
         self._saved_init_args[1]['qubit_start_index'] = qubit_start_index
+        self._saved_init_args[1]['provided_ancilla_qubits'] = provided_ancilla_qubits
         return self.__class__(*self._saved_init_args[0], **self._saved_init_args[1])
 
     def __init__(self,
@@ -28,12 +29,14 @@ class ErrorCorrectingCode(ABC):
                  num_logical_qubits: int,
                  initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int,
+                 provided_ancilla_qubits: Optional[List[LineQubit]] = None,  # TODO test can provide ancillas
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
         self._num_logical_qubits = num_logical_qubits
         self._initial_logical_qubit_state = initial_logical_qubit_state
         self._qubit_start_index = qubit_start_index
+        self._provided_ancilla_qubits = provided_ancilla_qubits
 
     @abstractmethod
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
@@ -67,16 +70,19 @@ class ErrorCorrectingCode(ABC):
         return get_error_correcting_code_utilities(state=self._initial_logical_qubit_state)
 
     @cached_property
+    def all_qubits(self) -> List[LineQubit]:
+        return self.data_qubits + self.ancilla_qubits
+
+    @cached_property
     def data_qubits(self) -> List[LineQubit]:
-        return self.all_qubits[:self._num_data_qubits]
+        return LineQubit.range(self._qubit_start_index, self._qubit_start_index + self._num_data_qubits)
 
     @cached_property
     def ancilla_qubits(self) -> List[LineQubit]:
-        return self.all_qubits[self._num_data_qubits:]
-
-    @cached_property
-    def all_qubits(self) -> List[LineQubit]:
-        return LineQubit.range(self._qubit_start_index, self._qubit_start_index + self._num_data_qubits + self._num_ancilla_qubits)
+        # TODO ensure provided ancillas match expected ancillas if provided
+        new_ancilla_qubits = LineQubit.range(self._qubit_start_index + self._num_data_qubits,
+                                             self._qubit_start_index + self._num_data_qubits + self._num_ancilla_qubits)
+        return self._provided_ancilla_qubits or new_ancilla_qubits
 
     @property
     def num_logical_qubits(self) -> int:

@@ -2,7 +2,7 @@ from enum import Enum, auto
 from typing import List, Optional
 
 import pytest
-from cirq import Circuit, H, X, Z, kron
+from cirq import Circuit, H, LineQubit, X, Z, kron
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -16,12 +16,13 @@ from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):
-    def __init__(self, num_logical_qubits: int = 1, qubit_start_index: int = 0):
+    def __init__(self, num_logical_qubits: int = 1, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
         super().__init__(num_data_qubits=num_logical_qubits,
                          num_ancilla_qubits=0,
                          num_logical_qubits=num_logical_qubits,
                          initial_logical_qubit_state=kron(*[KET_ZERO_STATE_VECTOR] * num_logical_qubits, shape_len=1),
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         pass

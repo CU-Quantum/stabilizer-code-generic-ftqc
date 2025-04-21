@@ -1,6 +1,6 @@
 import numpy
 import pytest
-from cirq import kron
+from cirq import LineQubit, kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
@@ -49,6 +49,7 @@ class TestMultiqubitMeasurements:
         performer = SimulationOperationPerformer(
             operation=operation,
             current_state=state_and_measurements,
-            qubits=self._qubits
+            qubits=self._qubits,
+            ancilla_qubit=LineQubit(len(self._qubits))
         )
         return performer.perform_operation()

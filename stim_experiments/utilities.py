@@ -1,7 +1,7 @@
 from typing import List, Union
 
-import numpy
 from cirq import KET_ONE, KET_PLUS, KET_ZERO, density_matrix_from_state_vector
+from numpy import log2, trace
 from numpy._typing import NDArray
 
 TYPE_STATE_VECTOR = NDArray[complex]
@@ -15,6 +15,14 @@ KET_PLUS_STATE_VECTOR = KET_PLUS.state_vector()
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
 KET_PLUS_DENSITY_MATRIX = density_matrix_from_state_vector(KET_PLUS_STATE_VECTOR)
+
+
+def get_num_qubits_in_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> int:
+    return int(log2(state.shape[0]))
+
+
+def is_state_vector(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> bool:
+    return len(state.shape) == 1
 
 
 def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: List[int]) -> TYPE_DENSITY_MATRIX:
@@ -31,7 +39,7 @@ def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: List[int]) -> TYPE_DENS
     np.ndarray
         The reduced density matrix after tracing out the unspecified qubits.
     """
-    dim = int(numpy.log2(rho.shape[0]))
+    dim = get_num_qubits_in_state(state=rho)
     if any(q >= dim or q < 0 for q in keep_qubits):
         raise ValueError("Qubit index out of range.")
 
@@ -39,11 +47,19 @@ def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: List[int]) -> TYPE_DENS
     reshaped_rho = rho.reshape([2] * (2 * dim))
 
     for qubit in reversed(trace_out):
-        reshaped_rho = numpy.trace(reshaped_rho, axis1=qubit, axis2=qubit + dim)
+        reshaped_rho = trace(reshaped_rho, axis1=qubit, axis2=qubit + dim)
         dim -= 1
 
     reduced_dim = 2 ** dim
     return reshaped_rho.reshape((reduced_dim, reduced_dim))
+
+def trace_out_ancillas_in_zero_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, num_ancillas: int) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
+        num_qubits = get_num_qubits_in_state(state=state)
+        if is_state_vector(state=state):
+            keep_indices = [not i % (2 ** num_ancillas) for i in range(len(state))]
+            return state[keep_indices]
+        else:
+            return partial_trace(rho=state, keep_qubits=list(range(num_qubits)))
 
 
 def int_to_binary_array(num: int, num_elements: int) -> List[int]:
