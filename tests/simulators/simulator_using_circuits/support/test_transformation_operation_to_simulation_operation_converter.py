@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from typing import List, Optional
 
 import pytest
@@ -149,12 +150,20 @@ class TestTransformationOperationToSimulationOperationConverter:
         )
 
     def test_validates_operation(self):
-        encodings = [
-            ErrorCorrectingCodeStub(),
-        ]
         invalid_transformation_operation = TransformationOperation(gate=TransformationGate.X, target_qubit_index=0, control_qubit_index=1)
         converter = TransformationOperationToSimulationOperationConverter(
             transformation_operation=invalid_transformation_operation,
-            encodings=encodings)
+            encodings=[])
         with pytest.raises(ValueError):
+            converter.get_simulation_operation()
+
+    def test_unimplemented_transformation_operation(self):
+        class InvalidTransformationGate(Enum):
+            INVALID = auto()
+        transformation_operation = TransformationOperation(gate=InvalidTransformationGate.INVALID,
+                                                           target_qubit_index=0)
+        converter = TransformationOperationToSimulationOperationConverter(
+            transformation_operation=transformation_operation,
+            encodings=[])
+        with pytest.raises(ValueError, match="Unimplemented transformation gate INVALID."):
             converter.get_simulation_operation()

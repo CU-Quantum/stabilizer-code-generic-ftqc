@@ -55,7 +55,7 @@ class TransformationOperationToSimulationOperationConverter:
             return LogicalGateLabel.X
         elif self._transformation_operation.gate == TransformationGate.CZ:
             return LogicalGateLabel.Z
-        raise ValueError(f"Unimplemented transformation gate {self._transformation_operation.gate}.") # TODO test this
+        raise ValueError(f"Unimplemented transformation gate {self._transformation_operation.gate.name}.")
 
     def _get_encoding(self, qubit_index: int) -> LogicalEncodingIndex:
         current_index = 0
