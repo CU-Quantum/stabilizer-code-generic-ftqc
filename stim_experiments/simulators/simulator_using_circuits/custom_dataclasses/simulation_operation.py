@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 
 
 @dataclass
-class ControlEncoding:
+class LogicalEncodingIndex:
     encoding: ErrorCorrectingCode
     qubit_index: int
 
@@ -20,4 +20,4 @@ class TargetEncoding:
 @dataclass
 class SimulationOperation:
     target_encoding: Optional[TargetEncoding] = None
-    control_encoding: Optional[ControlEncoding] = None
+    control_encoding: Optional[LogicalEncodingIndex] = None

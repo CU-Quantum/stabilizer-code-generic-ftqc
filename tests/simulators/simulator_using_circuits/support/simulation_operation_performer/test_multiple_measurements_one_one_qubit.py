@@ -5,7 +5,7 @@ import numpy
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
-    ControlEncoding, SimulationOperation
+    LogicalEncodingIndex, SimulationOperation
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
     SimulationOperationPerformer
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
@@ -45,7 +45,7 @@ class TestMultipleMeasurementsOneOneQubit:
     @property
     def _measurement_operation_on_first_qubit(self) -> SimulationOperation:
         return SimulationOperation(
-            control_encoding=ControlEncoding(
+            control_encoding=LogicalEncodingIndex(
                 encoding=self._control_code,
                 qubit_index=0
             )

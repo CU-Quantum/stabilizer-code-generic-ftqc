@@ -8,8 +8,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.stabilizer_transformer import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
-    ControlEncoding, SimulationOperation, TargetEncoding
-from stim_experiments.simulators.simulator_using_circuits.support.ansformation_operation_to_simulation_operation import \
+    LogicalEncodingIndex, SimulationOperation, TargetEncoding
+from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
 from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
@@ -35,6 +35,7 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
             return Circuit(X(self.data_qubits[0]))
         if operation.gate == TransformationGate.Z:
             return Circuit(Z(self.data_qubits[0]))
+        return None
 
     @property
     def _implemented_operations(self) -> List[LogicalGateLabel]:
@@ -126,7 +127,7 @@ class TestTransformationOperationToSimulationOperationConverter:
                 ),
                 encoding=encodings[0],
             ),
-            control_encoding=ControlEncoding(
+            control_encoding=LogicalEncodingIndex(
                 encoding=encodings[1],
                 qubit_index=0,
             )
@@ -141,7 +142,7 @@ class TestTransformationOperationToSimulationOperationConverter:
                                                                           encodings=encodings)
         simulation_operation = converter.get_simulation_operation()
         assert simulation_operation == SimulationOperation(
-            control_encoding=ControlEncoding(
+            control_encoding=LogicalEncodingIndex(
                 encoding=encodings[0],
                 qubit_index=0,
             )

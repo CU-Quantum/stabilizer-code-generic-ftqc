@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 import numpy.random
+import pytest
 from cirq import Circuit, H, X, Z, kron
 from numpy import array
 
@@ -16,6 +17,7 @@ from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECT
 from tests.utilities import states_are_equal
 
 
+# TODO allow sharing ancilla qubits
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
     def __init__(self, num_logical_bits: int,
                  initial_logical_qubit_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
@@ -56,7 +58,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
 class TestSimulatorCircuit:
     def test_trivial(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=[])
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=[])
         result = simulator.simulate()
         assert result == StateAndMeasurements(
             state=array([]),
@@ -67,7 +69,7 @@ class TestSimulatorCircuit:
         # TODO move these state checks into the performer tests
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = KET_ONE_STATE_VECTOR
         assert result == StateAndMeasurements(
@@ -78,7 +80,7 @@ class TestSimulatorCircuit:
     def test_logical_z(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1, initial_logical_qubit_state=KET_ONE_STATE_VECTOR)
         operations = [TransformationOperation(gate=TransformationGate.Z, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = -KET_ONE_STATE_VECTOR
         assert result == StateAndMeasurements(
@@ -89,7 +91,7 @@ class TestSimulatorCircuit:
     def test_logical_h(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = KET_PLUS_STATE_VECTOR
         assert result == StateAndMeasurements(
@@ -100,7 +102,7 @@ class TestSimulatorCircuit:
     def test_multiple_encodings(self):
         code = LogicalBitsEncodingStub(num_logical_bits=1)
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
@@ -111,7 +113,7 @@ class TestSimulatorCircuit:
     def test_multiple_logical_qubits_single_encoding(self):
         code = LogicalBitsEncodingStub(num_logical_bits=2)
         operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
         assert result == StateAndMeasurements(
@@ -125,7 +127,7 @@ class TestSimulatorCircuit:
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
             TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0)
         ]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
@@ -138,7 +140,7 @@ class TestSimulatorCircuit:
         operations = [
             TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0)
         ]
-        simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+        simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
         result = simulator.simulate()
         expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
         assert result == StateAndMeasurements(
@@ -157,7 +159,7 @@ class TestSimulatorCircuit:
                 TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
                 TransformationOperation(TransformationGate.M, target_qubit_index=0)
             ]
-            simulator = SimulatorUsingCircuits(error_correcting_code=code, operations=operations)
+            simulator = SimulatorUsingCircuits(error_correcting_codes=code, operations=operations)
             result = simulator.simulate()
             results.append(result)
         observables = [result.measurements[0][0] for result in results if result.measurements[0]]
@@ -166,4 +168,34 @@ class TestSimulatorCircuit:
                    for result in results)
 
     def test_multiple_codes(self):
-        assert False
+        codes = [
+            LogicalBitsEncodingStub(num_logical_bits=1),
+            LogicalBitsEncodingStub(num_logical_bits=2)
+        ]
+
+        operations = [
+            TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
+            TransformationOperation(gate=TransformationGate.X, target_qubit_index=2)
+        ]
+
+        simulator = SimulatorUsingCircuits(error_correcting_codes=codes, operations=operations)
+        result = simulator.simulate()
+
+        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
+        assert result == StateAndMeasurements(
+            state=expected_state,
+            measurements={},
+        )
+
+    def test_not_enough_logical_qubits_error(self):
+        codes = [LogicalBitsEncodingStub(num_logical_bits=1)]
+
+        operations = [
+            TransformationOperation(gate=TransformationGate.X, target_qubit_index=1),
+        ]
+
+        simulator = SimulatorUsingCircuits(error_correcting_codes=codes, operations=operations)
+
+        with pytest.raises(ValueError, match="Not enough logical qubits available. "
+                                             "Operations need at least 2 logical qubits, but 1 was/were provided."):
+            simulator.simulate()

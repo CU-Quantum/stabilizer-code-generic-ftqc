@@ -3,12 +3,10 @@ from functools import cached_property
 from typing import List, Optional
 
 from cirq import Circuit, Gate, LineQubit
-from numpy import array
-from numpy._typing import NDArray
 from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.error_correcting_code_utilities import \
-    ErrorCorrectingCodeUtilities, ErrorCorrectingCodeUtilitiesDensityMatrix, ErrorCorrectingCodeUtilitiesStateVector
+    ErrorCorrectingCodeUtilities
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.utilities import get_error_correcting_code_utilities
 from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
@@ -16,8 +14,9 @@ from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
 class ErrorCorrectingCode(ABC):
     def __new__(cls, *args, **kwargs):
-        cls._saved_init_args = (args, kwargs)
-        return super().__new__(cls)
+        instance = super().__new__(cls)
+        instance._saved_init_args = (args, kwargs)
+        return instance
 
     def create_new(self, qubit_start_index: int = 0) -> 'ErrorCorrectingCode':
         self._saved_init_args[1]['qubit_start_index'] = qubit_start_index

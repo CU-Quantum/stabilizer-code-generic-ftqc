@@ -6,10 +6,10 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
-    ControlEncoding, SimulationOperation, TargetEncoding
+    LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
     SimulationOperationPerformer
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.simulators.simulator_using_circuits.support.simulation_operation_performer.error_correcting_code_stub import \
     ErrorCorrectingCodeStub
 
@@ -59,7 +59,7 @@ class TestSimulationOperationPerformer:
                 ),
                 encoding=target_code,
             ),
-            control_encoding=ControlEncoding(
+            control_encoding=LogicalEncodingIndex(
                 encoding=control_code,
                 qubit_index=0
             )
@@ -89,7 +89,7 @@ class TestSimulationOperationPerformer:
                 ),
                 encoding=target_code,
             ),
-            control_encoding=ControlEncoding(
+            control_encoding=LogicalEncodingIndex(
                 encoding=control_code,
                 qubit_index=0
             )
@@ -107,18 +107,21 @@ class TestSimulationOperationPerformer:
             measurements={},
         )
 
-    def test_measurement_operation_zero(self):
+    @pytest.mark.parametrize(['initial_state', 'expected_measurement'], [
+        (KET_ZERO_STATE_VECTOR, 0),
+        (KET_ONE_STATE_VECTOR, 1),
+    ])
+    def test_measurement_operation(self, initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, expected_measurement: int):
         numpy.random.seed(0)
         num_trials = 5
         for _ in range(num_trials):
             control_code = ErrorCorrectingCodeStub()
             operation = SimulationOperation(
-                control_encoding=ControlEncoding(
+                control_encoding=LogicalEncodingIndex(
                     encoding=control_code,
                     qubit_index=0
                 )
             )
-            initial_state = KET_ZERO_STATE_VECTOR
             qubits = control_code.all_qubits
             performer = SimulationOperationPerformer(operation=operation,
                                                      current_state=StateAndMeasurements(
@@ -128,29 +131,5 @@ class TestSimulationOperationPerformer:
             result = performer.perform_operation()
             assert result == StateAndMeasurements(
                 state=initial_state,
-                measurements={0: [0]}
-            )
-
-    def test_measurement_operation_one(self):
-        numpy.random.seed(0)
-        num_trials = 5
-        for _ in range(num_trials):
-            control_code = ErrorCorrectingCodeStub()
-            operation = SimulationOperation(
-                control_encoding=ControlEncoding(
-                    encoding=control_code,
-                    qubit_index=0
-                )
-            )
-            initial_state = KET_ONE_STATE_VECTOR
-            qubits = control_code.all_qubits
-            performer = SimulationOperationPerformer(operation=operation,
-                                                     current_state=StateAndMeasurements(
-                                                         state=initial_state,
-                                                     ),
-                                                     qubits=qubits)
-            result = performer.perform_operation()
-            assert result == StateAndMeasurements(
-                state=initial_state,
-                measurements={0: [1]}
+                measurements={0: [expected_measurement]}
             )
