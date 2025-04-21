@@ -44,7 +44,7 @@ class CheckMatrixStandardizer:
                     column_index_with_one_in_row = NextColumnIndexWithOneAtPositionFinder(matrix=self._new_check_matrix.matrix,
                                                                                           row_index=row_index,
                                                                                           column_index=column_index).get_column_index()
-                    self._new_check_matrix.swap_qubits(column_indices=(column_index, column_index_with_one_in_row))
+                    self._new_check_matrix.swap_qubits(qubit_indices=(column_index, column_index_with_one_in_row))
 
     def _set_rest_of_column_to_zero(self, row_index_in_identity_form: int, column_index: int) -> None:
         for i in range(len(self._new_check_matrix.matrix)):

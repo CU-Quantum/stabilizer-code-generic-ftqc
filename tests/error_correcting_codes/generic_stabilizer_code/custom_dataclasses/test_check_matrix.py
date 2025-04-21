@@ -57,12 +57,12 @@ class TestCheckMatrix:
 
     def test_qubit_order_changes_after_swapping_qubits(self):
         matrix = CheckMatrix(matrix=self._steane_matrix_values, qubit_order=[0,1,2,3,4,5,6])
-        matrix.swap_qubits(column_indices=(0, 1))
+        matrix.swap_qubits(qubit_indices=(0, 1))
         assert matrix.qubit_order == [1,0,2,3,4,5,6]
 
     def test_columns_are_swapped_after_swapping_qubits_in_pauli_x(self):
         matrix = CheckMatrix(matrix=self._steane_matrix_values, qubit_order=[0,1,2,3,4,5,6])
-        matrix.swap_qubits(column_indices=(0, 1))
+        matrix.swap_qubits(qubit_indices=(0, 1))
         first_and_second_columns_in_both_pauli_x_and_z_are_switched =[
             [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
             [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -75,7 +75,7 @@ class TestCheckMatrix:
 
     def test_columns_are_swapped_after_swapping_qubits_in_pauli_z(self):
         matrix = CheckMatrix(matrix=self._steane_matrix_values, qubit_order=[0,1,2,3,4,5,6])
-        matrix.swap_qubits(column_indices=(7, 8))
+        matrix.swap_qubits(qubit_indices=(7, 8))
         first_and_second_columns_in_both_pauli_x_and_z_are_switched =[
             [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
             [1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
@@ -85,6 +85,12 @@ class TestCheckMatrix:
             [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1],
         ]
         assert matrix.matrix.tolist() == first_and_second_columns_in_both_pauli_x_and_z_are_switched
+
+    def test_swap_indices_are_less_than_num_physical_qubits(self):
+        matrix = CheckMatrix(matrix=self._steane_matrix_values, qubit_order=[0, 1, 2, 3, 4, 5, 6])
+        with pytest.raises(ValueError, match="Qubit indices to swap must be in the same half of the matrix. "
+                                             "Was given indices 0 and 7 to swap, but this code only contains 7 physical qubits."):
+            matrix.swap_qubits(qubit_indices=(0, 7))
 
     def test_add_rows(self):
         matrix = CheckMatrix(matrix=self._steane_matrix_values)
