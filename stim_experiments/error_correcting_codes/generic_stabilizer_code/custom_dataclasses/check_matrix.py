@@ -38,9 +38,15 @@ class CheckMatrix:
         pauli_x_portion = self.matrix[:, :self.num_physical_qubits]
         return matrix_rank(pauli_x_portion) if pauli_x_portion.nbytes else 0
 
-    def swap_qubits(self, column_indices: Tuple[int, int]) -> None:
-        self._swap_qubit_order(column_indices=column_indices)
-        self._swap_columns(column_indices=column_indices)
+    def swap_qubits(self, qubit_indices: Tuple[int, int]) -> None:
+        indices_are_in_same_half = (all(index < self.num_physical_qubits for index in qubit_indices)
+                                    or all(index >= self.num_physical_qubits for index in qubit_indices))
+        if not indices_are_in_same_half:
+            raise ValueError("Qubit indices to swap must be in the same half of the matrix. "
+                             f"Was given indices {qubit_indices[0]} and {qubit_indices[1]} to swap, "
+                             f"but this code only contains {self.num_physical_qubits} physical qubits.")
+        self._swap_qubit_order(column_indices=qubit_indices)
+        self._swap_columns(column_indices=qubit_indices)
 
     def _swap_qubit_order(self, column_indices: Tuple[int, int]) -> None:
         qubit_indices = tuple(column_index % self.num_physical_qubits for column_index in column_indices)

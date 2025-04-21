@@ -3,7 +3,6 @@ from re import escape
 
 import pytest
 from numpy import array
-from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
@@ -11,7 +10,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_steane, \
+    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_8_qubit, \
+    get_check_matrix_values_8_qubit_standardized, get_check_matrix_values_steane, \
     get_check_matrix_values_steane_standardized
 
 
@@ -34,6 +34,14 @@ class TestCheckMatrixStandardizer:
         assert standardized_check == CheckMatrixStandardized(
             matrix=get_check_matrix_values_4_qubit_standardized(),
             qubit_order=[0, 1, 2, 3],
+        )
+
+    def test_8_qubit(self):
+        standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=get_check_matrix_values_8_qubit()))
+        standardized_check = standardizer.get_standardized_matrix()
+        assert standardized_check == CheckMatrixStandardized(
+            matrix=get_check_matrix_values_8_qubit_standardized(),
+            qubit_order=[0, 1, 2, 4, 3, 5, 6, 7],
         )
 
     def test_does_not_modify_original_check_matrix(self):

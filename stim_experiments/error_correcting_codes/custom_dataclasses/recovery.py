@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from cirq import Gate, Operation
+from cirq import Gate
 
 
 @dataclass

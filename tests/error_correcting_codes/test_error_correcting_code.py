@@ -1,12 +1,12 @@
 from re import escape
-from typing import List
+from typing import Optional
 
 import pytest
-from cirq import LineQubit, X
+from cirq import Circuit, LineQubit, X
 from numpy import kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.simulators.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
@@ -16,54 +16,83 @@ class CodeStub(ErrorCorrectingCode):
                  initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = KET_ZERO_STATE_VECTOR,
                  num_data_qubits: int = 1,
                  num_ancilla_qubits: int = 0,
-                 num_logical_qubits: int = 1):
-        super().__init__(num_data_qubits=num_data_qubits, num_ancilla_qubits=num_ancilla_qubits, num_logical_qubits=num_logical_qubits, initial_logical_qubit_state=initial_state)
+                 num_logical_qubits: int = 1,
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[list[LineQubit]] = None,
+                 ):
+        super().__init__(num_data_qubits=num_data_qubits,
+                         num_ancilla_qubits=num_ancilla_qubits,
+                         num_logical_qubits=num_logical_qubits,
+                         initial_logical_qubit_state=initial_state,
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
         self.operation_applied = False
 
-    def _encode_logical_qubit(self) -> None:
-        self._current_state = self._initial_logical_qubit_state
+    def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
+        return self._initial_logical_qubit_state
 
-    def correct_errors(self) -> None:
+    def get_error_correction_circuit(self) -> Circuit:
         pass
 
-    def _perform_apply_operation(self, operation: LogicalOperation) -> None:
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         self.operation_applied = True
+        return Circuit()
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         return [LogicalGateLabel.Z, LogicalGateLabel.H]
 
 
 class TestErrorCorrectingCode:
     def test_encodes_logical_qubit(self):
         code = CodeStub(initial_state=KET_ZERO_DENSITY_MATRIX)
-        current_state = code.get_current_state()
+        current_state = code.encode_logical_qubit()
         assert current_state.tolist() == KET_ZERO_DENSITY_MATRIX.tolist()
 
     def test_correctly_applies_errors(self):
         code = CodeStub(initial_state=KET_ZERO_STATE_VECTOR)
-        code.apply_error(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.tolist() == KET_ONE_STATE_VECTOR.tolist()
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0),
+        )
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.tolist() == KET_ONE_STATE_VECTOR.tolist()
 
         initial_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR).flatten()
         code = CodeStub(initial_state=initial_state_two_qubits, num_data_qubits=2)
-        code.apply_error(gate=X, qubit_index=1)
-        current_state = code.get_current_state()
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=1),
+        )
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
         expected_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
-        assert current_state.tolist() == expected_state_two_qubits.tolist()
+        assert state_and_measurements.state.tolist() == expected_state_two_qubits.tolist()
 
     def test_correctly_chooses_density_matrix_type(self):
         code = CodeStub(initial_state=KET_ZERO_DENSITY_MATRIX)
-        code.apply_error(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.shape == (2, 2)
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0)
+        )
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.shape == (2, 2)
 
     def test_correctly_chooses_state_vector_type(self):
         code = CodeStub(initial_state=KET_ONE_STATE_VECTOR)
-        code.apply_error(gate=X, qubit_index=0)
-        current_state = code.get_current_state()
-        assert current_state.shape == (2,)
+        state = code.encode_logical_qubit()
+        circuit = Circuit(
+            code.get_error_circuit(gate=X, qubit_index=0)
+        )
+        state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                                              qubit_order=code.all_qubits,
+                                                                                              initial_state=state,)
+        assert state_and_measurements.state.shape == (2,)
 
     def test_can_get_data_qubits(self):
         expected_num_qubits = 2
@@ -85,27 +114,54 @@ class TestErrorCorrectingCode:
     def test_cannot_apply_unimplemented_operation(self):
         code = CodeStub()
         with pytest.raises(NotImplementedError, match=escape("Operation X is not implemented. Implemented gates are: ['Z', 'H'].")):
-            code.apply_operation(LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
+            code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
         assert not code.operation_applied
 
     def test_apply_implemented_operation(self):
         code = CodeStub()
-        code.apply_operation(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+        code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
         assert code.operation_applied
 
     def test_qubit_index_must_be_at_least_zero(self):
         code = CodeStub(num_logical_qubits=2)
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 1. Was given -1."):
-            code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=-1))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
+            code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=-1))
+        code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
 
     def test_qubit_index_must_be_at_most_largest_logical_index(self):
         code = CodeStub(num_logical_qubits=2)
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 1. Was given 2."):
-            code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=2))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+            code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=2))
+        code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
 
         code = CodeStub(num_logical_qubits=1)
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 0. Was given 1."):
-            code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
-        code.apply_operation(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
+            code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
+        code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0))
+
+    def test_can_retrieve_num_logical_qubits(self):
+        expected_num_qubits = 2
+        code = CodeStub(num_logical_qubits=expected_num_qubits)
+        assert code.num_logical_qubits == expected_num_qubits
+
+    def test_can_create_new(self):
+        num_qubits = 2
+        code = CodeStub(num_logical_qubits=num_qubits)
+        code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+        new_code = code.create_new()
+        assert code.operation_applied and not new_code.operation_applied and new_code.num_logical_qubits == num_qubits
+
+    def test_validates_provided_ancilla_qubits_count(self):
+        expected_num_ancilla_qubits = 3
+        provided_ancilla_qubits = LineQubit.range(2)
+
+        code = CodeStub(num_ancilla_qubits=expected_num_ancilla_qubits, provided_ancilla_qubits=provided_ancilla_qubits)
+        with pytest.raises(ValueError, match="Number of provided ancilla qubits \\(2\\) does not match the required number \\(3\\)."):
+            _ = code.ancilla_qubits
+
+    def test_accepts_correct_number_of_provided_ancilla_qubits(self):
+        expected_num_ancilla_qubits = 3
+        provided_ancilla_qubits = LineQubit.range(3)  # 3 qubits
+
+        code = CodeStub(num_ancilla_qubits=expected_num_ancilla_qubits, provided_ancilla_qubits=provided_ancilla_qubits)
+        assert code.ancilla_qubits == provided_ancilla_qubits
