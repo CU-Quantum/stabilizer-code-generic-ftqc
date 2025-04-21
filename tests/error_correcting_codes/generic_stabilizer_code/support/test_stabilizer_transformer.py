@@ -78,7 +78,7 @@ class TestStabilizerTransformer:
         new_check = transformer.get_current_check_matrix()
         assert new_check.matrix.tolist() == [[0, 0, 0, 1]]
 
-    def test_cz_on_negative_z_control(self):  # TODO test negatives for other operations
+    def test_cz_on_negative_z_control(self):
         check = CheckMatrix(matrix=array([[0, 0, -1, 0]]))
         transformer = StabilizerTransformer(check_matrix=check)
         transformer.apply(operations=[
