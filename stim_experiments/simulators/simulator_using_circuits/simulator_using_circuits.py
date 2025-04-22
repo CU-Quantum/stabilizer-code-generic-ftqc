@@ -1,4 +1,4 @@
-from cirq import LineQubit, kron
+from cirq import LineQubit
 from numpy import array
 from proto.utils import cached_property
 
@@ -14,7 +14,7 @@ from stim_experiments.simulators.simulator_using_circuits.support.transformation
     TransformationOperationToSimulationOperationConverter
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
     SimulationOperationPerformer
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, trace_out_ancillas_in_zero_state
+from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor, trace_out_ancillas_in_zero_state
 
 
 class SimulatorUsingCircuits:
@@ -51,13 +51,13 @@ class SimulatorUsingCircuits:
                 f" but {num_logical_qubits_given} was/were provided.")
 
     def _initialize_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        if not self._encodings:
+        if not self._encodings.encodings:
             return array([])
         qubit_states_data = [trace_out_ancillas_in_zero_state(state=encoding.encode_logical_qubit(),
                                                               num_ancillas=len(encoding.ancilla_qubits))
                              for encoding in self._encodings.encodings]
         qubit_states_ancilla = [self._encodings.encodings[0].error_correcting_code_utilities.zero_state] * len(self._encodings.ancillas)
-        return kron(*qubit_states_data, *qubit_states_ancilla, shape_len=len(qubit_states_data[0].shape))
+        return tensor(*qubit_states_data, *qubit_states_ancilla)
 
     def _transformation_operation_to_simulation_operations(self, transformation_operation: TransformationOperation) -> SimulationOperation:
         return TransformationOperationToSimulationOperationConverter(transformation_operation=transformation_operation,

@@ -2,7 +2,7 @@ from enum import Enum, auto
 from typing import List, Optional
 
 import pytest
-from cirq import Circuit, H, LineQubit, X, Z, kron
+from cirq import Circuit, H, LineQubit, X, Z
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -12,7 +12,7 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.sim
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):
@@ -20,7 +20,7 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
         super().__init__(num_data_qubits=num_logical_qubits,
                          num_ancilla_qubits=0,
                          num_logical_qubits=num_logical_qubits,
-                         initial_logical_qubit_state=kron(*[KET_ZERO_STATE_VECTOR] * num_logical_qubits, shape_len=1),
+                         initial_logical_qubit_state=tensor(*[KET_ZERO_STATE_VECTOR] * num_logical_qubits),
                          qubit_start_index=qubit_start_index,
                          provided_ancilla_qubits=provided_ancilla_qubits)
 

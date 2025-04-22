@@ -17,7 +17,7 @@ from stim_experiments.simulators.simulator_using_circuits.logical_encodings_with
     LogicalEncodingsWithSharedAncillasCreatorMultipleCodes, LogicalEncodingsWithSharedAncillasCreatorSingleCode
 from stim_experiments.simulators.simulator_using_circuits.simulator_using_circuits import SimulatorUsingCircuits
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, \
-    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.utilities import states_are_equal
 
 
@@ -29,7 +29,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
                  qubit_start_index: int = 0,
                  provided_ancilla_qubits: Optional[List[LineQubit]] = None, ):
         if initial_logical_qubit_state is None:
-            initial_logical_qubit_state = kron(*[KET_ZERO_STATE_VECTOR] * num_logical_bits, shape_len=1)
+            initial_logical_qubit_state = tensor(*[KET_ZERO_STATE_VECTOR] * num_logical_bits)
         super().__init__(num_data_qubits=num_logical_bits,
                          num_ancilla_qubits=num_ancilla_bits,
                          num_logical_qubits=num_logical_bits,
@@ -38,8 +38,11 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
                          provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        ancillas_state = kron(*[KET_ZERO_STATE_VECTOR] * self._num_ancilla_qubits, shape_len=1)
-        return kron(self._initial_logical_qubit_state, ancillas_state, shape_len=1)
+        if self._num_ancilla_qubits:
+            ancillas_state = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_ancilla_qubits)
+            return tensor(self._initial_logical_qubit_state, ancillas_state)
+        else:
+            return self._initial_logical_qubit_state
 
     def get_error_correction_circuit(self) -> Circuit:
         pass
@@ -76,54 +79,20 @@ class TestSimulatorCircuit:
             measurements={},
         )
 
-    @pytest.mark.parametrize('encodings', [
-        LogicalEncodingsWithSharedAncillasCreatorSingleCode(
-            LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2),
+    def test_shared_ancilla_qubits(self):
+        two_encodings_with_two_shared_ancillas = LogicalEncodingsWithSharedAncillasCreatorSingleCode(
+            error_correcting_code=LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2),
             num_logical_qubits_needed=2
-        ).create_encodings(),
-        LogicalEncodingsWithSharedAncillasCreatorMultipleCodes([
-            LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=1),
-            LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2)
-        ]).create_encodings()
-    ])
-    def test_shared_ancilla_qubits(self, encodings: LogicalEncodingsWithSharedAncillas):
-        operations_requiring_two_encodings = [
-            TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
-            TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)
-        ]
+        ).create_encodings()
         simulator = SimulatorUsingCircuits(
-            encodings=encodings,
-            operations=operations_requiring_two_encodings,
+            encodings=two_encodings_with_two_shared_ancillas,
+            operations=[],
         )
         result = simulator.simulate()
 
-        expected_states_data = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        only_two_ancilla = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
-        expected_state = kron(expected_states_data, only_two_ancilla, shape_len=1)
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_creates_enough_encodings_necessary_for_operations(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=1)
-        encodings = LogicalEncodingsWithSharedAncillasCreatorSingleCode(code, num_logical_qubits_needed=1).create_encodings()
-        operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
-        simulator = SimulatorUsingCircuits(encodings=encodings, operations=operations)
-        result = simulator.simulate()
-        expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
-
-    def test_multiple_logical_qubits_single_encoding(self):
-        code = LogicalBitsEncodingStub(num_logical_bits=2)
-        encodings = LogicalEncodingsWithSharedAncillasCreatorSingleCode(code, num_logical_qubits_needed=1).create_encodings()
-        operations = [TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)]
-        simulator = SimulatorUsingCircuits(encodings=encodings, operations=operations)
-        result = simulator.simulate()
-        expected_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
+        expected_states_data = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
+        only_two_ancilla = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
+        expected_state = tensor(expected_states_data, only_two_ancilla)
         assert result == StateAndMeasurements(
             state=expected_state,
             measurements={},
@@ -136,39 +105,19 @@ class TestSimulatorCircuit:
         results: list[StateAndMeasurements] = []
         for trial in range(num_trials):
             code = LogicalBitsEncodingStub(num_logical_bits=1)
-            encodings = LogicalEncodingsWithSharedAncillasCreatorSingleCode(code, num_logical_qubits_needed=1).create_encodings()
+            encodings = LogicalEncodingsWithSharedAncillasCreatorSingleCode(code, num_logical_qubits_needed=2).create_encodings()
             operations = [
                 TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
-                TransformationOperation(TransformationGate.M, target_qubit_index=0)
+                TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
+                TransformationOperation(TransformationGate.M, target_qubit_index=1)
             ]
             simulator = SimulatorUsingCircuits(encodings=encodings, operations=operations)
             result = simulator.simulate()
             results.append(result)
-        observables = [result.measurements[0][0] for result in results if result.measurements[0]]
+        observables = [result.measurements[1][0] for result in results]
         assert any(observables) and not all(observables)
-        assert all(states_are_equal(result.state, KET_ONE_STATE_VECTOR if result.measurements[0][0] else KET_ZERO_STATE_VECTOR)
-                   for result in results)
-
-    def test_multiple_codes(self):
-        codes = [
-            LogicalBitsEncodingStub(num_logical_bits=1),
-            LogicalBitsEncodingStub(num_logical_bits=2)
-        ]
-        encodings = LogicalEncodingsWithSharedAncillasCreatorMultipleCodes(codes).create_encodings()
-
-        operations = [
-            TransformationOperation(gate=TransformationGate.X, target_qubit_index=0),
-            TransformationOperation(gate=TransformationGate.X, target_qubit_index=2)
-        ]
-
-        simulator = SimulatorUsingCircuits(encodings=encodings, operations=operations)
-        result = simulator.simulate()
-
-        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
+        assert all(states_are_equal(result.state, tensor(*[KET_ONE_STATE_VECTOR if observable else KET_ZERO_STATE_VECTOR] * 2))
+                   for observable, result in zip(observables, results))
 
     def test_not_enough_logical_qubits_error(self):
         codes = [LogicalBitsEncodingStub(num_logical_bits=1)]

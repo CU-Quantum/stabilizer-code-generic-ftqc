@@ -5,7 +5,7 @@ from numpy import allclose
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_PLUS_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX
+from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_PLUS_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX, tensor
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
@@ -84,7 +84,7 @@ class TestLogicalGates:
         assert allclose(state_and_measurements.state, expected_state)
 
     def test_logical_logical_x_on_one_out_of_multiple_encoded_qubits(self):
-        initial_state = kron(KET_ZERO_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX)
+        initial_state = tensor(KET_ZERO_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX)
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(), initial_logical_qubit_state=initial_state)
 
         state = code.encode_logical_qubit()
@@ -95,7 +95,7 @@ class TestLogicalGates:
                                                                                               qubit_order=code.all_qubits,
                                                                                               initial_state=state)
 
-        expected_logical_state = kron(KET_ZERO_DENSITY_MATRIX, KET_ONE_DENSITY_MATRIX)
+        expected_logical_state = tensor(KET_ZERO_DENSITY_MATRIX, KET_ONE_DENSITY_MATRIX)
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
         assert allclose(state_and_measurements.state, expected_state)
@@ -111,7 +111,7 @@ class TestLogicalGates:
                                                                                               qubit_order=code.all_qubits,
                                                                                               initial_state=state)
 
-        expected_logical_state = kron(KET_ZERO.state_vector(), KET_PLUS.state_vector(), shape_len=1)
+        expected_logical_state = tensor(KET_ZERO.state_vector(), KET_PLUS.state_vector())
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
         assert allclose(state_and_measurements.state, expected_state)
@@ -145,7 +145,7 @@ class TestLogicalGates:
                                                                                               qubit_order=code.all_qubits,
                                                                                               initial_state=state)
 
-        expected_logical_state = kron(KET_ZERO.state_vector(), KET_ONE.state_vector(), shape_len=1)
+        expected_logical_state = tensor(KET_ZERO.state_vector(), KET_ONE.state_vector())
         expected_state = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit(),
                                                initial_logical_qubit_state=expected_logical_state).encode_logical_qubit()
         assert allclose(state_and_measurements.state, expected_state)

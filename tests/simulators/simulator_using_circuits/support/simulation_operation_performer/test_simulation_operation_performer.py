@@ -1,6 +1,6 @@
 import numpy.random
 import pytest
-from cirq import LineQubit, kron
+from cirq import LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
@@ -9,7 +9,8 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.sim
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
     SimulationOperationPerformer
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
+    tensor
 from tests.simulators.simulator_using_circuits.support.simulation_operation_performer.error_correcting_code_stub import \
     ErrorCorrectingCodeStub
 
@@ -62,14 +63,14 @@ class TestSimulationOperationPerformer:
                 qubit_index=0
             )
         )
-        initial_state = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
+        initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         qubits = target_code.all_qubits + control_code.all_qubits
         performer = SimulationOperationPerformer(operation=operation,
                                                  current_state=StateAndMeasurements(state=initial_state,),
                                                  qubits=qubits,
                                                  ancilla_qubit=LineQubit(len(qubits)))
         result = performer.perform_operation()
-        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, shape_len=1)
+        expected_state = tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         assert result == StateAndMeasurements(
             state=expected_state,
             measurements={},
@@ -91,7 +92,7 @@ class TestSimulationOperationPerformer:
                 qubit_index=0
             )
         )
-        initial_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         qubits = target_code.all_qubits + control_code.all_qubits
         performer = SimulationOperationPerformer(operation=operation,
                                                  current_state=StateAndMeasurements(
@@ -149,7 +150,7 @@ class TestSimulationOperationPerformer:
             )
         )
 
-        initial_state = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
 
         performer = SimulationOperationPerformer(
             operation=operation,
@@ -160,7 +161,7 @@ class TestSimulationOperationPerformer:
 
         result = performer.perform_operation()
 
-        expected_state = kron(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, shape_len=1)
+        expected_state = tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         assert result == StateAndMeasurements(
             state=expected_state,
             measurements={},

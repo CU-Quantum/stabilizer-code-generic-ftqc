@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List, Optional, Union
 
-from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X, kron
+from cirq import Circuit, Gate, H, KET_ZERO, LineQubit, R, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
@@ -17,23 +17,25 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
-    get_num_qubits_in_state
+    get_num_qubits_in_state, tensor
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
                  initial_logical_qubit_state: Optional[Union[TYPE_STATE_VECTOR, TYPE_DENSITY_MATRIX]] = None,
-                 qubit_start_index: int = 0
+                 qubit_start_index: int = 0,
+                 provided_ancilla_qubits: Optional[list[LineQubit]] = None,
                  ):
         self._check_matrix = CheckMatrix(matrix=generators)
         if initial_logical_qubit_state is None:
-            initial_logical_qubit_state = kron(*[KET_ZERO.state_vector()] * self._check_matrix.num_logical_qubits).reshape(2 ** self._check_matrix.num_logical_qubits,)
+            initial_logical_qubit_state = tensor(*[KET_ZERO.state_vector()] * self._check_matrix.num_logical_qubits).reshape(2 ** self._check_matrix.num_logical_qubits,)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_ancilla_qubits=len(self._check_matrix.matrix),
                          num_logical_qubits=self._check_matrix.num_logical_qubits,
                          initial_logical_qubit_state=initial_logical_qubit_state,
-                         qubit_start_index=qubit_start_index)
+                         qubit_start_index=qubit_start_index,
+                         provided_ancilla_qubits=provided_ancilla_qubits)
         self._generators = generators
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
@@ -51,10 +53,10 @@ class GenericStabilizerCode(ErrorCorrectingCode):
             raise ValueError(f"These generators encode {self._check_matrix.num_logical_qubits} logical qubits, but an initial state of {num_qubits_in_initial_logical_state} was given.")
 
     def _initialize_logical_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        data_state = kron(*[self.error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
+        data_state = tensor(*[self.error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
                           self._initial_logical_qubit_state)
-        ancilla_state = kron(*[self.error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
-        initial_state = kron(data_state, ancilla_state)
+        ancilla_state = tensor(*[self.error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
+        initial_state = tensor(data_state, ancilla_state)
         return self.error_correcting_code_utilities.reshape_state(state=initial_state, num_qubits=len(self.all_qubits))
 
     def _get_encoding_circuit(self) -> Circuit:

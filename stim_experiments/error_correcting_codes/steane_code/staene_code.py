@@ -1,11 +1,11 @@
 from typing import Optional
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, R, X, Z, kron
+from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, int_to_binary_array
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, int_to_binary_array, tensor
 
 
 class SteaneCode(ErrorCorrectingCode):
@@ -23,7 +23,7 @@ class SteaneCode(ErrorCorrectingCode):
                          provided_ancilla_qubits=provided_ancilla_qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        initial_state = kron(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
+        initial_state = tensor(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
         initialize_with_given_state = Circuit(
             [CX(self.data_qubits[0], data_qubit) for data_qubit in self.data_qubits[1:]],
         )
