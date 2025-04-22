@@ -66,7 +66,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
         ]
 
 
-class TestSimulatorCircuit:
+class TestLogicalOperationsSimulator:
     def test_trivial(self):
         encodings = LogicalEncodingsWithSharedAncillas(
             encodings=[],

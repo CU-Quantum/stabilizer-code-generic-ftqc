@@ -1,20 +1,25 @@
 from functools import cached_property
 
 import numpy
+import pytest
 from cirq import LineQubit
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation
-from stim_experiments.simulators.simulator_using_circuits.support.circuit_simulator import \
-    CircuitSimulator
+from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.simulation_operation_simulator import \
+    SimulationOperationSimulator
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
-from tests.simulators.simulator_using_circuits.support.simulation_operation_performer.error_correcting_code_stub import \
+from tests.simulators.simulator_using_circuits.support.simulation_operation_simulator.error_correcting_code_stub import \
     ErrorCorrectingCodeStub
 
 
-class TestMultipleMeasurementsOneOneQubit:
+class TestMultipleMeasurementsOnOneQubit:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        self._control_code = ErrorCorrectingCodeStub()
+
     def test_multiple_measurements_on_same_qubit_combines_results(self):
         arbitrary_seed = 0
         numpy.random.seed(arbitrary_seed)
@@ -36,13 +41,13 @@ class TestMultipleMeasurementsOneOneQubit:
         )
 
     def _perform_measurement_on_first_qubit(self, state_and_measurements: StateAndMeasurements) -> StateAndMeasurements:
-        performer = CircuitSimulator(
-            operation=self._measurement_operation_on_first_qubit,
-            current_state=state_and_measurements,
+        simulator = SimulationOperationSimulator(
+            simulation_operation=self._measurement_operation_on_first_qubit,
+            initial_state=state_and_measurements,
             qubits=self._control_code.all_qubits,
-            ancilla_qubit=LineQubit(len(self._control_code.all_qubits)),
+            control_ancilla=LineQubit(len(self._control_code.all_qubits)),
         )
-        return performer.simulate()
+        return simulator.simulate_circuit()
 
     @property
     def _measurement_operation_on_first_qubit(self) -> SimulationOperation:
@@ -52,7 +57,3 @@ class TestMultipleMeasurementsOneOneQubit:
                 qubit_index=0
             )
         )
-
-    @cached_property
-    def _control_code(self) -> ErrorCorrectingCodeStub:
-        return ErrorCorrectingCodeStub()

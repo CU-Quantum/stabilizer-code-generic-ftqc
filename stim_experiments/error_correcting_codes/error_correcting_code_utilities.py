@@ -8,7 +8,7 @@ from numpy._typing import NDArray
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector
 
 
 class ErrorCorrectingCodeUtilities(ABC):
@@ -23,10 +23,6 @@ class ErrorCorrectingCodeUtilities(ABC):
                                 qubit_order: List[LineQubit],
                                 initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
                                 ) -> StateAndMeasurements:
-        pass
-
-    @abstractmethod
-    def reshape_state(self, state: TYPE_DENSITY_MATRIX, num_qubits: int) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         pass
 
     @staticmethod
@@ -51,9 +47,6 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
             measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
         )
 
-    def reshape_state(self, state: TYPE_DENSITY_MATRIX, num_qubits: int) -> TYPE_DENSITY_MATRIX:
-        return state.reshape(2 ** num_qubits, 2 ** num_qubits)
-
 
 class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     @property
@@ -68,5 +61,6 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
             measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
         )
 
-    def reshape_state(self, state: TYPE_STATE_VECTOR, num_qubits: int) -> TYPE_STATE_VECTOR:
-        return state.reshape(2 ** num_qubits,)
+
+def get_error_correcting_code_utilities(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> ErrorCorrectingCodeUtilities:
+    return ErrorCorrectingCodeUtilitiesStateVector() if is_state_vector(state=state) else ErrorCorrectingCodeUtilitiesDensityMatrix()
