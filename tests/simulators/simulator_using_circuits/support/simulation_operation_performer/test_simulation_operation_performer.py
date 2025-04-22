@@ -7,8 +7,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
-from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
-    SimulationOperationPerformer
+from stim_experiments.simulators.simulator_using_circuits.support.circuit_simulator import \
+    CircuitSimulator
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     tensor
 from tests.simulators.simulator_using_circuits.support.simulation_operation_performer.error_correcting_code_stub import \
@@ -20,11 +20,11 @@ class TestSimulationOperationPerformer:
         code = ErrorCorrectingCodeStub()
         operation = SimulationOperation()
         with pytest.raises(ValueError, match="Was given a SimulationOperation with no encoding."):
-            performer = SimulationOperationPerformer(operation=operation,
-                                                     current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
-                                                     qubits=code.all_qubits,
-                                                     ancilla_qubit=LineQubit(len(code.all_qubits)))
-            performer.perform_operation()
+            performer = CircuitSimulator(operation=operation,
+                                         current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
+                                         qubits=code.all_qubits,
+                                         ancilla_qubit=LineQubit(len(code.all_qubits)))
+            performer.simulate()
 
     def test_target_operation_only(self):
         code = ErrorCorrectingCodeStub()
@@ -37,11 +37,11 @@ class TestSimulationOperationPerformer:
                 encoding=code,
             )
         )
-        performer = SimulationOperationPerformer(operation=operation,
-                                                 current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
-                                                 qubits=code.all_qubits,
-                                                 ancilla_qubit=LineQubit(len(code.all_qubits)))
-        result = performer.perform_operation()
+        performer = CircuitSimulator(operation=operation,
+                                     current_state=StateAndMeasurements(state=KET_ZERO_STATE_VECTOR,),
+                                     qubits=code.all_qubits,
+                                     ancilla_qubit=LineQubit(len(code.all_qubits)))
+        result = performer.simulate()
         assert result == StateAndMeasurements(
             state=KET_ONE_STATE_VECTOR,
             measurements={},
@@ -65,11 +65,11 @@ class TestSimulationOperationPerformer:
         )
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         qubits = target_code.all_qubits + control_code.all_qubits
-        performer = SimulationOperationPerformer(operation=operation,
-                                                 current_state=StateAndMeasurements(state=initial_state,),
-                                                 qubits=qubits,
-                                                 ancilla_qubit=LineQubit(len(qubits)))
-        result = performer.perform_operation()
+        performer = CircuitSimulator(operation=operation,
+                                     current_state=StateAndMeasurements(state=initial_state,),
+                                     qubits=qubits,
+                                     ancilla_qubit=LineQubit(len(qubits)))
+        result = performer.simulate()
         expected_state = tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         assert result == StateAndMeasurements(
             state=expected_state,
@@ -94,13 +94,13 @@ class TestSimulationOperationPerformer:
         )
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         qubits = target_code.all_qubits + control_code.all_qubits
-        performer = SimulationOperationPerformer(operation=operation,
-                                                 current_state=StateAndMeasurements(
+        performer = CircuitSimulator(operation=operation,
+                                     current_state=StateAndMeasurements(
                                                      state=initial_state,
                                                  ),
-                                                 qubits=qubits,
-                                                 ancilla_qubit=LineQubit(len(qubits)))
-        result = performer.perform_operation()
+                                     qubits=qubits,
+                                     ancilla_qubit=LineQubit(len(qubits)))
+        result = performer.simulate()
         assert result == StateAndMeasurements(
             state=initial_state,
             measurements={},
@@ -122,13 +122,13 @@ class TestSimulationOperationPerformer:
                 )
             )
             qubits = control_code.all_qubits
-            performer = SimulationOperationPerformer(operation=operation,
-                                                     current_state=StateAndMeasurements(
+            performer = CircuitSimulator(operation=operation,
+                                         current_state=StateAndMeasurements(
                                                          state=initial_state,
                                                      ),
-                                                     qubits=qubits,
-                                                     ancilla_qubit=LineQubit(len(qubits)))
-            result = performer.perform_operation()
+                                         qubits=qubits,
+                                         ancilla_qubit=LineQubit(len(qubits)))
+            result = performer.simulate()
             assert result == StateAndMeasurements(
                 state=initial_state,
                 measurements={0: [expected_measurement]}
@@ -152,14 +152,14 @@ class TestSimulationOperationPerformer:
 
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
 
-        performer = SimulationOperationPerformer(
+        performer = CircuitSimulator(
             operation=operation,
             current_state=StateAndMeasurements(state=initial_state,),
             qubits=qubits,
             ancilla_qubit=ancilla_qubit
         )
 
-        result = performer.perform_operation()
+        result = performer.simulate()
 
         expected_state = tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         assert result == StateAndMeasurements(

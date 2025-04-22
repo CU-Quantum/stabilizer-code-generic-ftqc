@@ -1,4 +1,4 @@
-from cirq import LineQubit
+from cirq import Circuit, LineQubit
 from numpy import array
 from proto.utils import cached_property
 
@@ -10,14 +10,16 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.log
     LogicalEncodingsWithSharedAncillas
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     SimulationOperation
+from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
-    SimulationOperationPerformer
+from stim_experiments.simulators.simulator_using_circuits.support.circuit_simulator import \
+    CircuitSimulator
 from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor, trace_out_ancillas_in_zero_state
 
 
-class SimulatorUsingCircuits:
+class LogicalOperationsSimulator:
     def __init__(self, encodings: LogicalEncodingsWithSharedAncillas, operations: list[TransformationOperation]):
         """
 
@@ -31,16 +33,19 @@ class SimulatorUsingCircuits:
         self._ensure_enough_logical_qubits()
 
         state = StateAndMeasurements(state=self._initialize_state(),)
+        ancilla_qubit = self._encodings.ancillas[0] \
+            if self._encodings.ancillas \
+            else LineQubit(len(self._all_qubits))
+        circuit = Circuit()
         for operation in self._operations:
             simulation_operation = self._transformation_operation_to_simulation_operations(transformation_operation=operation)
-            ancilla_qubit = self._encodings.ancillas[0] \
-                if self._encodings.ancillas \
-                else LineQubit(len(self._all_qubits))
-            state = SimulationOperationPerformer(operation=simulation_operation,
-                                                 current_state=state,
-                                                 qubits=self._all_qubits,
-                                                 ancilla_qubit=ancilla_qubit,
-                                                 ).perform_operation()
+            operation_circuit = CircuitFromOperationCreator(operation=simulation_operation, control_ancilla=ancilla_qubit).create_circuit()
+            circuit.append(operation_circuit)
+        state = CircuitSimulator(circuit=circuit,
+                                 current_state=state,
+                                 qubits=self._all_qubits,
+                                 ancilla_qubit=ancilla_qubit,
+                                 ).simulate()
         return state
 
     def _ensure_enough_logical_qubits(self) -> None:
@@ -49,15 +54,6 @@ class SimulatorUsingCircuits:
             raise ValueError(
                 f"Not enough logical qubits available. Operations need at least {self._num_logical_qubits_needed} logical qubits,"
                 f" but {num_logical_qubits_given} was/were provided.")
-
-    def _initialize_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        if not self._encodings.encodings:
-            return array([])
-        qubit_states_data = [trace_out_ancillas_in_zero_state(state=encoding.encode_logical_qubit(),
-                                                              num_ancillas=len(encoding.ancilla_qubits))
-                             for encoding in self._encodings.encodings]
-        qubit_states_ancilla = [self._encodings.encodings[0].error_correcting_code_utilities.zero_state] * len(self._encodings.ancillas)
-        return tensor(*qubit_states_data, *qubit_states_ancilla)
 
     def _transformation_operation_to_simulation_operations(self, transformation_operation: TransformationOperation) -> SimulationOperation:
         return TransformationOperationToSimulationOperationConverter(transformation_operation=transformation_operation,
