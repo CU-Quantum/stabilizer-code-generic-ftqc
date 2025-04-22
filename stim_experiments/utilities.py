@@ -1,12 +1,10 @@
-from typing import List, Union
-
 from cirq import KET_ONE, KET_PLUS, KET_ZERO, density_matrix_from_state_vector, kron
 from numpy import array, log2, trace
 from numpy._typing import NDArray
 
 TYPE_STATE_VECTOR = NDArray[complex]
 TYPE_DENSITY_MATRIX = NDArray[NDArray[complex]]
-TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = Union[TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR]
+TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = TYPE_DENSITY_MATRIX | TYPE_STATE_VECTOR
 
 KET_ZERO_STATE_VECTOR = KET_ZERO.state_vector()
 KET_ONE_STATE_VECTOR = KET_ONE.state_vector()
@@ -25,7 +23,7 @@ def is_state_vector(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> bool:
     return len(state.shape) == 1
 
 
-def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: List[int]) -> TYPE_DENSITY_MATRIX:
+def partial_trace(rho: TYPE_DENSITY_MATRIX, keep_qubits: list[int]) -> TYPE_DENSITY_MATRIX:
     """
     Compute the partial trace of a density matrix rho, keeping only the specified qubits.
 
@@ -62,11 +60,11 @@ def trace_out_ancillas_in_zero_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
             return partial_trace(rho=state, keep_qubits=list(range(num_qubits)))
 
 
-def int_to_binary_array(num: int, num_elements: int) -> List[int]:
+def int_to_binary_array(num: int, num_elements: int) -> list[int]:
     return list(map(int, bin(num)[2:].rjust(num_elements, '0')))
 
 
-def binary_array_to_int(binary_array: List[int]) -> int:
+def binary_array_to_int(binary_array: list[int]) -> int:
     return int(''.join(map(str, binary_array)), 2)
 
 def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:

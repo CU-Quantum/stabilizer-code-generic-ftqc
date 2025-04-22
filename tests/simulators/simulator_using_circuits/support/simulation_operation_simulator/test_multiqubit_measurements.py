@@ -7,10 +7,10 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation
-from stim_experiments.simulators.simulator_using_circuits.support.simulation_operation_performer import \
-    SimulationOperationPerformer
+from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.simulation_operation_simulator import \
+    SimulationOperationSimulator
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
-from tests.simulators.simulator_using_circuits.support.simulation_operation_performer.error_correcting_code_stub import \
+from tests.simulators.simulator_using_circuits.support.simulation_operation_simulator.error_correcting_code_stub import \
     ErrorCorrectingCodeStub
 
 
@@ -46,10 +46,10 @@ class TestMultiqubitMeasurements:
                 qubit_index=0
             )
         )
-        performer = SimulationOperationPerformer(
-            operation=operation,
-            current_state=state_and_measurements,
+        simulator = SimulationOperationSimulator(
+            simulation_operation=operation,
+            initial_state=state_and_measurements,
             qubits=self._qubits,
-            ancilla_qubit=LineQubit(len(self._qubits))
+            control_ancilla=LineQubit(len(self._qubits))
         )
-        return performer.perform_operation()
+        return simulator.simulate_circuit()

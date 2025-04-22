@@ -56,8 +56,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         data_state = tensor(*[self.error_correcting_code_utilities.zero_state] * (self._num_data_qubits - self._check_matrix.num_logical_qubits),
                           self._initial_logical_qubit_state)
         ancilla_state = tensor(*[self.error_correcting_code_utilities.zero_state] * self._num_ancilla_qubits)
-        initial_state = tensor(data_state, ancilla_state)
-        return self.error_correcting_code_utilities.reshape_state(state=initial_state, num_qubits=len(self.all_qubits))
+        return tensor(data_state, ancilla_state)
 
     def _get_encoding_circuit(self) -> Circuit:
         return LogicalQubitEncoder(check_matrix_standardized=self._check_matrix_standardized,
