@@ -1,7 +1,7 @@
 from typing import List, Union
 
-from cirq import KET_ONE, KET_PLUS, KET_ZERO, density_matrix_from_state_vector
-from numpy import log2, trace
+from cirq import KET_ONE, KET_PLUS, KET_ZERO, density_matrix_from_state_vector, kron
+from numpy import array, log2, trace
 from numpy._typing import NDArray
 
 TYPE_STATE_VECTOR = NDArray[complex]
@@ -68,3 +68,6 @@ def int_to_binary_array(num: int, num_elements: int) -> List[int]:
 
 def binary_array_to_int(binary_array: List[int]) -> int:
     return int(''.join(map(str, binary_array)), 2)
+
+def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
+    return kron(*states, shape_len=len(states[0].shape)) if states else array([])

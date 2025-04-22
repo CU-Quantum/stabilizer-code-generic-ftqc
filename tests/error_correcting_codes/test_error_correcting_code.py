@@ -3,12 +3,11 @@ from typing import Optional
 
 import pytest
 from cirq import Circuit, LineQubit, X
-from numpy import kron
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
-    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class CodeStub(ErrorCorrectingCode):
@@ -60,7 +59,7 @@ class TestErrorCorrectingCode:
                                                                                               initial_state=state,)
         assert state_and_measurements.state.tolist() == KET_ONE_STATE_VECTOR.tolist()
 
-        initial_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR).flatten()
+        initial_state_two_qubits = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         code = CodeStub(initial_state=initial_state_two_qubits, num_data_qubits=2)
         state = code.encode_logical_qubit()
         circuit = Circuit(
@@ -69,7 +68,7 @@ class TestErrorCorrectingCode:
         state_and_measurements = code.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                                               qubit_order=code.all_qubits,
                                                                                               initial_state=state,)
-        expected_state_two_qubits = kron(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR).flatten()
+        expected_state_two_qubits = tensor(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         assert state_and_measurements.state.tolist() == expected_state_two_qubits.tolist()
 
     def test_correctly_chooses_density_matrix_type(self):

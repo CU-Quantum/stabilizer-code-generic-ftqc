@@ -1,8 +1,8 @@
 from cirq import Circuit, Gate
-from numpy import allclose
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from tests.error_correcting_codes.expected_states_utilities import ExpectedStatesUtilities
+from tests.utilities import states_are_equal
 
 
 class CorrectionsTestHelper:
@@ -20,4 +20,4 @@ class CorrectionsTestHelper:
                                                                                    qubit_order=self._code.all_qubits,
                                                                                    initial_state=state)
         expected_state = self._expected_states_utilities.get_logical_zero_density_matrix()
-        return allclose(current_state.state, expected_state, atol=1e-7)
+        return states_are_equal(current_state.state, expected_state)

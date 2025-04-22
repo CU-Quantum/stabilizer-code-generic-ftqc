@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import List, Optional
+from typing import Optional
 
 from cirq import Circuit, Gate, LineQubit
 
@@ -17,7 +17,7 @@ class ErrorCorrectingCode(ABC):
         instance._saved_init_args = (args, kwargs)
         return instance
 
-    def create_new(self, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[List[LineQubit]] = None) -> 'ErrorCorrectingCode':
+    def create_new(self, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[list[LineQubit]] = None) -> 'ErrorCorrectingCode':
         self._saved_init_args[1]['qubit_start_index'] = qubit_start_index
         self._saved_init_args[1]['provided_ancilla_qubits'] = provided_ancilla_qubits
         return self.__class__(*self._saved_init_args[0], **self._saved_init_args[1])
@@ -28,7 +28,7 @@ class ErrorCorrectingCode(ABC):
                  num_logical_qubits: int,
                  initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int,
-                 provided_ancilla_qubits: Optional[List[LineQubit]] = None,
+                 provided_ancilla_qubits: Optional[list[LineQubit]],
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
@@ -51,7 +51,7 @@ class ErrorCorrectingCode(ABC):
 
     @property
     @abstractmethod
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def _implemented_operations(self) -> list[LogicalGateLabel]:
         pass
 
     def get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
@@ -69,15 +69,15 @@ class ErrorCorrectingCode(ABC):
         return get_error_correcting_code_utilities(state=self._initial_logical_qubit_state)
 
     @cached_property
-    def all_qubits(self) -> List[LineQubit]:
+    def all_qubits(self) -> list[LineQubit]:
         return self.data_qubits + self.ancilla_qubits
 
     @cached_property
-    def data_qubits(self) -> List[LineQubit]:
+    def data_qubits(self) -> list[LineQubit]:
         return LineQubit.range(self._qubit_start_index, self._qubit_start_index + self._num_data_qubits)
 
     @cached_property
-    def ancilla_qubits(self) -> List[LineQubit]:
+    def ancilla_qubits(self) -> list[LineQubit]:
         if self._provided_ancilla_qubits is not None and len(self._provided_ancilla_qubits) != self._num_ancilla_qubits:
             raise ValueError(f"Number of provided ancilla qubits ({len(self._provided_ancilla_qubits)}) does not match "
                              f"the required number ({self._num_ancilla_qubits}).")

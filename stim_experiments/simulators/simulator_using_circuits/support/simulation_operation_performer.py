@@ -1,7 +1,7 @@
 from copy import deepcopy
 from typing import List
 
-from cirq import Circuit, H, LineQubit, M, R, kron
+from cirq import Circuit, H, LineQubit, M, R
 from proto.utils import cached_property
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -12,7 +12,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 from stim_experiments.error_correcting_codes.utilities import get_error_correcting_code_utilities
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     SimulationOperation
-from stim_experiments.utilities import trace_out_ancillas_in_zero_state
+from stim_experiments.utilities import tensor, trace_out_ancillas_in_zero_state
 
 
 class SimulationOperationPerformer:
@@ -43,7 +43,7 @@ class SimulationOperationPerformer:
                                                                                  initial_state=self._current_state.state)
         else:
             ancilla_state = self._error_correcting_code_utilities.zero_state
-            state = kron(self._current_state.state, ancilla_state, shape_len=len(self._current_state.state.shape))
+            state = tensor(self._current_state.state, ancilla_state)
             simulated_state_and_measurements = self._error_correcting_code_utilities.get_state_after_circuit(
                 circuit=circuit,
                 qubit_order=self._qubits + [self._ancilla_qubit],

@@ -1,10 +1,10 @@
 from typing import Optional
 
-from cirq import CX, Circuit, H, LineQubit, R, X, Z, kron
+from cirq import CX, Circuit, H, LineQubit, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
@@ -22,7 +22,7 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         each_qubit_initial_state = ([self._initial_logical_qubit_state]
                                     + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits) - 1)])
-        initial_state = kron(*each_qubit_initial_state)
+        initial_state = tensor(*each_qubit_initial_state)
 
         outer_qubits_indices = list(range(0, self._num_data_qubits, 3))
         outer_qubits = [self.all_qubits[i] for i in outer_qubits_indices]
