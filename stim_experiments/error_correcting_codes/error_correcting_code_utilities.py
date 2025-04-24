@@ -25,10 +25,6 @@ class ErrorCorrectingCodeUtilities(ABC):
                                 ) -> StateAndMeasurements:
         pass
 
-    @staticmethod
-    def _cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements: Mapping[str, NDArray[int]]) -> dict[int, list[int]]:
-        return {int(key.strip('q()')): value.tolist() for key, value in measurements.items() if len(value) > 0}
-
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
@@ -44,7 +40,7 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
-            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
+            measurements=dict(simulation.measurements),
         )
 
 
@@ -58,7 +54,7 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
         simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,
-            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
+            measurements=dict(simulation.measurements),
         )
 
 
