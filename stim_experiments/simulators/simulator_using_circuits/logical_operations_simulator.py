@@ -17,11 +17,6 @@ from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tens
 
 class LogicalOperationsSimulator:
     def __init__(self, encodings: LogicalEncodingsWithSharedAncillas, operations: list[TransformationOperation]):
-        """
-
-        :param error_correcting_codes: use instance of a code to encode all logical qubits with that code, or use a list of codes to specify the encodings of each logical qubit
-        :param operations: operations for the simulator to perform on the logical qubits
-        """
         self._encodings = encodings
         self._operations = operations
 
