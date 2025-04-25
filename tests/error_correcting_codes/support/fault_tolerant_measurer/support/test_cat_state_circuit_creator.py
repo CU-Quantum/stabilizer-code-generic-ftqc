@@ -1,22 +1,11 @@
-from cirq import Circuit, H, LineQubit, X
+from cirq import LineQubit
 from numpy import sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.cat_state_circuit_creator import \
+    CatStateCircuitCreator
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.utilities import states_are_equal
-
-
-class CatStateCircuitCreator:
-    def __init__(self, target_qubits: list[LineQubit] = None):
-        self._target_qubits = target_qubits
-
-    def create_circuit(self) -> Circuit:
-        if not self._target_qubits:
-            return Circuit()
-        return Circuit(
-            H(self._target_qubits[0]),
-            [X(self._target_qubits[i]).controlled_by(self._target_qubits[i - 1]) for i in range(1, len(self._target_qubits))]
-        )
 
 
 class TestCatStateCircuitCreator:

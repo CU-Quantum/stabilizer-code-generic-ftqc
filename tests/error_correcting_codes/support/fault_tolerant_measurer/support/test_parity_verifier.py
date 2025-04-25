@@ -1,78 +1,16 @@
-from typing import List, Optional
-
-from cirq import Circuit, ClassicalDataStoreReader, Condition, KeyCondition, LineQubit, M, MeasurementKey, R, \
-    X
-from cirq.protocols import json_serialization
+from cirq import Circuit, LineQubit
 from numpy import array, sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.verification_is_zero import \
+    VerificationIsZero
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.parity_verifier import \
+    ParityVerifier
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.utilities import get_cat_state_vector
-
-
-class VerificationIsZero(Condition):
-    def __init__(self, last_num_measurements: int = 0):
-        self.key = MeasurementKey('VERIFICATION')
-        self.last_num_measurements = last_num_measurements
-
-    @property
-    def keys(self):
-        return (self.key,)
-
-    def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        self.key = replacement
-        return self
-
-    def __str__(self):
-        return str(self.key)
-
-    def __repr__(self):
-        return f'VerificationIsZero({self.key!r})'
-
-    def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
-        if self.key not in classical_data.keys():
-            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
-        num_measurements = len(classical_data.records[self.key])
-        all_zero = all(classical_data.get_int(self.key, i) == 0 for i in range(self.last_num_measurements, num_measurements))
-        self.last_num_measurements = num_measurements
-        return all_zero
-
-    def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
-
-    @classmethod
-    def _from_json_dict_(cls, last_num_measurements: int = 0, **kwargs):
-        return cls(last_num_measurements=last_num_measurements)
-
-    @property
-    def qasm(self):
-        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
-
-
-class ParityVerifier:
-    def __init__(self,
-                 target_qubits: List[LineQubit],
-                 verifier_ancilla: Optional[LineQubit] = None):
-        self._target_qubits = target_qubits
-        self._verifier_ancilla = verifier_ancilla
-
-    def validate_parity(self) -> Circuit:
-        return Circuit(
-                [
-                    X(self._verifier_ancilla).controlled_by(self._target_qubits[i]),
-                    X(self._verifier_ancilla).controlled_by(self._target_qubits[i + 1]),
-                    M(self._verifier_ancilla, key=VerificationIsZero().key),
-                    R(self._verifier_ancilla),
-                ]
-                for i in range(self._num_target_qubits - 1)
-        )
-
-    @property
-    def _num_target_qubits(self) -> int:
-        return len(self._target_qubits)
 
 
 class TestParityVerifier:

@@ -1,30 +1,11 @@
 import pytest
-from cirq import CX, Circuit, Gate, H, LineQubit, Simulator, X
+from cirq import CX, Circuit, H, LineQubit, Simulator, X
 
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.controlled_single_qubit_gates_applier import \
+    ControlledSingleQubitGatesApplier
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR, tensor
 from tests.utilities import states_are_equal
-
-
-class ControlledSingleQubitGatesApplier:
-    def __init__(self, gates: list[Gate], targets: list[LineQubit], controls: list[LineQubit]):
-        self._gates = gates
-        self._targets = targets
-        self._controls = controls
-
-    def get_circuit(self) -> Circuit:
-        self._validate_inputs()
-        return Circuit(
-            self._gates[i].on(self._targets[i]).controlled_by(self._controls[i])
-            for i in range(len(self._gates))
-        )
-
-    def _validate_inputs(self) -> None:
-        if len(self._gates) != len(self._targets) or len(self._gates) != len(self._controls):
-            raise ValueError(
-                f"The number of gates ({len(self._gates)}), targets ({len(self._targets)}), and controls({len(self._controls)}) must be equal.")
-        if any(gate.num_qubits() != 1 for gate in self._gates):
-            raise ValueError(f"All gates must be single-qubit gates. Was given {self._gates}.")
 
 
 class TestControlledSingleQubitGatesApplier:

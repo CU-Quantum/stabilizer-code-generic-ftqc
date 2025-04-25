@@ -1,0 +1,2 @@
+class TestThreeRepetitionsMajorityVote:
+    pass
