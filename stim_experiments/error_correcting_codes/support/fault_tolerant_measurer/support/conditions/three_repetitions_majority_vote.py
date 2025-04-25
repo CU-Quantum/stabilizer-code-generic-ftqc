@@ -28,7 +28,7 @@ class ThreeRepetitionsMajorityVote(Condition):
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
-            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+            raise ValueError(f'Measurement key {self.key} missing when majority voting.')
         measurements = self._get_measurements(classical_data=classical_data)
         num_measurements = len(measurements)
         if num_measurements == self.number_of_votes:

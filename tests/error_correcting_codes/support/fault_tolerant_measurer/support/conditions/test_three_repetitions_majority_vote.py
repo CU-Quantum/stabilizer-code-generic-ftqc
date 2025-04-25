@@ -1,4 +1,5 @@
 import numpy
+import pytest
 from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, FrozenCircuit, H, LineQubit, M, Simulator
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
@@ -17,14 +18,11 @@ class ThreeRepetitionsMajorityVoteStub(ThreeRepetitionsMajorityVote):
 
 class TestThreeRepetitionsMajorityVote:
     def test_measurements_are_separate_per_instance(self):
-        numpy.random.seed(0)
-
         separate_condition_instances = [ThreeRepetitionsMajorityVoteStub(desired_measurement_key='foo') for _ in range(2)]
         qubits = LineQubit.range(1)
         circuit = Circuit(
             CircuitOperation(
                 FrozenCircuit(
-                    H(qubits[0]),
                     M(qubits[0], key=condition.key)
                 ),
                 use_repetition_ids=False,
@@ -32,8 +30,13 @@ class TestThreeRepetitionsMajorityVote:
             ) for condition in separate_condition_instances
         )
         Simulator().simulate(circuit)
-        assert len(separate_condition_instances[0].saved_measurements) == 1 \
-            and len(separate_condition_instances[1].saved_measurements) == 1
+        assert all(len(separate_condition_instance.saved_measurements) == 1 for separate_condition_instance in separate_condition_instances)
+
+    def test_missing_key(self):
+        store = ClassicalDataDictionaryStore()
+        condition = ThreeRepetitionsMajorityVote(desired_measurement_key='foo')
+        with pytest.raises(ValueError, match=f'^Measurement key {condition.key} missing when majority voting\\.$'):
+            condition.resolve(classical_data=store)
 
     def test_stores_majority_vote_into_desired_key(self):
         numpy.random.seed(0)
