@@ -21,7 +21,7 @@ class ControlQubitsPreparer:
         preparation_circuit = Circuit(
             [R(qubit) for qubit in self._target_qubits + [self._verifier_ancilla]],
             CatStateCircuitCreator(target_qubits=self._target_qubits).create_circuit(),
-            ParityVerifier(target_qubits=self._target_qubits, ancilla_qubit=self._verifier_ancilla).is_valid_cat_state(),
+            ParityVerifier(target_qubits=self._target_qubits, ancilla_qubit=self._verifier_ancilla).validate_parity(),
         )
         return Circuit(
             CircuitOperation(preparation_circuit.freeze(), use_repetition_ids=False, repeat_until=VerificationIsZero()),
