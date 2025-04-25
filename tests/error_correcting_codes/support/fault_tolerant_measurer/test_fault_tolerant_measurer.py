@@ -2,6 +2,7 @@ import numpy.random
 import pytest
 from cirq import Circuit, LineQubit, Simulator, X, \
     Z
+from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
@@ -41,7 +42,23 @@ class TestFaultTolerantMeasurer:
         assert any(measurements) and not all(measurements)
 
     def test_takes_majority_vote(self):
-        assert False
+        qubits = LineQubit.range(3)
+        targets = qubits[:1]
+        measurement_qubit = qubits[1]
+        ancillas = qubits[2:]
+        measurement_key = 'TEST'
+        measurer = FaultTolerantMeasurer(gates=[Z],
+                                         targets=targets,
+                                         measurement_qubit=measurement_qubit,
+                                         ancillas=ancillas,
+                                         measurement_key=measurement_key)
+        circuit = measurer.get_measurement_circuit()
+
+        simulator = Simulator()
+        simulation = simulator.run(circuit)
+        assert len(simulation.records) == 2
+        assert allequal(simulation.records[measurement_key], [[[0]]])
+        assert allequal(next(records for key, records in simulation.records.items() if key != measurement_key), [[[0], [0], [0,]]])
 
     def test_ensure_correct_number_of_ancillas(self):
         qubits = LineQubit.range(4)

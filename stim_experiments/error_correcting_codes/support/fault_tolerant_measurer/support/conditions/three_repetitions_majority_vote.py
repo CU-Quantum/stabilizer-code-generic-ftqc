@@ -3,12 +3,14 @@ from uuid import uuid4
 from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey
 from cirq.protocols import json_serialization
 from numpy import array, bincount
+from numpy._typing import NDArray
 
 
 class ThreeRepetitionsMajorityVote(Condition):
-    def __init__(self, desired_measurement_key: str):
+    def __init__(self, desired_measurement_key: str, number_of_votes: int = 3):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
+        self.number_of_votes = number_of_votes
 
     @property
     def keys(self):
@@ -27,9 +29,9 @@ class ThreeRepetitionsMajorityVote(Condition):
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
-        num_measurements = len(classical_data.records[self.key])
-        if num_measurements == 3:
-            measurements = array([classical_data.get_int(self.key, i) for i in range(num_measurements)])  # TODO doesn't seem to be varying in measurement
+        measurements = self._get_measurements(classical_data=classical_data)
+        num_measurements = len(measurements)
+        if num_measurements == self.number_of_votes:
             majority = int(bincount(measurements).argmax())
             classical_data.record_measurement(key=MeasurementKey(self.desired_measurement_key),
                                               measurement=(majority,),
@@ -37,12 +39,16 @@ class ThreeRepetitionsMajorityVote(Condition):
             return True
         return False
 
+    def _get_measurements(self, classical_data: ClassicalDataDictionaryStore) -> NDArray[list[int]]:
+        num_measurements = len(classical_data.records[self.key])
+        return array([classical_data.get_int(self.key, i) for i in range(num_measurements)])
+
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, desired_measurement_key: str, **kwargs):
-        return cls(desired_measurement_key=desired_measurement_key)
+    def _from_json_dict_(cls, desired_measurement_key: str, number_of_votes: int = 3, **kwargs):
+        return cls(desired_measurement_key=desired_measurement_key, number_of_votes=number_of_votes)
 
     @property
     def qasm(self):

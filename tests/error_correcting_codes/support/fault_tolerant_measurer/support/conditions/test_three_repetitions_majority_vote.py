@@ -1,2 +1,49 @@
+import numpy
+from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, FrozenCircuit, H, LineQubit, M, Simulator
+
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
+    ThreeRepetitionsMajorityVote
+
+
+class ThreeRepetitionsMajorityVoteStub(ThreeRepetitionsMajorityVote):
+    def __init__(self, desired_measurement_key: str):
+        super().__init__(desired_measurement_key=desired_measurement_key)
+        self.saved_measurements = []
+
+    def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
+        self.saved_measurements = self._get_measurements(classical_data=classical_data)
+        return True
+
+
 class TestThreeRepetitionsMajorityVote:
-    pass
+    def test_measurements_are_separate_per_instance(self):
+        numpy.random.seed(0)
+
+        separate_condition_instances = [ThreeRepetitionsMajorityVoteStub(desired_measurement_key='foo') for _ in range(2)]
+        qubits = LineQubit.range(1)
+        circuit = Circuit(
+            CircuitOperation(
+                FrozenCircuit(
+                    H(qubits[0]),
+                    M(qubits[0], key=condition.key)
+                ),
+                use_repetition_ids=False,
+                repeat_until=condition
+            ) for condition in separate_condition_instances
+        )
+        Simulator().simulate(circuit)
+        assert len(separate_condition_instances[0].saved_measurements) == 1 \
+            and len(separate_condition_instances[1].saved_measurements) == 1
+
+    def test_stores_majority_vote_into_desired_key(self):
+        numpy.random.seed(0)
+
+        store = ClassicalDataDictionaryStore()
+        desired_key = 'foo'
+        condition = ThreeRepetitionsMajorityVote(desired_measurement_key=desired_key)
+        different_measurements = [0, 1, 0]
+        for i in range(condition.number_of_votes):
+            is_last_vote = i == condition.number_of_votes - 1
+            store.record_measurement(key=condition.key, measurement=(different_measurements[i],), qubits=(LineQubit(0),))
+            assert condition.resolve(store) == is_last_vote
+        assert store.records[desired_key] == [(0,)]
