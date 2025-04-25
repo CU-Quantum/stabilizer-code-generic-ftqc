@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import List, Mapping
+from typing import List, Mapping, Optional
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, Simulator, \
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, NoiseModel, Simulator, \
     StateVectorTrialResult
 from numpy._typing import NDArray
 
@@ -21,7 +21,8 @@ class ErrorCorrectingCodeUtilities(ABC):
     def get_state_after_circuit(self,
                                 circuit: Circuit,
                                 qubit_order: List[LineQubit],
-                                initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+                                initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
+                                noise_model: Optional[NoiseModel] = None,
                                 ) -> StateAndMeasurements:
         pass
 
@@ -34,9 +35,10 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     def get_state_after_circuit(self,
                                 circuit: Circuit,
                                 qubit_order: List[LineQubit],
-                                initial_state: TYPE_DENSITY_MATRIX
+                                initial_state: TYPE_DENSITY_MATRIX,
+                                noise_model: Optional[NoiseModel] = None,
                                 ) -> StateAndMeasurements:
-        simulator = DensityMatrixSimulator()
+        simulator = DensityMatrixSimulator(noise=noise_model)
         simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
@@ -49,8 +51,13 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     def zero_state(self) -> TYPE_STATE_VECTOR:
         return KET_ZERO.state_vector()
 
-    def get_state_after_circuit(self, circuit: Circuit, qubit_order: List[LineQubit], initial_state: TYPE_STATE_VECTOR) -> StateAndMeasurements:
-        simulator = Simulator()
+    def get_state_after_circuit(self,
+                                circuit: Circuit,
+                                qubit_order: List[LineQubit],
+                                initial_state: TYPE_STATE_VECTOR,
+                                noise_model: Optional[NoiseModel] = None
+                                ) -> StateAndMeasurements:
+        simulator = Simulator(noise=noise_model)
         simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,

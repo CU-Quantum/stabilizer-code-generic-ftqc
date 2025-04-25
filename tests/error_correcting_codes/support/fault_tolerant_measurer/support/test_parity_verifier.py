@@ -46,8 +46,8 @@ class VerificationIsZero(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key, **kwargs):
-        return cls(key=key)
+    def _from_json_dict_(cls, **kwargs):
+        return cls()
 
     @property
     def qasm(self):
@@ -61,8 +61,8 @@ class ParityVerifier:
         self._target_qubits = target_qubits
         self._ancilla_qubit = ancilla_qubit if ancilla_qubit else LineQubit(self._num_qubits)
 
-    def is_valid_cat_state(self) -> list[list[Operation]]:
-        return [
+    def is_valid_cat_state(self) -> Circuit:
+        return Circuit(
                 [
                     X(self._ancilla_qubit).controlled_by(self._target_qubits[i]),
                     X(self._ancilla_qubit).controlled_by(self._target_qubits[i + 1]),
@@ -70,20 +70,7 @@ class ParityVerifier:
                     R(self._ancilla_qubit),
                 ]
                 for i in range(self._num_qubits - 1)
-            ]
-        # num_qubits = len(self._state_qubits)
-        # for i in range(num_qubits - 1):
-        #     circuit = Circuit(
-        #         X(self._ancilla_qubit).controlled_by(self._state_qubits[i]),
-        #         X(self._ancilla_qubit).controlled_by(self._state_qubits[i + 1]),
-        #         M(self._ancilla_qubit),
-        #         R(self._ancilla_qubit),
-        #     )
-        #     state = self._get_state_after_circuit(circuit=circuit)
-        #     measurement = list(state.measurements.values())[0][0]
-        #     if measurement != 0:
-        #         return False
-        # return True
+        )
 
     def _get_state_after_circuit(self, circuit: Circuit) -> StateAndMeasurements:
         if self._ancilla_qubit in self._target_qubits:
