@@ -1,10 +1,10 @@
 from typing import Optional
 
 import pytest
-from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, R, X
+from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, R, Simulator, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.error_correcting_codes.support.fault_tolerant_measurer.support.test_cat_state_circuit_creator import \
     CatStateCircuitCreator
 from tests.error_correcting_codes.support.fault_tolerant_measurer.support.test_parity_verifier import ParityVerifier, \
@@ -23,8 +23,9 @@ class ControlQubitsPreparer:
             CatStateCircuitCreator(target_qubits=self._target_qubits).create_circuit(),
             ParityVerifier(target_qubits=self._target_qubits, verifier_ancilla=self._verifier_ancilla).validate_parity(),
         )
+        repeat_until = VerificationIsZero() if len(self._target_qubits) > 1 else None
         return Circuit(
-            CircuitOperation(preparation_circuit.freeze(), use_repetition_ids=False, repeat_until=VerificationIsZero()),
+            CircuitOperation(preparation_circuit.freeze(), use_repetition_ids=False, repeat_until=repeat_until),
         )
 
 
@@ -38,6 +39,14 @@ class TestControlQubitsPreparer:
 
         preparer = ControlQubitsPreparer(target_qubits=self._qubits[:-1], verifier_ancilla=self._qubits[-1])
         self._circuit_constructing_and_verifying_3_qubit_cat_state = preparer.prepare_state()
+
+    def test_one_qubit_control(self):
+        preparer = ControlQubitsPreparer(target_qubits=self._qubits[:1], verifier_ancilla=self._qubits[-1])
+        circuit = preparer.prepare_state()
+        simulation = Simulator().simulate(circuit, qubit_order=self._qubits)
+        expected_state = tensor(KET_PLUS_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (len(self._qubits) - 1))
+        assert states_are_equal(simulation.final_state_vector, expected_state)
+        assert simulation.measurements == {}
 
     def test_creates_cat_state(self):
         circuit = self._circuit_constructing_and_verifying_3_qubit_cat_state

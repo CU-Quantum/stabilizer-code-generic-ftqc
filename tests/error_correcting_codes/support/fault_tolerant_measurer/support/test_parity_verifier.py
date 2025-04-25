@@ -76,6 +76,26 @@ class ParityVerifier:
 
 
 class TestParityVerifier:
+    def test_trivial(self):
+        verifier = ParityVerifier(target_qubits=[], verifier_ancilla=LineQubit(0))
+        circuit = verifier.validate_parity()
+        assert circuit == Circuit()
+
+    def test_valid_cat_state_one_qubit(self):
+        qubits = LineQubit.range(1)
+        verifier = ParityVerifier(target_qubits=qubits, verifier_ancilla=qubits[0])
+        circuit = verifier.validate_parity()
+
+        one_qubit_cat_state = get_cat_state_vector(num_qubits=1)
+        error_correcting_code_utilities = get_error_correcting_code_utilities(state=one_qubit_cat_state)
+        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                        initial_state=one_qubit_cat_state,
+                                                                        qubit_order=qubits,)
+        assert state == StateAndMeasurements(
+            state=one_qubit_cat_state,
+            measurements={}
+        )
+
     def test_valid_cat_state_two_qubit(self):
         qubits = LineQubit.range(3)
         verifier = ParityVerifier(target_qubits=qubits[:-1], verifier_ancilla=qubits[-1])
