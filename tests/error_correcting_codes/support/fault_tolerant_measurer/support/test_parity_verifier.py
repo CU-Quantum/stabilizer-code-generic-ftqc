@@ -9,8 +9,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
-    KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.utilities import get_cat_state_vector
 
 
@@ -24,13 +23,14 @@ class VerificationIsZero(Condition):
         return (self.key,)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        return KeyCondition(replacement) if self.key == current else self
+        self.key = replacement
+        return self
 
     def __str__(self):
         return str(self.key)
 
     def __repr__(self):
-        return f'cirq.KeyCondition({self.key!r})'
+        return f'VerificationIsZero({self.key!r})'
 
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
@@ -44,8 +44,8 @@ class VerificationIsZero(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, **kwargs):
-        return cls()
+    def _from_json_dict_(cls, last_num_measurements: int = 0, **kwargs):
+        return cls(last_num_measurements=last_num_measurements)
 
     @property
     def qasm(self):

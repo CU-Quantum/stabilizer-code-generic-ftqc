@@ -2,7 +2,12 @@ from typing import Optional
 
 import numpy.random
 import pytest
-from cirq import Circuit, Gate, LineQubit, M, Simulator, X, Z, inverse
+from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, ClassicalDataStoreReader, Condition, Gate, \
+    LineQubit, M, MeasurementKey, \
+    R, Simulator, X, \
+    Z, inverse
+from cirq.protocols import json_serialization
+from numpy import array, bincount
 
 from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.error_correcting_codes.support.fault_tolerant_measurer.support.test_cat_state_circuit_creator import \
@@ -11,6 +16,50 @@ from tests.error_correcting_codes.support.fault_tolerant_measurer.support.test_c
     ControlQubitsPreparer
 from tests.error_correcting_codes.support.fault_tolerant_measurer.support.test_controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
+
+
+class ThreeRepetitionsMajorityVote(Condition):
+    def __init__(self, desired_measurement_key: str):
+        self.key = MeasurementKey('FAULT_TOLERANT_MEASUREMENT')
+        self.desired_measurement_key = desired_measurement_key
+
+    @property
+    def keys(self):
+        return (self.key,)
+
+    def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
+        self.key = replacement
+        return self
+
+    def __str__(self):
+        return str(self.key)
+
+    def __repr__(self):
+        return f'ThreeRepetitionsMajorityVote({self.key!r})'
+
+    def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        num_measurements = len(classical_data.records[self.key])
+        if num_measurements == 3:
+            measurements = array([classical_data.get_int(self.key, i) for i in range(num_measurements)])  # TODO doesn't seem to be varying in measurement
+            majority = int(bincount(measurements).argmax())
+            classical_data.record_measurement(key=MeasurementKey(self.desired_measurement_key),
+                                              measurement=(majority,),
+                                              qubits=classical_data.measured_qubits[self.key][0],)
+            return True
+        return False
+
+    def _json_dict_(self):
+        return json_serialization.dataclass_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, desired_measurement_key: str, **kwargs):
+        return cls(desired_measurement_key=desired_measurement_key)
+
+    @property
+    def qasm(self):
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 class FaultTolerantMeasurer:
@@ -29,17 +78,26 @@ class FaultTolerantMeasurer:
 
     def get_measurement_circuit(self) -> Circuit:
         self._validate()
-        return Circuit(
+        condition = ThreeRepetitionsMajorityVote(desired_measurement_key=self._measurement_key)
+        circuit = Circuit(
             ControlQubitsPreparer(target_qubits=self._control, verifier_ancilla=self._verifier_ancilla).prepare_state(),
             ControlledSingleQubitGatesApplier(gates=self._gates, targets=self._targets, controls=self._control).get_circuit(),
             inverse(CatStateCircuitCreator(target_qubits=self._control).create_circuit()),
-            M(self._measurement_qubit, key=self._measurement_key),
+            M(self._measurement_qubit, key=condition.key),
+            R(self._measurement_qubit),
         )
+        return Circuit(CircuitOperation(circuit.freeze(), use_repetition_ids=False, repeat_until=condition))
 
     def _validate(self) -> None:
+        self._validate_num_ancillas()
+        self._validate_disjoint_qubits()
+
+    def _validate_num_ancillas(self) -> None:
         if len(self._ancillas) < len(self._gates):
             raise ValueError(
                 f"The number of ancillas ({len(self._ancillas)}) must be at least the number of gates ({len(self._gates)}).")
+
+    def _validate_disjoint_qubits(self) -> None:
         qubits = self._targets + [self._measurement_qubit] + self._ancillas
         qubits_set = set(qubits)
         if len(qubits) != len(qubits_set):
@@ -89,6 +147,9 @@ class TestFaultTolerantMeasurer:
             simulation = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
             measurements.extend(simulation.measurements[measurement_key])
         assert any(measurements) and not all(measurements)
+
+    def test_takes_majority_vote(self):
+        assert False
 
     def test_ensure_correct_number_of_ancillas(self):
         qubits = LineQubit.range(4)
