@@ -11,7 +11,7 @@ from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VEC
 
 class TestFaultTolerantMeasurer:
     def test_trivial(self):
-        measurer = FaultTolerantMeasurer(gates=[], targets=[], control=[], verifier_ancilla=LineQubit(0))
+        measurer = FaultTolerantMeasurer(gates=[], targets=[], measurement_qubit=LineQubit(0), ancillas=[])
         circuit = measurer.get_measurement_circuit()
         assert circuit == Circuit()
 

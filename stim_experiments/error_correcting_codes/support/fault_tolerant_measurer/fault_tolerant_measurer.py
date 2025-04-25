@@ -28,6 +28,8 @@ class FaultTolerantMeasurer:
 
     def get_measurement_circuit(self) -> Circuit:
         self._validate()
+        if not self._gates:
+            return Circuit()
         condition = ThreeRepetitionsMajorityVote(desired_measurement_key=self._measurement_key)
         circuit = Circuit(
             ControlQubitsPreparer(target_qubits=self._control, verifier_ancilla=self._verifier_ancilla).prepare_state(),
