@@ -8,7 +8,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 @dataclass
 class LogicalEncodingIndex:
     encoding: ErrorCorrectingCode
-    qubit_index: int
+    qubit_index_relative: int
+    qubit_index_logical: int
 
 
 @dataclass

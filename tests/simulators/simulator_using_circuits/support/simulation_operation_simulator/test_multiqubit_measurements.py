@@ -43,7 +43,7 @@ class TestMultiqubitMeasurements:
         operation = SimulationOperation(
             control_encoding=LogicalEncodingIndex(
                 encoding=encoding,
-                qubit_index=0
+                qubit_index_relative=0
             )
         )
         simulator = SimulationOperationSimulator(

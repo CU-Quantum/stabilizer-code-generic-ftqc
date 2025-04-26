@@ -54,6 +54,6 @@ class TestMultipleMeasurementsOnOneQubit:
         return SimulationOperation(
             control_encoding=LogicalEncodingIndex(
                 encoding=self._control_code,
-                qubit_index=0
+                qubit_index_relative=0
             )
         )

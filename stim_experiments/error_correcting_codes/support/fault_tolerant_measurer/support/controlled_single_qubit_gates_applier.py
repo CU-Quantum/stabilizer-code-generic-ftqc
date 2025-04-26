@@ -1,22 +1,22 @@
-from cirq import Circuit, Gate, LineQubit
+from cirq import Circuit, LineQubit, Operation
 
 
 class ControlledSingleQubitGatesApplier:
-    def __init__(self, gates: list[Gate], targets: list[LineQubit], controls: list[LineQubit]):
-        self._gates = gates
-        self._targets = targets
+    def __init__(self, operations: list[Operation], controls: list[LineQubit]):
+        self._operations = operations
         self._controls = controls
 
     def get_circuit(self) -> Circuit:
         self._validate_inputs()
         return Circuit(
-            self._gates[i].on(self._targets[i]).controlled_by(self._controls[i])
-            for i in range(len(self._gates))
+            self._operations[i].controlled_by(self._controls[i])
+            for i in range(len(self._operations))
         )
 
     def _validate_inputs(self) -> None:
-        if len(self._gates) != len(self._targets) or len(self._gates) != len(self._controls):
+        if len(self._operations) != len(self._controls):
             raise ValueError(
-                f"The number of gates ({len(self._gates)}), targets ({len(self._targets)}), and controls({len(self._controls)}) must be equal.")
-        if any(gate.num_qubits() != 1 for gate in self._gates):
-            raise ValueError(f"All gates must be single-qubit gates. Was given {self._gates}.")
+                f"The number of gates ({len(self._operations)}) and controls({len(self._controls)}) must be equal.")
+        multiqubit_operations = {operation for operation in self._operations if len(operation.qubits) != 1}
+        if len(multiqubit_operations):
+            raise ValueError(f"All operations must be single-qubit operations. Was given {multiqubit_operations}.")

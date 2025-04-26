@@ -64,7 +64,8 @@ class TestSimulationOperationSimulator:
             ),
             control_encoding=LogicalEncodingIndex(
                 encoding=control_code,
-                qubit_index=0
+                qubit_index_relative=0,
+                qubit_index_logical=1
             )
         )
 
@@ -91,7 +92,7 @@ class TestSimulationOperationSimulator:
             operation = SimulationOperation(
                 control_encoding=LogicalEncodingIndex(
                     encoding=control_code,
-                    qubit_index=0
+                    qubit_index_relative=0
                 )
             )
             simulator = SimulationOperationSimulator(simulation_operation=operation,

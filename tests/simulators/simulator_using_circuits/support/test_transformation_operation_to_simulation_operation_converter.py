@@ -131,7 +131,7 @@ class TestTransformationOperationToSimulationOperationConverter:
             ),
             control_encoding=LogicalEncodingIndex(
                 encoding=encodings[1],
-                qubit_index=0,
+                qubit_index_relative=0,
             )
         )
 
@@ -146,7 +146,7 @@ class TestTransformationOperationToSimulationOperationConverter:
         assert simulation_operation == SimulationOperation(
             control_encoding=LogicalEncodingIndex(
                 encoding=encodings[0],
-                qubit_index=0,
+                qubit_index_relative=0,
             )
         )
 

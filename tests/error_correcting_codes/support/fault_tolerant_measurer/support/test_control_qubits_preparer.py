@@ -5,7 +5,7 @@ from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_T
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.control_qubits_preparer import \
-    ControlQubitsPreparer
+    ParityEnsurerCatState
 from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.verification_is_zero import \
     VerificationIsZero
@@ -20,11 +20,11 @@ class TestControlQubitsPreparer:
         self._num_qubits = self._num_target_qubits + self._num_ancilla_qubits
         self._qubits = LineQubit.range(self._num_qubits)
 
-        preparer = ControlQubitsPreparer(target_qubits=self._qubits[:-1], verifier_ancilla=self._qubits[-1])
+        preparer = ParityEnsurerCatState(target_qubits=self._qubits[:-1], verifier_ancilla=self._qubits[-1])
         self._circuit_constructing_and_verifying_3_qubit_cat_state = preparer.prepare_state()
 
     def test_one_qubit_control(self):
-        preparer = ControlQubitsPreparer(target_qubits=self._qubits[:1], verifier_ancilla=self._qubits[-1])
+        preparer = ParityEnsurerCatState(target_qubits=self._qubits[:1], verifier_ancilla=self._qubits[-1])
         circuit = preparer.prepare_state()
         simulation = Simulator().simulate(circuit, qubit_order=self._qubits)
         expected_state = tensor(KET_PLUS_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (len(self._qubits) - 1))

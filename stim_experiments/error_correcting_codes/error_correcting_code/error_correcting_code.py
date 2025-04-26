@@ -38,6 +38,7 @@ class ErrorCorrectingCode(ABC):
 
     @abstractmethod
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
+        # TODO make this return a circuit
         pass
 
     @abstractmethod

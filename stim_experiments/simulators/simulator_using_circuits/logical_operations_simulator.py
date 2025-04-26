@@ -1,7 +1,8 @@
-from cirq import LineQubit
+from cirq import Circuit, LineQubit, Simulator, StateVectorTrialResult
 from numpy import array
 from proto.utils import cached_property
 
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
@@ -10,9 +11,12 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.log
     LogicalEncodingsWithSharedAncillas
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.simulation_operation_simulator import \
     SimulationOperationSimulator
+from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor, trace_out_ancillas_in_zero_state
+from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector, tensor, \
+    trace_out_ancillas_in_zero_state
 
 
 class LogicalOperationsSimulator:
@@ -30,15 +34,19 @@ class LogicalOperationsSimulator:
             ).get_simulation_operation()
             for operation in self._operations
         ]
+        circuit_pieces = [
+            CircuitFromOperationCreator(operation=simulation_operation,
+                                        ancilla_qubits=self._encodings.ancillas,
+                                        num_state_qubits=len(self._state_qubits),
+                                        ).create_circuit()
+            for simulation_operation in simulation_operations
+        ]
+        circuit = Circuit(circuit_pieces)
 
-        state = StateAndMeasurements(state=self._get_initial_state())
-        for simulation_operation in simulation_operations:
-            simulator = SimulationOperationSimulator(simulation_operation=simulation_operation,
-                                                     initial_state=state,
-                                                     qubits=self._state_qubits,
-                                                     control_ancilla=self._control_ancilla)
-            state = simulator.simulate_circuit()
-        return state
+        error_correcting_code_utilities = get_error_correcting_code_utilities(state=self._get_initial_state())
+        return error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
+                                                                       qubit_order=self._state_qubits,
+                                                                       initial_state=self._get_initial_state())
 
     def _ensure_enough_logical_qubits(self) -> None:
         num_logical_qubits_given = sum(code.num_logical_qubits for code in self._encodings.encodings)

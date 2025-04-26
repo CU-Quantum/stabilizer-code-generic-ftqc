@@ -83,7 +83,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                               for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
         logical_cx, logical_cz = (
             [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-             for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index])
+             for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index_relative])
              for gate in qubit_gates]
             for logical_operation in logical_operations
         )

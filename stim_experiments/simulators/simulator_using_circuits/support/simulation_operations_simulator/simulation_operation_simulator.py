@@ -18,14 +18,14 @@ class SimulationOperationSimulator:
                  simulation_operation: SimulationOperation,
                  initial_state: StateAndMeasurements,
                  qubits: list[LineQubit],
-                 control_ancilla: LineQubit):
+                 ancilla_qubits: list[LineQubit]):
         self._simulation_operation = simulation_operation
         self.initial_state = initial_state
         self._qubits = qubits
-        self._control_ancilla = control_ancilla
+        self._ancilla_qubits = ancilla_qubits
 
     def simulate_circuit(self) -> StateAndMeasurements:
-        circuit = CircuitFromOperationCreator(operation=self._simulation_operation, control_ancilla=self._control_ancilla).create_circuit()
+        circuit = CircuitFromOperationCreator(operation=self._simulation_operation, ancilla_qubits=self._ancilla_qubits).create_circuit()
         result = self._run_simulation(circuit=circuit)
         return StateAndMeasurements(
             state=result.state,
@@ -61,7 +61,7 @@ class SimulationOperationSimulator:
 
     @cached_property
     def _logical_qubit_measurement_index(self):
-        local_qubit_index = self._simulation_operation.control_encoding.qubit_index
+        local_qubit_index = self._simulation_operation.control_encoding.qubit_index_relative
         first_qubit_x = self._simulation_operation.control_encoding.encoding.all_qubits[0].x
         global_qubit_index = first_qubit_x + local_qubit_index
         return global_qubit_index
