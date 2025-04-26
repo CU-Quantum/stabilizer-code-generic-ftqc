@@ -1,5 +1,6 @@
 import pytest
 from cirq import Circuit, LineQubit, M, X
+from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
@@ -29,7 +30,7 @@ class TestErrorCorrectingCodeUtilities:
                                                                          initial_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
-            measurements={1: [1]}
+            measurements={'q(1)': array([1])}
         )
 
     @pytest.mark.parametrize('initial_state', [
@@ -52,5 +53,5 @@ class TestErrorCorrectingCodeUtilities:
                                                                          initial_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
-            measurements={0: [0], 1: [1]}
+            measurements={'q(0)': array([0]), 'q(1)': [1]}
         )

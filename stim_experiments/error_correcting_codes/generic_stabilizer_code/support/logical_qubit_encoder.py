@@ -47,4 +47,4 @@ class LogicalQubitEncoder:
         return [operation if target_qubit == control_qubit else operation.controlled_by(control_qubit) for operation in operations]
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
-        return self._data_qubits[self._check_matrix_standardized.qubit_order[qubit_index]]
+        return self._data_qubits[qubit_index]

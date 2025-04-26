@@ -4,9 +4,9 @@ from typing import Optional
 
 from cirq import Circuit, Gate, LineQubit
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
-    ErrorCorrectingCodeUtilities, get_error_correcting_code_utilities
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilities, \
+    get_error_correcting_code_utilities
 from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
 

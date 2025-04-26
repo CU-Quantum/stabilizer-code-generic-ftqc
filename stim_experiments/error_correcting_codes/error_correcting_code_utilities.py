@@ -12,6 +12,8 @@ from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MAT
 
 
 class ErrorCorrectingCodeUtilities(ABC):
+    # TODO delete this
+
     @property
     @abstractmethod
     def zero_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:

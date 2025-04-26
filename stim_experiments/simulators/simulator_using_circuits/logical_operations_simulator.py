@@ -1,4 +1,5 @@
-from cirq import Circuit, LineQubit, Simulator, StateVectorTrialResult
+from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, I, LineQubit, Simulator, \
+    StateVectorTrialResult
 from numpy import array
 from proto.utils import cached_property
 
@@ -42,14 +43,24 @@ class LogicalOperationsSimulator:
                                         ).create_circuit()
             for simulation_operation in simulation_operations
         ]
-        circuit = Circuit(circuit_pieces)
+        circuit = Circuit(
+            [I(qubit) for qubit in self._state_qubits],
+            circuit_pieces
+        )
 
-        simulator = Simulator()
-        simulation: StateVectorTrialResult = simulator.simulate(circuit)
-        num_qubits_in_state = get_num_qubits_in_state(simulation.final_state_vector)
+        # TODO initial state should be encoded in circuit. density vs state vector should be chosen in init or done outside this class
+        if is_state_vector(self._get_initial_state()):
+            simulator = Simulator()
+            simulation: StateVectorTrialResult = simulator.simulate(circuit)
+            state = simulation.final_state_vector
+        else:
+            simulator = DensityMatrixSimulator()
+            simulation: DensityMatrixTrialResult = simulator.simulate(circuit)
+            state = simulation.final_density_matrix
+        num_qubits_in_state = get_num_qubits_in_state(state)
         num_extra_ancillas = num_qubits_in_state - len(self._state_qubits)
         return StateAndMeasurements(
-            state=trace_out_ancillas_in_zero_state(simulation.final_state_vector, num_ancillas=num_extra_ancillas),
+            state=trace_out_ancillas_in_zero_state(state, num_ancillas=num_extra_ancillas),
             measurements=dict(simulation.measurements),
         )
 

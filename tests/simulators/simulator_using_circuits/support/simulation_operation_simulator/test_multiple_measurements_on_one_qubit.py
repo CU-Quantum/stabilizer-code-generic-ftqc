@@ -3,6 +3,7 @@ from functools import cached_property
 import numpy
 import pytest
 from cirq import LineQubit
+from numpy import array
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -37,7 +38,7 @@ class TestMultipleMeasurementsOnOneQubit:
 
         assert result == StateAndMeasurements(
             state=KET_ONE_STATE_VECTOR,
-            measurements={0: [0, 1]}
+            measurements={'0': array([0, 1])}
         )
 
     def _perform_measurement_on_first_qubit(self, state_and_measurements: StateAndMeasurements) -> StateAndMeasurements:
