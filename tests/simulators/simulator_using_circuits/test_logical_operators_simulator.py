@@ -114,7 +114,7 @@ class TestLogicalOperationsSimulator:
             simulator = LogicalOperationsSimulator(encodings=encodings, operations=operations)
             result = simulator.simulate()
             results.append(result)
-        observables = [result.measurements[1][0] for result in results]
+        observables = [result.measurements['1'][0] for result in results]
         assert any(observables) and not all(observables)
         assert all(states_are_equal(result.state, tensor(*[KET_ONE_STATE_VECTOR if observable else KET_ZERO_STATE_VECTOR] * 2))
                    for observable, result in zip(observables, results))

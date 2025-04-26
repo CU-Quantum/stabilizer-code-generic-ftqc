@@ -25,7 +25,7 @@ class StatePropagationParityEnsurer:
     def prepare_state(self) -> Circuit:
         # TODO ensure verifier ancilla is not in target qubits
         # TODO ensure verifier ancilla exists if target qubits is greater than 1
-        all_qubits = self.target_qubits
+        all_qubits = self.target_qubits.copy()
         if self._verifier_ancilla:
             all_qubits.append(self._verifier_ancilla)
         preparation_circuit = Circuit(

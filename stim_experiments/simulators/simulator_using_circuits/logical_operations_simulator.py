@@ -15,7 +15,8 @@ from stim_experiments.simulators.simulator_using_circuits.support.simulation_ope
     CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector, tensor, \
+from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, \
+    tensor, \
     trace_out_ancillas_in_zero_state
 
 
@@ -43,10 +44,14 @@ class LogicalOperationsSimulator:
         ]
         circuit = Circuit(circuit_pieces)
 
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=self._get_initial_state())
-        return error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                       qubit_order=self._state_qubits,
-                                                                       initial_state=self._get_initial_state())
+        simulator = Simulator()
+        simulation: StateVectorTrialResult = simulator.simulate(circuit)
+        num_qubits_in_state = get_num_qubits_in_state(simulation.final_state_vector)
+        num_extra_ancillas = num_qubits_in_state - len(self._state_qubits)
+        return StateAndMeasurements(
+            state=trace_out_ancillas_in_zero_state(simulation.final_state_vector, num_ancillas=num_extra_ancillas),
+            measurements=dict(simulation.measurements),
+        )
 
     def _ensure_enough_logical_qubits(self) -> None:
         num_logical_qubits_given = sum(code.num_logical_qubits for code in self._encodings.encodings)

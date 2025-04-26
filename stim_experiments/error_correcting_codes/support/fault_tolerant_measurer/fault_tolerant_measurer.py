@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Callable, Optional
 
-from cirq import Circuit, CircuitOperation, H, KeyCondition, LineQubit, MeasurementKey, Operation, R, X
+from cirq import Circuit, CircuitOperation, H, KeyCondition, LineQubit, M, MeasurementKey, Operation, R, X
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
@@ -17,13 +17,11 @@ class FaultTolerantApplier:
                  measurement_qubit: LineQubit,
                  ancillas: list[LineQubit],
                  measurement_qubit_preparer: Circuit,
-                 measurement_key: Optional[str] = None,
                  ):
         self._operations = operations
         self._measurement_qubit = measurement_qubit
         self._ancillas = ancillas
         self._measurement_qubit_preparer = measurement_qubit_preparer
-        self._measurement_key = measurement_key or MeasurementKey(repr(self._measurement_qubit))
 
     def get_circuit(self) -> Circuit:
         self._validate()
@@ -40,40 +38,6 @@ class FaultTolerantApplier:
             ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
             propagated_state.decode_state(),
         )
-
-    # measurement_qubits = [self._measurement_qubit] + LineQubit.range(self._total_num_qubits, self._total_num_qubits + 2)
-    # voters = [
-    #     StatePropagationParityEnsurer(target_qubits=[measurement_qubit] + self._ancillas[:len(self._operations) - 1],
-    #                                   verifier_ancilla=self.verifier_ancilla,
-    #                                   first_qubit_preparer=self._measurement_qubit_preparer(measurement_qubit),
-    #                                   )
-    #     for measurement_qubit in measurement_qubits
-    # ]
-    # votes = [
-    #     [
-    #         voter.prepare_state(),
-    #         ControlledSingleQubitGatesApplier(operations=self._operations, controls=voter.target_qubits).get_circuit(),
-    #         voter.decode_state()
-    #     ]
-    #     for voter in voters
-    # ]
-    # circuit = Circuit(
-    #     votes,
-    #     X(LineQubit(measurement_qubits[-1].x + 1)).controlled_by(measurement_qubits[0]),
-    #     X(LineQubit(measurement_qubits[-1].x + 1)).controlled_by(measurement_qubits[1]),
-    #     M(LineQubit(measurement_qubits[-1].x + 1), key='a'),
-    #     CircuitOperation(
-    #         FrozenCircuit(
-    #             X(LineQubit(measurement_qubits[-1].x + 2)).controlled_by(measurement_qubits[1]),
-    #             X(LineQubit(measurement_qubits[-1].x + 2)).controlled_by(measurement_qubits[2]),
-    #             M(LineQubit(measurement_qubits[-1].x + 2), key='b'),
-    #         ),
-    #         repeat_until=
-    #     )
-    #
-    #
-    #
-    # )
 
     def _validate(self) -> None:
         self._validate_num_ancillas()
@@ -116,15 +80,16 @@ class FaultTolerantMeasurer:
                                        measurement_qubit=self._measurement_qubit,
                                        ancillas=self._ancillas,
                                        measurement_qubit_preparer=hadamard_first_qubit,
-                                       measurement_key=self._measurement_key,
                                        )
         condition = ThreeRepetitionsMajorityVote(desired_measurement_key=self._measurement_key)
-        circuit = Circuit(
-            CircuitOperation(applier.get_circuit().freeze(), use_repetition_ids=False, repeat_until=condition),
-            R(self._measurement_qubit),
-            X(self._measurement_qubit).with_classical_controls(KeyCondition(key=self._measurement_key))
-        )
         return Circuit(
-            circuit,
-            R(self._measurement_qubit),
+            CircuitOperation(
+                Circuit(
+                    applier.get_circuit(),
+                    M(self._measurement_qubit, key=condition.key),
+                    R(self._measurement_qubit),
+                ).freeze(),
+                use_repetition_ids=False,
+                repeat_until=condition
+            ),
         )

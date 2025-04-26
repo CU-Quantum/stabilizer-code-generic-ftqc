@@ -33,8 +33,9 @@ class CircuitFromOperationCreator:
         # ancillas = self._encoding_ancilla_qubits + LineQubit.range(self._num_state_qubits, self._num_state_qubits + ancillas_needed)
 
         controls_needed = num_target_operations
-        control_measurements = LineQubit.range(self._num_state_qubits, self._num_state_qubits + controls_needed)
-        control_ancillas = self._encoding_ancilla_qubits + LineQubit.range(control_measurements[-1].x, control_measurements[-1].x + len(control_operations))
+        controls_missing = controls_needed - len(self._encoding_ancilla_qubits)
+        control_measurements = self._encoding_ancilla_qubits + LineQubit.range(self._num_state_qubits, self._num_state_qubits + controls_missing)
+        control_ancillas = LineQubit.range(control_measurements[-1].x + 1, control_measurements[-1].x + len(control_operations))
         control_propagator = [
             FaultTolerantApplier(
                 operations=control_operations,
@@ -49,22 +50,24 @@ class CircuitFromOperationCreator:
         return Circuit(
             control_propagator,
             target_controlled_by_ancilla,
-            [R(qubit) for qubit in control_measurements + control_ancillas]
+            control_propagator,
         )
 
     def _get_measurement_circuit(self) -> Circuit:
-        measurement_qubit = self._encoding_ancilla_qubits[0]
-        hadamard_first_qubit = Circuit(H(measurement_qubit))
-        applier = FaultTolerantApplier(operations=list(self._logical_z_on_control.all_operations()),
-                                       measurement_qubit=measurement_qubit,
-                                       ancillas=self._encoding_ancilla_qubits[1:],
-                                       measurement_qubit_preparer=hadamard_first_qubit,
-                                       measurement_key=str(self._operation.control_encoding.qubit_index_logical),
-                                       )
-        return Circuit(
-            applier.get_circuit(),
-            R(measurement_qubit),
-        )
+        control_operations = list(self._logical_z_on_control.all_operations())
+        controls_needed = 1
+        controls_missing = controls_needed - len(self._encoding_ancilla_qubits)
+        control_measurements = self._encoding_ancilla_qubits + LineQubit.range(self._num_state_qubits,
+                                                                               self._num_state_qubits + controls_missing)
+        control_ancillas = LineQubit.range(control_measurements[-1].x + 1,
+                                           control_measurements[-1].x + len(control_operations))
+        measurement_qubit = control_measurements[0]
+        measurer = FaultTolerantMeasurer(operations=list(self._logical_z_on_control.all_operations()),
+                                         measurement_qubit=measurement_qubit,
+                                         ancillas=control_ancillas,
+                                         measurement_key=str(self._operation.control_encoding.qubit_index_logical),
+                                         )
+        return measurer.get_measurement_circuit()
 
     @cached_property
     def _logical_z_on_control(self) -> Circuit:
