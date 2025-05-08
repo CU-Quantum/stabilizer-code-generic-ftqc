@@ -1,5 +1,8 @@
-from cirq import KET_ONE, KET_PLUS, KET_ZERO, density_matrix_from_state_vector, kron
-from numpy import array, log2, trace
+from contextlib import contextmanager
+from typing import ContextManager, Generator, Optional
+
+from cirq import KET_ONE, KET_PLUS, KET_ZERO, LineQubit, density_matrix_from_state_vector, kron
+from numpy import array, log2, sqrt, trace
 from numpy._typing import NDArray
 
 TYPE_STATE_VECTOR = NDArray[complex]
@@ -13,6 +16,9 @@ KET_PLUS_STATE_VECTOR = KET_PLUS.state_vector()
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
 KET_PLUS_DENSITY_MATRIX = density_matrix_from_state_vector(KET_PLUS_STATE_VECTOR)
+
+def get_ket_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:
+    return (1/sqrt(2)) * (tensor(*[KET_ZERO_STATE_VECTOR] * num_qubits) + tensor(*[KET_ONE_STATE_VECTOR] * num_qubits))
 
 
 def get_num_qubits_in_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> int:
@@ -69,3 +75,27 @@ def binary_array_to_int(binary_array: list[int]) -> int:
 
 def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
     return kron(*states, shape_len=len(states[0].shape)) if states else array([])
+
+
+class FreshAncillasPool:
+    # TODO test class
+
+    _pool: list[LineQubit] = []
+    _next_ancilla_num = 0
+
+    def __new__(cls, first_ancilla_num: Optional[int] = None):
+        cls._next_ancilla_num = cls._next_ancilla_num or first_ancilla_num or 0
+        return cls(first_ancilla_num=first_ancilla_num)
+
+    @contextmanager
+    def _use_fresh_ancillas(self, num_ancillas: int) -> Generator[list[LineQubit], None, None]:
+        if self._pool:
+            ancillas = [self._pool.pop(0) for _ in range(num_ancillas)]
+        else:
+            ancillas = LineQubit.range(self._next_ancilla_num, num_ancillas)
+            self._next_ancilla_num += num_ancillas
+
+        yield ancillas
+
+        for ancillas in ancillas:
+            self._pool.append(ancillas)
