@@ -86,8 +86,6 @@ class FreshAncillasPool:
 
     @classmethod
     def set_first_ancilla_num(cls, first_ancilla_num: int):
-        if cls._next_ancilla_num:
-            raise ValueError("FreshAncillasPool already has a first ancilla number.")  # TODO test this
         if first_ancilla_num < 0:
             raise ValueError("First ancilla number must be non-negative.")  # TODO test this
         cls._next_ancilla_num = first_ancilla_num
@@ -106,3 +104,7 @@ class FreshAncillasPool:
 
         for ancillas in ancillas:
             self._pool.append(ancillas)
+
+    def reset(self) -> None:
+        self._pool = []
+        self._next_ancilla_num = 0

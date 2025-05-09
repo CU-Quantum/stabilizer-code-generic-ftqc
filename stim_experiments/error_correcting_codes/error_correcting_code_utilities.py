@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import List, Mapping, Optional
+from typing import List, Optional
 
 from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, NoiseModel, Simulator, \
     StateVectorTrialResult
-from numpy._typing import NDArray
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -28,6 +27,9 @@ class ErrorCorrectingCodeUtilities(ABC):
                                 ) -> StateAndMeasurements:
         pass
 
+    def get_max_qubit_index(self, circuit: Circuit) -> int:
+        return max(qubit.x for qubit in circuit.all_qubits())
+
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
@@ -35,8 +37,8 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
         return KET_ZERO_DENSITY_MATRIX
 
     def get_state_after_circuit(self,
-                                circuit: Circuit,
                                 qubit_order: List[LineQubit],
+                                circuit: Circuit,
                                 initial_state: TYPE_DENSITY_MATRIX,
                                 noise_model: Optional[NoiseModel] = None,
                                 ) -> StateAndMeasurements:
