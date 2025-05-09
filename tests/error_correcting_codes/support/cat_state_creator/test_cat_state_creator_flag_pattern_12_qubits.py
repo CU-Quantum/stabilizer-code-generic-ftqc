@@ -1,11 +1,10 @@
 import pytest
-from cirq import Circuit, I, LineQubit, Simulator, StateVectorTrialResult, X
+from cirq import Circuit, I, LineQubit, Simulator, X
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.utilities import FreshAncillasPool, TYPE_STATE_VECTOR, get_ket_cat_state_vector, \
-    trace_out_ancillas_in_zero_state
-from tests.utilities import states_are_equal
+from stim_experiments.utilities import FreshAncillasPool, TYPE_STATE_VECTOR, get_ket_cat_state_vector
+from tests.error_correcting_codes.support.cat_state_creator.utilities import circuit_results_in_expected_state
 
 
 class TestCatStateCreatorFlagPattern12Qubits:
@@ -22,7 +21,7 @@ class TestCatStateCreatorFlagPattern12Qubits:
         circuit = CatStateCreatorFlagPattern(qubit_register=qubits).get_cat_state_circuit()
 
         expected_state = get_ket_cat_state_vector(num_qubits=self._num_qubits)
-        assert self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+        assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     @pytest.mark.parametrize('num_qubits_with_error', [3, 6, 9, 12])
     def test_x_error_on_multiple_of_3(self, num_qubits_with_error: int):
@@ -31,19 +30,19 @@ class TestCatStateCreatorFlagPattern12Qubits:
     def _run_multiple_of_3_qubits_affected(self, first_error_qubit_index: int) -> bool:
         circuit = self._get_circuit_with_x_error_on_first_n_qubits(n=first_error_qubit_index)
         expected_state = get_ket_cat_state_vector(num_qubits=self._num_qubits)
-        return self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+        return circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     def test_x_error_on_one_less_than_multiple_of_3_creates_error_on_multiple_of_3(self):
         multiple_of_3_index = 2
         circuit = self._get_circuit_with_x_error_on_first_n_qubits(n=multiple_of_3_index - 1)
         expected_state = self._get_cat_state_with_x_error(qubit_index_with_error=multiple_of_3_index)
-        assert self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+        assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     def test_x_error_on_one_more_than_multiple_of_3(self):
         multiple_of_3_index = 2
         circuit = self._get_circuit_with_x_error_on_first_n_qubits(n=multiple_of_3_index + 1)
         expected_state = self._get_cat_state_with_x_error(qubit_index_with_error=multiple_of_3_index + 1)
-        assert self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+        assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     def _get_circuit_with_x_error_on_first_n_qubits(self, n: int):
         first_error_qubit = self._qubits[n]
@@ -59,8 +58,3 @@ class TestCatStateCreatorFlagPattern12Qubits:
             X(LineQubit(qubit_index_with_error))
         )
         return Simulator().simulate(circuit, initial_state=ideal_state).final_state_vector
-
-    def _circuit_results_in_expected_state(self, circuit: Circuit, expected_state: TYPE_STATE_VECTOR) -> bool:
-        simulation: StateVectorTrialResult = Simulator().simulate(circuit)
-        data_state = trace_out_ancillas_in_zero_state(state=simulation.final_state_vector, num_ancillas=1)
-        return states_are_equal(data_state, expected_state)

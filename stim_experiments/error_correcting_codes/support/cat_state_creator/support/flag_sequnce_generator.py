@@ -9,7 +9,7 @@ class FlagSequenceGenerator:
     def __init__(self, num_flags: int):
         self._num_flags = num_flags
 
-    def get_flag_sequence(self) -> NDArray[int]:
+    def get_flag_sequence(self) -> NDArray[NDArray[int]]:
         if not self._num_flags:
             return array([[]])
         elif self._num_flags == 1:
