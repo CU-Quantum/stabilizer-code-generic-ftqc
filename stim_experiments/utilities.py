@@ -82,19 +82,25 @@ class FreshAncillasPool:
     # TODO add async locking
 
     _pool: list[LineQubit] = []
-    _first_ancilla_num = 0
+    _next_ancilla_num = 0
 
     @classmethod
     def set_first_ancilla_num(cls, first_ancilla_num: int):
-        cls._first_ancilla_num = first_ancilla_num
+        if cls._next_ancilla_num:
+            raise ValueError("FreshAncillasPool already has a first ancilla number.")  # TODO test this
+        if first_ancilla_num < 0:
+            raise ValueError("First ancilla number must be non-negative.")  # TODO test this
+        cls._next_ancilla_num = first_ancilla_num
 
     @contextmanager
     def use_fresh_ancillas(self, num_ancillas: int) -> Generator[list[LineQubit], None, None]:
-        if self._pool:
-            ancillas = [self._pool.pop(0) for _ in range(num_ancillas)]
-        else:
-            ancillas = LineQubit.range(self._first_ancilla_num, self._first_ancilla_num + num_ancillas)
-            self._first_ancilla_num += num_ancillas
+        ancillas = []
+        while len(ancillas) < num_ancillas:
+            if self._pool:
+                ancillas.append(self._pool.pop(0))
+            else:
+                ancillas.append(LineQubit(self._next_ancilla_num))
+                self._next_ancilla_num += 1
 
         yield ancillas
 

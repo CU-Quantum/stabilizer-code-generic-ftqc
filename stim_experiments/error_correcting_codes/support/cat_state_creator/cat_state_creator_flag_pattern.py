@@ -15,6 +15,7 @@ from stim_experiments.utilities import FreshAncillasPool
 
 @dataclass(frozen=True)
 class FlagNumLimit(Condition):
+    # TODO test class
     key: MeasurementKey
     flag_num: int = 0
     flag_sequence: NDArray[int] = field(default_factory=lambda: array([]))
@@ -36,6 +37,8 @@ class FlagNumLimit(Condition):
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         measurements = [x[0] for x in classical_data.records[self.key]]
+        if not any(measurements):
+            return False
         flag_num_found = np.where(np.all(self.flag_sequence == measurements, axis=1))[0][0]
         return self.flag_num <= flag_num_found
 
@@ -60,38 +63,55 @@ class CatStateCreatorFlagPattern:
         self._qubit_register = qubit_register
 
     def get_cat_state_circuit(self) -> Circuit:
-        control_qubit = self._qubit_register[0]
+        if not self._num_data_qubits:
+            return Circuit()
+        if self._num_data_qubits <= 3:
+            return Circuit(
+                self._create_cat_state(),
+            )
+        return Circuit(
+            self._create_cat_state(),
+            self._measure_flags(),
+            self._recover_from_errors(),
+        )
+
+    def _create_cat_state(self) -> list[list[Operation]]:
+        return [
+            [H(self._control_qubit)],
+            [X(target_qubit).controlled_by(self._control_qubit) for target_qubit in reversed(self._qubit_register[1:])],
+        ]
+
+    def _measure_flags(self) -> list[list[Operation]]:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:  # can use single ancilla sequentially for fast measurement
             ancilla = ancilla_qubits[0]
-            return Circuit(
-                [H(control_qubit)],
-                [X(target_qubit).controlled_by(control_qubit) for target_qubit in reversed(self._qubit_register[1:])], # TODO make this reversed, and test
-                X(ancilla).controlled_by(control_qubit),
+            return [
+                X(ancilla).controlled_by(self._control_qubit),
                 [
                     [
                         X(ancilla).controlled_by(self._qubit_register[last_seq_num * 3 + 1])
                         for last_seq_num, flags in enumerate(self._flag_sequence[1:])
                         if flags[flag_num] != self._flag_sequence[last_seq_num][flag_num]
-                    ] + (self._get_measurement_for_flag(flag_num=flag_num, ancilla=ancilla) if flag_num < self._num_measurements - 1 else [])
+                    ] + (self._get_measurement_for_flag(ancilla=ancilla) if flag_num < self._num_measurements - 1 else [])
                     for flag_num in range(self._num_measurements)
                 ],
                 X(ancilla).controlled_by(self._qubit_register[-1]),
-                self._get_measurement_for_flag(flag_num=self._num_measurements - 1, ancilla=ancilla),
+                self._get_measurement_for_flag(ancilla=ancilla),
+            ]
 
-                [
-                    [X(qubit).with_classical_controls(FlagNumLimit(key=MeasurementKey(self._measurement_key),
-                                                                   flag_num=flag_num,
-                                                                   flag_sequence=self._flag_sequence)
-                                                      )
-                     for qubit in self._qubit_register[3 * (flag_num -  1):3 * flag_num]]
-                    for flag_num in range(1, len(self._flag_sequence) - 1)
-                ],
-            )
-
-    def _get_measurement_for_flag(self, flag_num: int, ancilla: LineQubit) -> list[Operation]:
+    def _get_measurement_for_flag(self, ancilla: LineQubit) -> list[Operation]:
         return [
             M(ancilla, key=self._measurement_key),
             R(ancilla),
+        ]
+
+    def _recover_from_errors(self) -> list[list[Operation]]:
+        return [
+            [X(qubit).with_classical_controls(FlagNumLimit(key=MeasurementKey(self._measurement_key),
+                                                           flag_num=flag_num,
+                                                           flag_sequence=self._flag_sequence)
+                                              )
+             for qubit in self._qubit_register[3 * (flag_num -  1):3 * flag_num]]
+            for flag_num in range(1, len(self._flag_sequence) - 1)
         ]
 
     @cached_property
@@ -104,6 +124,13 @@ class CatStateCreatorFlagPattern:
 
     @property
     def _num_measurements(self) -> int:
-        num_data_qubits = len(self._qubit_register)
         arbitrary_measurement_limit = 100
-        return next(m for m in range(arbitrary_measurement_limit) if num_data_qubits <= 3 * (2 ** m - 2 * m + 2))
+        return next(m for m in range(arbitrary_measurement_limit) if self._num_data_qubits <= 3 * (2 ** m - 2 * m + 2))
+
+    @property
+    def _num_data_qubits(self) -> int:
+        return len(self._qubit_register)
+
+    @property
+    def _control_qubit(self) -> LineQubit:
+        return self._qubit_register[0]
