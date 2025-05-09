@@ -5,9 +5,6 @@ from typing import Optional
 from cirq import Circuit, Gate, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilities, \
-    get_error_correcting_code_utilities
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 
 
 class ErrorCorrectingCode(ABC):
@@ -25,14 +22,12 @@ class ErrorCorrectingCode(ABC):
                  num_data_qubits: int,
                  num_ancilla_qubits: int,
                  num_logical_qubits: int,
-                 initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int,
                  provided_ancilla_qubits: Optional[list[LineQubit]],
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_ancilla_qubits = num_ancilla_qubits
         self._num_logical_qubits = num_logical_qubits
-        self._initial_logical_qubit_state = initial_logical_qubit_state
         self._qubit_start_index = qubit_start_index
         self._provided_ancilla_qubits = provided_ancilla_qubits
 
@@ -63,12 +58,9 @@ class ErrorCorrectingCode(ABC):
     def get_error_circuit(self, gate: Gate, qubit_index: int) -> Circuit:
         return Circuit(gate(self.all_qubits[qubit_index]))
 
-    @property
-    def error_correcting_code_utilities(self) -> ErrorCorrectingCodeUtilities:
-        return get_error_correcting_code_utilities(state=self._initial_logical_qubit_state)
-
     @cached_property
     def all_qubits(self) -> list[LineQubit]:
+        # TODO can this be removed after using fresh ancillas?
         return self.data_qubits + self.ancilla_qubits
 
     @cached_property
@@ -77,6 +69,7 @@ class ErrorCorrectingCode(ABC):
 
     @cached_property
     def ancilla_qubits(self) -> list[LineQubit]:
+        # TODO use FreshAncillasPool
         if self._provided_ancilla_qubits is not None and len(self._provided_ancilla_qubits) != self._num_ancilla_qubits:
             raise ValueError(f"Number of provided ancilla qubits ({len(self._provided_ancilla_qubits)}) does not match "
                              f"the required number ({self._num_ancilla_qubits}).")

@@ -9,35 +9,24 @@ from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_STATE_VECTO
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
     def __init__(self,
-                 initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int = 0,
                  provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
-        super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
-                         num_data_qubits=9,
+        super().__init__(num_data_qubits=9,
                          num_ancilla_qubits=2,
                          num_logical_qubits=1,
                          qubit_start_index=qubit_start_index,
                          provided_ancilla_qubits=provided_ancilla_qubits)
 
-    def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        each_qubit_initial_state = ([self._initial_logical_qubit_state]
-                                    + [KET_ZERO_DENSITY_MATRIX for _ in range(len(self.all_qubits) - 1)])
-        initial_state = tensor(*each_qubit_initial_state)
-
+    def encode_logical_qubit(self) -> Circuit:
         outer_qubits_indices = list(range(0, self._num_data_qubits, 3))
         outer_qubits = [self.all_qubits[i] for i in outer_qubits_indices]
-        circuit = Circuit(
+        return Circuit(
             [CX(outer_qubits[0], target_qubit) for target_qubit in outer_qubits[1:]],
             [H(target_qubit) for target_qubit in outer_qubits],
             [CX(self.all_qubits[control_qubit_index], self.all_qubits[control_qubit_index + i + 1])
              for control_qubit_index in outer_qubits_indices
              for i in range(2)],
         )
-
-        state_and_measurements = self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                                              qubit_order=self.all_qubits,
-                                                                                              initial_state=initial_state,)
-        return state_and_measurements.state
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass

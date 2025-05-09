@@ -1,10 +1,9 @@
 from typing import Optional
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, H, I, LineQubit, Operation, R, X, Z
+from cirq import Circuit, H, I, LineQubit, Operation, R, X, Z
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -25,35 +24,20 @@ class FiveQubitCode(ErrorCorrectingCode):
         ]
 
     def __init__(self,
-                 initial_logical_qubit_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
                  qubit_start_index: int = 0,
                  provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
-        super().__init__(initial_logical_qubit_state=initial_logical_qubit_state,
-                         num_data_qubits=5,
+        super().__init__(num_data_qubits=5,
                          num_ancilla_qubits=4,
                          num_logical_qubits=1,
                          qubit_start_index=qubit_start_index,
                          provided_ancilla_qubits=provided_ancilla_qubits)
 
-    def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        initial_state = tensor(self._initial_logical_qubit_state, *[KET_ZERO_DENSITY_MATRIX] * (len(self.all_qubits) - 1))
-        initialize_with_given_state = Circuit(
-            [CX(self.data_qubits[0], data_qubit) for data_qubit in self.data_qubits[1:]],
-        )
-        initial_state_simulation: DensityMatrixTrialResult = DensityMatrixSimulator().simulate(initialize_with_given_state,
-                                                                                               qubit_order=self.all_qubits,
-                                                                                               initial_state=initial_state)
-        initial_state = initial_state_simulation.final_density_matrix
-
-        circuit = Circuit(
+    def encode_logical_qubit(self) -> Circuit:
+        return Circuit(
             self._syndrome_circuit,
             [self._get_phase_corrections(ancilla_index=ancilla_index) for ancilla_index in range(self._num_ancilla_qubits)],
             [H(ancilla) for ancilla in self.ancilla_qubits],
         )
-        state_and_measurements = self.error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                                              qubit_order=self.all_qubits,
-                                                                                              initial_state=initial_state,)
-        return state_and_measurements.state
 
     @property
     def _syndrome_circuit(self) -> Circuit:

@@ -21,8 +21,8 @@ class ErrorCorrectingCodeUtilities(ABC):
     @abstractmethod
     def get_state_after_circuit(self,
                                 circuit: Circuit,
-                                qubit_order: List[LineQubit],
-                                initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
+                                qubit_order: List[LineQubit],  # TODO make optional
+                                initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,  # TODO make optional
                                 noise_model: Optional[NoiseModel] = None,
                                 ) -> StateAndMeasurements:
         pass
