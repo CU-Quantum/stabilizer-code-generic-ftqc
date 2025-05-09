@@ -18,15 +18,15 @@ from stim_experiments.utilities import FreshAncillasPool
 @dataclass
 class ParityCheckInfo:
     control_qubit_index: int
-    recovery_qubit_index: Optional[int] = None
+    recovery_qubit_num: Optional[int] = None
     flags_outcome: NDArray[int] = field(default_factory=lambda: array([]))
 
 
 @dataclass(frozen=True)
-class FlagNumLimit(Condition):
+class ParityCheckIndexLimit(Condition):
     # TODO test class
     key: MeasurementKey
-    flag_num: int = 0
+    parity_check_index: int = 0
     flag_sequence: NDArray[int] = field(default_factory=lambda: array([]))
 
     @property
@@ -40,14 +40,14 @@ class FlagNumLimit(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'cirq.KeyCondition({self.key!r}, f{self.flag_num})'
+        return f'cirq.KeyCondition({self.key!r}, f{self.parity_check_index})'
 
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when testing classical control')
         measurements = [x[0] for x in classical_data.records[self.key]]
         flag_nums_found = np.where(np.all(self.flag_sequence == measurements, axis=1))[0]
-        return self.flag_num <= flag_nums_found[0] if flag_nums_found else False
+        return self.parity_check_index <= flag_nums_found[0] if flag_nums_found else False
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
@@ -98,7 +98,7 @@ class CatStateCreatorFlagPattern:
                         X(ancilla).controlled_by(self._qubit_register[parity_check_info.control_qubit_index])
                         for previous_parity_check_index, parity_check_info in enumerate(self._parity_check_infos[1:-1])
                         if parity_check_info.flags_outcome[flag_index]
-                               != self._parity_check_infos[previous_parity_check_index].flags_outcome[flag_index]
+                           != self._parity_check_infos[previous_parity_check_index].flags_outcome[flag_index]
                     ] + (self._get_measurement(ancilla=ancilla) if flag_index < self._num_measurements - 1 else [])
                     for flag_index in range(self._num_measurements)
                 ],
@@ -114,12 +114,12 @@ class CatStateCreatorFlagPattern:
 
     def _recover_from_errors(self) -> list[list[Operation]]:
         return [
-            [X(qubit).with_classical_controls(FlagNumLimit(key=MeasurementKey(self._measurement_key),
-                                                           flag_num=flag_num,
-                                                           flag_sequence=self._flag_sequence)
+            [X(qubit).with_classical_controls(ParityCheckIndexLimit(key=MeasurementKey(self._measurement_key),
+                                                                    parity_check_index=parity_check_index - 1,
+                                                                    flag_sequence=self._flag_sequence)
                                               )
-             for qubit in self._qubit_register[3 * (flag_num -  1):3 * flag_num]]
-            for flag_num in range(1, len(self._flag_sequence) - 1)
+             for qubit in self._qubit_register[self._parity_check_infos[parity_check_index - 1].recovery_qubit_num:self._parity_check_infos[parity_check_index].recovery_qubit_num]]
+            for parity_check_index in range(2, len(self._parity_check_infos) - 1)
         ]
 
     @cached_property
@@ -132,10 +132,10 @@ class CatStateCreatorFlagPattern:
         num_data_qubits_less_than_perfect = perfect_num_data_qubits - self._num_data_qubits
         initial_flag = ParityCheckInfo(control_qubit_index=0,
                                        flags_outcome=self._flag_sequence[0])
-        last_flag = ParityCheckInfo(control_qubit_index=self._num_data_qubits)
+        last_flag = ParityCheckInfo(control_qubit_index=perfect_num_data_qubits - 1)
         parity_check_data = ([initial_flag]
                            + [ParityCheckInfo(control_qubit_index=last_seq_num * 3 + 1,
-                                              recovery_qubit_index=3 * last_seq_num - 1,
+                                              recovery_qubit_num=3 * last_seq_num,
                                               flags_outcome=flags_outcome)
                               for last_seq_num, flags_outcome in enumerate(self._flag_sequence[1:])]
                            + [last_flag])
@@ -144,7 +144,7 @@ class CatStateCreatorFlagPattern:
                  if parity_check_data[parity_check_index].control_qubit_index - 1 > parity_check_data[parity_check_index - 1].control_qubit_index)
             for j in range(measurement_num_to_move, len(parity_check_data)):
                 parity_check_data[j].control_qubit_index -= 1
-                parity_check_data[j].recovery_qubit_index = int(np.floor(average([parity_check_data[j - 1].control_qubit_index, parity_check_data[j].control_qubit_index])))
+                parity_check_data[j].recovery_qubit_num = int(np.floor(average([parity_check_data[j - 1].control_qubit_index, parity_check_data[j].control_qubit_index]))) + 1
         return parity_check_data
 
     @cached_property

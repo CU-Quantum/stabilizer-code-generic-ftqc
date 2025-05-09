@@ -1,6 +1,8 @@
-from cirq import Circuit, Simulator, StateVectorTrialResult
+from cirq import Circuit, I, LineQubit, Simulator, StateVectorTrialResult, X
 
-from stim_experiments.utilities import TYPE_STATE_VECTOR, trace_out_ancillas_in_zero_state
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
+    CatStateCreatorFlagPattern
+from stim_experiments.utilities import TYPE_STATE_VECTOR, get_ket_cat_state_vector, trace_out_ancillas_in_zero_state
 from tests.utilities import states_are_equal
 
 
@@ -8,3 +10,19 @@ def circuit_results_in_expected_state(circuit: Circuit, expected_state: TYPE_STA
     simulation: StateVectorTrialResult = Simulator().simulate(circuit)
     data_state = trace_out_ancillas_in_zero_state(state=simulation.final_state_vector, num_ancillas=1)
     return states_are_equal(data_state, expected_state)
+
+def get_circuit_with_x_error_on_first_n_qubits(qubits: list[LineQubit], n: int) -> Circuit:
+    control_qubit = qubits[0]
+    first_error_qubit = qubits[n - 1]
+    circuit = CatStateCreatorFlagPattern(qubit_register=qubits).get_cat_state_circuit()
+    faulty_moment = next(i for i, moment in enumerate(circuit.moments) if first_error_qubit in moment.qubits)
+    circuit.insert(faulty_moment, X(control_qubit))
+    return circuit
+
+def get_cat_state_with_x_error(num_qubits: int, qubit_index_with_error: int) -> TYPE_STATE_VECTOR:
+    ideal_state = get_ket_cat_state_vector(num_qubits=num_qubits)
+    circuit = Circuit(
+        [I(LineQubit(i)) for i in range(num_qubits)],
+        X(LineQubit(qubit_index_with_error))
+    )
+    return Simulator().simulate(circuit, initial_state=ideal_state).final_state_vector

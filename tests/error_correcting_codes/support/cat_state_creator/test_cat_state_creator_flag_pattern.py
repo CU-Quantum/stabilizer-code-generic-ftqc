@@ -23,4 +23,5 @@ class TestCatStateCreatorFlagPattern:
         qubits = LineQubit.range(num_qubits)
         circuit = CatStateCreatorFlagPattern(qubit_register=qubits).get_cat_state_circuit()
         expected_state = get_ket_cat_state_vector(num_qubits=num_qubits)
-        assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+        simulation: StateVectorTrialResult = Simulator().simulate(circuit)
+        assert states_are_equal(simulation.final_state_vector, expected_state)
