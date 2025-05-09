@@ -158,7 +158,7 @@ class CatStateCreatorFlagPattern:
     @cached_property
     def _num_measurements(self) -> int:
         arbitrary_measurement_limit = 100
-        return next(m for m in range(arbitrary_measurement_limit) if self._num_data_qubits <= 3 * (2 ** m - 2 * m + 2))
+        return next(m for m in range(2, arbitrary_measurement_limit) if self._num_data_qubits <= 3 * (2 ** m - 2 * m + 2))
 
     @property
     def _num_data_qubits(self) -> int:

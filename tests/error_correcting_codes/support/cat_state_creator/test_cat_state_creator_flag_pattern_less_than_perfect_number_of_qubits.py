@@ -52,3 +52,11 @@ class TestCatStateCreatorFlagPatternLessThanPerfectNumberOfQubits:
         circuit = get_circuit_with_x_error_on_first_n_qubits(qubits=qubits, n=target_size - 2)
         expected_state = get_ket_cat_state_vector(num_qubits=target_size)
         assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
+
+    def test_three_fewer_qubits_x_error_on_all_qubits_except_last_three(self):
+        perfect_size = 12
+        target_size = perfect_size - 3
+        qubits = LineQubit.range(target_size)
+        circuit = get_circuit_with_x_error_on_first_n_qubits(qubits=qubits, n=target_size - 3)
+        expected_state = get_ket_cat_state_vector(num_qubits=target_size)
+        assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
