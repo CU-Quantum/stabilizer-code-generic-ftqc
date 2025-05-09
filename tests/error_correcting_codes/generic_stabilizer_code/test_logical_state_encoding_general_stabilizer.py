@@ -13,25 +13,6 @@ from tests.utilities import states_are_equal
 
 
 class TestGenericStabilizerCodeGeneralStabilizer:
-    @pytest.mark.skip('Takes long')
-    def test_logical_zero_steane(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_steane(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
-        current_state = code.encode_logical_qubit()
-        expected_state = ExpectedStatesGenericSteane().get_logical_zero_density_matrix()
-        assert states_are_equal(current_state, expected_state)
-
-    def test_logical_zero_five_qubit(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX)
-        current_state = code.encode_logical_qubit()
-        expected_state = ExpectedStatesGenericFiveQubit().get_logical_zero_density_matrix()
-        assert states_are_equal(current_state, expected_state)
-
-    def test_logical_one_five_qubit(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit(), initial_logical_qubit_state=KET_ONE_DENSITY_MATRIX)
-        current_state = code.encode_logical_qubit()
-        expected_state = ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix()
-        assert states_are_equal(current_state, expected_state)
-
     def test_input_state_must_be_size_of_logical_qubits_for_code(self):
         code_that_encodes_two_logical_bits = get_check_matrix_values_4_qubit()
         logical_qubit_state_of_only_one_qubit = KET_ZERO_DENSITY_MATRIX

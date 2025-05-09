@@ -62,6 +62,7 @@ class ParityCheckIndexLimit(Condition):
 
 
 class CatStateCreatorFlagPattern:
+    # TODO clean this up
     """
     Idea comes from https://quantum-journal.org/papers/q-2023-10-24-1154/
     Note that you apparently cannot use this for syndrome measurement.
