@@ -79,21 +79,22 @@ def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR
 
 class FreshAncillasPool:
     # TODO test class
+    # TODO add async locking
 
     _pool: list[LineQubit] = []
-    _next_ancilla_num = 0
+    _first_ancilla_num = 0
 
-    def __new__(cls, first_ancilla_num: Optional[int] = None):
-        cls._next_ancilla_num = cls._next_ancilla_num or first_ancilla_num or 0
-        return cls(first_ancilla_num=first_ancilla_num)
+    @classmethod
+    def set_first_ancilla_num(cls, first_ancilla_num: int):
+        cls._first_ancilla_num = first_ancilla_num
 
     @contextmanager
-    def _use_fresh_ancillas(self, num_ancillas: int) -> Generator[list[LineQubit], None, None]:
+    def use_fresh_ancillas(self, num_ancillas: int) -> Generator[list[LineQubit], None, None]:
         if self._pool:
             ancillas = [self._pool.pop(0) for _ in range(num_ancillas)]
         else:
-            ancillas = LineQubit.range(self._next_ancilla_num, num_ancillas)
-            self._next_ancilla_num += num_ancillas
+            ancillas = LineQubit.range(self._first_ancilla_num, self._first_ancilla_num + num_ancillas)
+            self._first_ancilla_num += num_ancillas
 
         yield ancillas
 
