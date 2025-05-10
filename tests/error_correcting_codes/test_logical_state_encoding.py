@@ -42,52 +42,52 @@ class StateParameters:
 
 
 PARAMETERS = {
-    # "ThreeCatCode": StateParameters(
-    #     zero=ParametersForStateEncodingTest(
-    #         code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
-    #         expected_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
-    #         initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_repetitions),
-    #     ),
-    #     one=ParametersForStateEncodingTest(
-    #         code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
-    #         expected_state=ExpectedStatesThreeCat().get_logical_one_state_vector(),
-    #         initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesThreeCat().arbitrary_num_qubits - 1))] * ThreeCatCode.num_repetitions),
-    #     ),
-    # ),
+    "ThreeCatCode": StateParameters(
+        zero=ParametersForStateEncodingTest(
+            code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
+            expected_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_repetitions),
+        ),
+        one=ParametersForStateEncodingTest(
+            code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
+            expected_state=ExpectedStatesThreeCat().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesThreeCat().arbitrary_num_qubits - 1))] * ThreeCatCode.num_repetitions),
+        ),
+    ),
     "GenericStabilizerCodeFiveQubit": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),
-            expected_state=ExpectedStatesGenericFiveQubit().get_logical_zero_density_matrix(),
+            expected_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
         ),
         one=ParametersForStateEncodingTest(
             code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),
-            expected_state=ExpectedStatesGenericFiveQubit().get_logical_one_density_matrix(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * 5),
+            expected_state=ExpectedStatesGenericFiveQubit().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 4, KET_ONE_STATE_VECTOR),
         ),
     ),
-    # "GenericStabilizerCodeStaeneQubit": StateParameters(
-    #     zero=ParametersForStateEncodingTest(
-    #         code=GenericStabilizerCode(generators=get_check_matrix_values_steane(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX),
-    #         expected_state=ExpectedStatesGenericSteane().get_logical_zero_density_matrix(),
-    #         initial_data_state=KET_ZERO_STATE_VECTOR,
-    #     ),
-    #     one=ParametersForStateEncodingTest(
-    #         code=GenericStabilizerCode(generators=get_check_matrix_values_steane(), initial_logical_qubit_state=KET_ZERO_DENSITY_MATRIX),
-    #         expected_state=ExpectedStatesGenericSteane().get_logical_one_density_matrix(),
-    #         initial_data_state=KET_ONE_STATE_VECTOR,
-    #     ),
-    # ),
+    "GenericStabilizerCodeStaeneCode": StateParameters(
+        zero=ParametersForStateEncodingTest(
+            code=GenericStabilizerCode(generators=get_check_matrix_values_steane()),
+            expected_state=ExpectedStatesGenericSteane().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 7),
+        ),
+        one=ParametersForStateEncodingTest(
+            code=GenericStabilizerCode(generators=get_check_matrix_values_steane()),
+            expected_state=ExpectedStatesGenericSteane().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 6, KET_ONE_STATE_VECTOR),
+        ),
+    ),
     "FiveQubitCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=FiveQubitCode(),
             expected_state=ExpectedStatesFiveQubit().get_logical_zero_density_matrix(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
+            initial_data_state=tensor(*[KET_ZERO_DENSITY_MATRIX] * 5),
         ),
         one=ParametersForStateEncodingTest(
             code=FiveQubitCode(),
-            expected_state=ExpectedStatesThreeCat().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * 5),
+            expected_state=ExpectedStatesFiveQubit().get_logical_one_density_matrix(),
+            initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * 5),
         ),
     ),
     "SteaneCode": StateParameters(
@@ -117,7 +117,8 @@ PARAMETERS = {
 }
 
 
-PARAMETERS_FLATTENED = [parameters for states in PARAMETERS.values() for parameters in (states.zero, states.one)]
+PARAMETERS_FLATTENED = [pytest.param(parameters, id=f'{name}_state-{i}')
+                        for name, states in PARAMETERS.items() for i, parameters in enumerate((states.zero, states.one))]
 
 
 class TestLogicalStateEncoding:

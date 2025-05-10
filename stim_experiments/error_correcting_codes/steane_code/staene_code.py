@@ -20,8 +20,8 @@ class SteaneCode(ErrorCorrectingCode):
                          qubit_start_index=qubit_start_index,
                          provided_ancilla_qubits=provided_ancilla_qubits)
 
-    def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        return self.get_error_correction_circuit(),
+    def encode_logical_qubit(self) -> Circuit:
+        return self.get_error_correction_circuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass

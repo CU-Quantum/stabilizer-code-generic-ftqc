@@ -63,7 +63,7 @@ def trace_out_ancillas_in_zero_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX,
             keep_indices = [not i % (2 ** num_ancillas) for i in range(len(state))]
             return state[keep_indices]
         else:
-            return partial_trace(rho=state, keep_qubits=list(range(num_qubits)))
+            return partial_trace(rho=state, keep_qubits=list(range(num_qubits - num_ancillas)))
 
 
 def int_to_binary_array(num: int, num_elements: int) -> list[int]:

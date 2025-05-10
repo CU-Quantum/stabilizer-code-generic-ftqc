@@ -7,8 +7,6 @@ from tests.error_correcting_codes.expected_states_utilities import ExpectedState
 
 
 class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
-    _num_ancillas = 4
-
     def get_logical_zero_density_matrix(self) -> TYPE_DENSITY_MATRIX:
         state_vector = self.get_logical_zero_state_vector()
         return density_matrix_from_state_vector(state_vector=state_vector)
@@ -22,7 +20,7 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
         return density_matrix_from_state_vector(state_vector=state_vector)
 
     def get_logical_zero_state_vector(self) -> NDArray[complex]:
-        data_qubits = (1/4) * (
+        return (1/4) * (
                 tensor(*[KET_ZERO_STATE_VECTOR] * 5)
                 + tensor(KET_ONE_STATE_VECTOR,
                         KET_ZERO_STATE_VECTOR,
@@ -100,12 +98,10 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
                         KET_ZERO_STATE_VECTOR,
                         KET_ONE_STATE_VECTOR)
         )
-        ancilla_qubits = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
-        return tensor(data_qubits, ancilla_qubits).reshape(2 ** (5 + self._num_ancillas),)
 
 
     def get_logical_one_state_vector(self) -> NDArray[complex]:
-        data_qubits = (1 / 4) * (
+        return (1 / 4) * (
                 - tensor(*[KET_ONE_STATE_VECTOR] * 5)
                 - tensor(KET_ZERO_STATE_VECTOR,
                        KET_ONE_STATE_VECTOR,
@@ -183,5 +179,3 @@ class ExpectedStatesGenericFiveQubit(ExpectedStatesUtilities):
                        KET_ONE_STATE_VECTOR,
                        KET_ZERO_STATE_VECTOR)
         )
-        ancilla_qubits = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_ancillas)
-        return tensor(data_qubits, ancilla_qubits).reshape(2 ** (5 + self._num_ancillas), )

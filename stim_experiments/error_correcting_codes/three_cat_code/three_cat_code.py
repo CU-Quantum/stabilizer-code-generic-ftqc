@@ -17,7 +17,6 @@ class ThreeCatCode(ErrorCorrectingCode):
         super().__init__(num_data_qubits=num_qubits_in_cat_state * self.num_repetitions,
                          num_ancilla_qubits=0,
                          num_logical_qubits=1,
-                         initial_logical_qubit_state=KET_ZERO_STATE_VECTOR,
                          qubit_start_index=0,
                          provided_ancilla_qubits=None)
 
