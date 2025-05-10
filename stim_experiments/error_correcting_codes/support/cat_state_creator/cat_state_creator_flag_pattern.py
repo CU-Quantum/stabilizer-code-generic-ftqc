@@ -4,7 +4,7 @@ from typing import Optional
 from uuid import uuid4
 
 import numpy as np
-from cirq import Circuit, ClassicalDataStoreReader, H, KeyCondition, LineQubit, M, MeasurementKey, \
+from cirq import Circuit, ClassicalDataStoreReader, H, LineQubit, M, MeasurementKey, \
     Operation, R, X, Condition
 from cirq.protocols import json_serialization
 from numpy import array
@@ -34,13 +34,13 @@ class ParityCheckIndexLimit(Condition):
         return (self.key,)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        return KeyCondition(replacement) if self.key == current else self
+        return ParityCheckIndexLimit(replacement, self.parity_check_index, self.flag_sequence) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
 
     def __repr__(self):
-        return f'cirq.KeyCondition({self.key!r}, f{self.parity_check_index})'
+        return f'ParityCheckIndexLimit({self.key!r}, f{self.parity_check_index})'
 
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
@@ -53,8 +53,8 @@ class ParityCheckIndexLimit(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, key, **kwargs):
-        return cls(key=key)
+    def _from_json_dict_(cls, key, parity_check_index, flag_sequence, **kwargs):
+        return cls(key=key, parity_check_index=parity_check_index, flag_sequence=flag_sequence)
 
     @property
     def qasm(self):

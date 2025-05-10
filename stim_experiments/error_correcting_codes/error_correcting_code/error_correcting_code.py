@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import Optional
 
-from cirq import Circuit, Gate, LineQubit
+from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 

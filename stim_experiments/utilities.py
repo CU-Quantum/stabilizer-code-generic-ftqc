@@ -97,10 +97,10 @@ class FreshAncillasPool:
         ancillas = []
         while len(ancillas) < num_ancillas:
             if self._pool:
-                ancillas.append(self._pool.pop(0))
+                ancillas.append(self._pool.pop())
             else:
                 ancillas.append(LineQubit(self._next_ancilla_num))
-                self._next_ancilla_num += 1
+                self.__class__._next_ancilla_num += 1
 
         yield ancillas
 

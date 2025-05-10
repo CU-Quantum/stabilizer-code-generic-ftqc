@@ -10,7 +10,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
     CheckMatrixToGates
 
 
-class LogicalQubitEncoder:
+class LogicalQubitEncoderGottesman:
     def __init__(self, check_matrix_standardized: CheckMatrixStandardized, data_qubits: List[LineQubit]):
         self._check_matrix_standardized = check_matrix_standardized
         self._data_qubits = data_qubits

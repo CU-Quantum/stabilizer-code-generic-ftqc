@@ -1,5 +1,3 @@
-from typing import Optional
-
 from cirq import Circuit, H, I, LineQubit, Operation, R, X, Y, Z
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -33,26 +31,16 @@ class FiveQubitCode(ErrorCorrectingCode):
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
             return Circuit(
                 self._syndrome_circuit,
-                [self._get_phase_corrections(ancilla_index=ancilla_index) for ancilla_index in range(self._num_ancilla_qubits)],
+                [self._get_phase_corrections(ancilla_qubits=ancilla_qubits, ancilla_index=ancilla_index)
+                 for ancilla_index in range(self._num_ancilla_qubits)],
                 [H(ancilla) for ancilla in ancilla_qubits],
             )
 
-    @property
-    def _syndrome_circuit(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            return Circuit(
-                [H(ancilla) for ancilla in ancilla_qubits],
-                [gate(self.data_qubits[target_index]).controlled_by(ancilla_qubits[generator])
-                 for generator, gates in enumerate(self._generators) for target_index, gate in enumerate(gates)],
-                [H(ancilla) for ancilla in ancilla_qubits],
-            )
-
-    def _get_phase_corrections(self, ancilla_index: int) -> list[list[Operation]]:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            fix_qubits = self._flip_corrections[ancilla_index]
-            return [
-                [Z(fix_qubit).controlled_by(ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
-            ]
+    def _get_phase_corrections(self, ancilla_qubits: list[LineQubit], ancilla_index: int) -> list[list[Operation]]:
+        fix_qubits = self._flip_corrections[ancilla_index]
+        return [
+            [Z(fix_qubit).controlled_by(ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
+        ]
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
@@ -149,6 +137,16 @@ class FiveQubitCode(ErrorCorrectingCode):
                 self._syndrome_circuit,
                 recovery_circuit,
                 [R(ancilla) for ancilla in ancilla_qubits],
+            )
+
+    @property
+    def _syndrome_circuit(self) -> Circuit:
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
+            return Circuit(
+                [H(ancilla) for ancilla in ancilla_qubits],
+                [gate(self.data_qubits[target_index]).controlled_by(ancilla_qubits[generator])
+                 for generator, gates in enumerate(self._generators) for target_index, gate in enumerate(gates)],
+                [H(ancilla) for ancilla in ancilla_qubits],
             )
 
     @property

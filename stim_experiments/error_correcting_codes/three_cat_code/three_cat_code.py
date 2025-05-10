@@ -1,59 +1,134 @@
+from dataclasses import dataclass
 from typing import Optional
+from uuid import uuid4
 
-from cirq import Circuit
-from numpy import array
+from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, MeasurementKey, X, Z
+from cirq.protocols import json_serialization
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
-    GenericStabilizerCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.utilities import KET_ZERO_STATE_VECTOR
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
+    FaultTolerantMeasurer
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.parity_verifier import \
+    ParityVerifier
+from stim_experiments.utilities import FreshAncillasPool
+
+
+@dataclass(frozen=True)
+class ParityCheckReader(Condition):
+    # TODO test class
+    key: MeasurementKey
+    qubit_correction_index: int = 0
+
+    @property
+    def keys(self):
+        return (self.key,)
+
+    def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
+        return ParityCheckReader(replacement, self.qubit_correction_index) if self.key == current else self
+
+    def __str__(self):
+        return str(self.key)
+
+    def __repr__(self):
+        return f'ParityCheckIndexLimit({self.key!r}, f{self.qubit_correction_index})'
+
+    def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when testing classical control')
+        measurements = [x[0] for x in classical_data.records[self.key]]
+        if not self.qubit_correction_index:
+            return measurements[self.qubit_correction_index] and not measurements[self.qubit_correction_index + 1]
+        elif self.qubit_correction_index == len(measurements):
+            return not measurements[self.qubit_correction_index - 2] and measurements[self.qubit_correction_index - 1]
+        else:
+            return bool(measurements[self.qubit_correction_index - 1] and measurements[self.qubit_correction_index])
+
+    def _json_dict_(self):
+        return json_serialization.dataclass_json_dict(self)
+
+    @classmethod
+    def _from_json_dict_(cls, key, qubit_correction_index, **kwargs):
+        return cls(key=key, qubit_correction_index=qubit_correction_index)
+
+    @property
+    def qasm(self):
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 class ThreeCatCode(ErrorCorrectingCode):
     num_cats = 3
 
-    def __init__(self, num_qubits_in_cat_state: int, qubit_start_index: int = 0):
+    def __init__(self, num_qubits_in_cat_state: int):
         self._num_qubits_in_cat_state = num_qubits_in_cat_state
-        num_data_qubits = num_qubits_in_cat_state * self.num_cats
-        num_parity_checks_per_register = num_qubits_in_cat_state - 1
-        x_stabilizers = [
-            [0] * num_data_qubits + [self._qubit_has_x_stabilizer_in_generator(cat_index=cat_index,
-                                                                               parity_check_index=parity_check_index,
-                                                                               qubit_index=qubit_index)
-                                     for qubit_index in range(num_data_qubits)]
-            for cat_index in range(self.num_cats)
-            for parity_check_index in range(num_parity_checks_per_register)
-        ]
-        z_stabilizers = [
-            [int(cat_index * self._num_qubits_in_cat_state <= qubit_index < (cat_index + 2) * self._num_qubits_in_cat_state)
-             for qubit_index in range(num_data_qubits)] + [0] * num_data_qubits
-            for cat_index in range(self.num_cats - 1)
-        ]
-        self._alias = GenericStabilizerCode(generators=array(x_stabilizers + z_stabilizers))
-        super().__init__(num_data_qubits=len(self._alias.data_qubits),
-                         num_logical_qubits=self._alias.num_logical_qubits,
-                         qubit_start_index=qubit_start_index)
-
-    def _qubit_has_x_stabilizer_in_generator(self, cat_index: int, parity_check_index: int, qubit_index: int) -> int:
-        low_index = cat_index * self._num_qubits_in_cat_state + parity_check_index
-        high_index = low_index + 1
-        return int(low_index <= qubit_index <= high_index)
+        super().__init__(num_data_qubits=num_qubits_in_cat_state * self.num_cats,
+                         num_logical_qubits=1,
+                         qubit_start_index=0)
 
     def encode_logical_qubit(self) -> Circuit:
-        return self._alias.encode_logical_qubit()
+        return Circuit(
+            CatStateCreatorFlagPattern(qubit_register=self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
+                                       ).get_cat_state_circuit()
+            for i in range(self.num_cats)
+        )
 
     def get_error_correction_circuit(self) -> Circuit:
-        return self._alias.get_error_correction_circuit()
+        return Circuit(
+            self._correct_x_errors(),
+            self._correct_z_errors()
+        )
 
-    def get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
-        return self._alias.get_operation_circuit(operation=operation)
+    def _correct_x_errors(self) -> Circuit:
+        circuit = Circuit()
+        for cat_index in range(self.num_cats):
+            measurement_key = MeasurementKey(f"THREE_CAT_Z_STABILIZER_{cat_index}_{uuid4()}")
+            circuit.append([
+                [
+                    FaultTolerantMeasurer(operations=[Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state + pair_start_index + i])
+                                                      for i in range(2)],
+                                          measurement_key=measurement_key).get_measurement_circuit()
+                    for pair_start_index in range(self._num_qubits_in_cat_state - 1)
+                ],
+                [
+                    X(self.data_qubits[cat_index * self._num_qubits_in_cat_state + i])
+                        .with_classical_controls(ParityCheckReader(key=measurement_key, qubit_correction_index=i))
+                    for i in range(self._num_qubits_in_cat_state)
+                ]
+            ])
+        return circuit
+
+    def _correct_z_errors(self) -> Circuit:
+        circuit = Circuit()
+        measurement_key = MeasurementKey(f"THREE_CAT_X_STABILIZER_{uuid4()}")
+        for cat_index in range(self.num_cats - 1):
+            circuit.append(
+                FaultTolerantMeasurer(
+                    operations=[X(self.data_qubits[cat_index * self._num_qubits_in_cat_state + i])
+                                for i in range(2 * self._num_qubits_in_cat_state)],
+                    measurement_key=measurement_key).get_measurement_circuit()
+            )
+        circuit.append(
+            [
+                Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state])
+                    .with_classical_controls(ParityCheckReader(key=measurement_key, qubit_correction_index=cat_index))
+                for cat_index in range(self.num_cats)
+            ]
+        )
+        return circuit
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
-        pass
+        if operation.gate == LogicalGateLabel.X:
+            return Circuit(
+                [X(self.data_qubits[i]) for i in range(self._num_data_qubits)]
+            )
+        elif operation.gate == LogicalGateLabel.Z:
+            return Circuit(
+                [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
+            )
+        return None
 
     @property
     def implemented_operations(self) -> list[LogicalGateLabel]:
-        return self._alias.implemented_operations
+        return [LogicalGateLabel.X, LogicalGateLabel.Z]

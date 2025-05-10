@@ -7,7 +7,7 @@ from numpy._typing import NDArray
 
 
 class ThreeRepetitionsMajorityVote(Condition):
-    def __init__(self, desired_measurement_key: str, number_of_votes: int = 3):
+    def __init__(self, desired_measurement_key: MeasurementKey, number_of_votes: int = 3):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
         self.number_of_votes = number_of_votes
@@ -33,7 +33,7 @@ class ThreeRepetitionsMajorityVote(Condition):
         num_measurements = len(measurements)
         if num_measurements == self.number_of_votes:
             majority = int(bincount(measurements).argmax())
-            classical_data.record_measurement(key=MeasurementKey(self.desired_measurement_key),
+            classical_data.record_measurement(key=self.desired_measurement_key,
                                               measurement=(majority,),
                                               qubits=classical_data.measured_qubits[self.key][0],)
             return True
@@ -47,7 +47,7 @@ class ThreeRepetitionsMajorityVote(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, desired_measurement_key: str, number_of_votes: int = 3, **kwargs):
+    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, number_of_votes: int = 3, **kwargs):
         return cls(desired_measurement_key=desired_measurement_key, number_of_votes=number_of_votes)
 
     @property
