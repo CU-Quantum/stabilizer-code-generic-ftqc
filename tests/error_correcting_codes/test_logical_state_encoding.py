@@ -122,20 +122,16 @@ PARAMETERS_FLATTENED = [pytest.param(parameters, id=f'{name}_state-{i}')
 
 
 class TestLogicalStateEncoding:
-    @pytest.fixture(autouse=True)
-    def _setup(self):
-        FreshAncillasPool().reset()
+    @pytest.fixture(autouse=True, params=PARAMETERS_FLATTENED)
+    def _setup(self, request):
+        self._parameters: ParametersForStateEncodingTest = request.param
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._parameters.code.data_qubits))
 
     @pytest.mark.parametrize('parameters', PARAMETERS_FLATTENED)
     def test_encoding(self, parameters: ParametersForStateEncodingTest):
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(parameters.code.data_qubits))
         circuit = parameters.code.encode_logical_qubit()
         utilities = get_error_correcting_code_utilities(state=parameters.initial_data_state)
-        qubits = LineQubit.range(utilities.get_max_qubit_index(circuit=circuit) + 1)
-        num_ancillas = len(qubits) - len(parameters.code.data_qubits)
-        initial_state = tensor(parameters.initial_data_state, *[utilities.zero_state] * num_ancillas)
-        simulated_state = utilities.get_state_after_circuit(circuit=circuit,
-                                                            qubit_order=qubits,
-                                                            initial_state=initial_state).state
-        data_state = trace_out_ancillas_in_zero_state(state=simulated_state, num_ancillas=num_ancillas)
+        data_state = utilities.get_state_after_circuit(circuit=circuit,
+                                                       num_data_qubits=len(parameters.code.data_qubits),
+                                                       initial_data_state=parameters.initial_data_state).state
         assert states_are_equal(data_state, parameters.expected_state)

@@ -73,6 +73,7 @@ def int_to_binary_array(num: int, num_elements: int) -> list[int]:
 def binary_array_to_int(binary_array: list[int]) -> int:
     return int(''.join(map(str, binary_array)), 2)
 
+
 def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
     return kron(*states, shape_len=len(states[0].shape)) if states else array([])
 
@@ -88,6 +89,7 @@ class FreshAncillasPool:
     def set_first_ancilla_num(cls, first_ancilla_num: int):
         if first_ancilla_num < 0:
             raise ValueError("First ancilla number must be non-negative.")  # TODO test this
+        cls._pool = []
         cls._next_ancilla_num = first_ancilla_num
 
     @contextmanager
@@ -104,7 +106,3 @@ class FreshAncillasPool:
 
         for ancillas in ancillas:
             self._pool.append(ancillas)
-
-    def reset(self) -> None:
-        self._pool = []
-        self._next_ancilla_num = 0
