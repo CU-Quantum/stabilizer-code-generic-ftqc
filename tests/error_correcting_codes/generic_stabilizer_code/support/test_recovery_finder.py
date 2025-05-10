@@ -1,4 +1,4 @@
-from cirq import X, Z
+from cirq import X, Y, Z
 from numpy import array
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
@@ -35,6 +35,33 @@ class TestRecoveryFinder:
         }
 
     def test_one_y_stabilizer(self):
+        check_matrix = CheckMatrix(matrix=array([[1, 0, 0, 0], [0, 0, 1, 0]]))
+        recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
+        assert recoveries == {
+            1: [
+                Recovery(
+                    gate=X,
+                    qubit_index=0,
+                    symptom=[0, 1]
+                ),
+            ],
+            2: [
+                Recovery(
+                    gate=Z,
+                    qubit_index=0,
+                    symptom=[1, 0]
+                ),
+            ],
+            3: [
+                Recovery(
+                    gate=Y,
+                    qubit_index=0,
+                    symptom=[1, 1]
+                ),
+            ],
+        }
+
+    def test_y_stabilizer_handles_mod_2(self):
         check_matrix = CheckMatrix(matrix=array([[1, 1]]))
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {

@@ -16,20 +16,15 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.utilities import FreshAncillasPool
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
-    def __init__(self,
-                 generators: TYPE_CHECK_MATRIX,
-                 qubit_start_index: int = 0,
-                 provided_ancilla_qubits: Optional[list[LineQubit]] = None,
-                 ):
+    def __init__(self, generators: TYPE_CHECK_MATRIX, qubit_start_index: int = 0):
         self._check_matrix = CheckMatrix(matrix=generators)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
-                         num_ancilla_qubits=len(self._check_matrix.matrix),
                          num_logical_qubits=self._check_matrix.num_logical_qubits,
-                         qubit_start_index=qubit_start_index,
-                         provided_ancilla_qubits=provided_ancilla_qubits)
+                         qubit_start_index=qubit_start_index)
         self._generators = generators
 
     def encode_logical_qubit(self) -> Circuit:
@@ -53,25 +48,26 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         return circuit
 
     def _universal_logical_hadamard(self, operation) -> Circuit:
-        logical_operations = (self._get_logical_operation_gates(gate_label=label)
-                              for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
-        logical_cx, logical_cz = (
-            [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(self.ancilla_qubits[0])
-             for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index])
-             for gate in qubit_gates]
-            for logical_operation in logical_operations
-        )
-        circuit = Circuit(
-            H(self.ancilla_qubits[0]),
-            logical_cx,
-            logical_cz,
-            H(self.ancilla_qubits[0]),
-            logical_cx,
-            X(self.ancilla_qubits[0]),
-            logical_cz,
-            H(self.ancilla_qubits[0]),
-        )
-        return circuit
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
+            logical_operations = (self._get_logical_operation_gates(gate_label=label)
+                                  for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
+            logical_cx, logical_cz = (
+                [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(ancilla_qubits[0])
+                 for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index])
+                 for gate in qubit_gates]
+                for logical_operation in logical_operations
+            )
+            circuit = Circuit(
+                H(ancilla_qubits[0]),
+                logical_cx,
+                logical_cz,
+                H(ancilla_qubits[0]),
+                logical_cx,
+                X(ancilla_qubits[0]),
+                logical_cz,
+                H(ancilla_qubits[0]),
+            )
+            return circuit
 
     def _get_logical_x_or_z(self, operation: LogicalOperation) -> Circuit:
         logical_gates = self._get_logical_operation_gates(gate_label=operation.gate)
@@ -92,20 +88,21 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         return [LogicalGateLabel.X, LogicalGateLabel.Z, LogicalGateLabel.H]
 
     def get_error_correction_circuit(self) -> Circuit:
-        recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
-        generators = CheckMatrixToGates(check_matrix=self._check_matrix_standardized).get_gates()
-        circuit = Circuit(
-            [H(ancilla) for ancilla in self.ancilla_qubits],
-            [gate(self._get_qubit_at_index(target_index)).controlled_by(ancilla)
-             for ancilla, generator in zip(self.ancilla_qubits, generators)
-             for target_index, qubit_gates in enumerate(generator) for gate in qubit_gates],
-            [H(ancilla) for ancilla in self.ancilla_qubits],
-            [recovery.gate(self._get_qubit_at_index(recovery.qubit_index)).controlled_by(*self.ancilla_qubits,
-                                                                                         control_values=recovery.symptom)
-             for symptom_recoveries in recoveries.values() for recovery in symptom_recoveries],
-            [R(ancilla) for ancilla in self.ancilla_qubits],
-        )
-        return circuit
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
+            recoveries = RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
+            generators = CheckMatrixToGates(check_matrix=self._check_matrix_standardized).get_gates()
+            circuit = Circuit(
+                [H(ancilla) for ancilla in ancilla_qubits],
+                [gate(self._get_qubit_at_index(target_index)).controlled_by(ancilla)
+                 for ancilla, generator in zip(ancilla_qubits, generators)
+                 for target_index, qubit_gates in enumerate(generator) for gate in qubit_gates],
+                [H(ancilla) for ancilla in ancilla_qubits],
+                [recovery.gate(self._get_qubit_at_index(recovery.qubit_index)).controlled_by(*ancilla_qubits,
+                                                                                             control_values=recovery.symptom)
+                 for symptom_recoveries in recoveries.values() for recovery in symptom_recoveries],
+                [R(ancilla) for ancilla in ancilla_qubits],
+            )
+            return circuit
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
         return self.data_qubits[qubit_index]
@@ -114,3 +111,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     def _check_matrix_standardized(self) -> CheckMatrixStandardized:
         standardizer = CheckMatrixStandardizer(check_matrix=self._check_matrix)
         return standardizer.get_standardized_matrix()
+
+    @property
+    def _num_ancilla_qubits(self) -> int:
+        return len(self._check_matrix.matrix)

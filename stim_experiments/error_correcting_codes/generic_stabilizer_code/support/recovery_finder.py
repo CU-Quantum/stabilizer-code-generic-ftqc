@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Dict, List
 
-from cirq import X, Z
+from cirq import X, Y, Z
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
@@ -23,8 +23,18 @@ class RecoveryFinder:
 
     def _find_recoveries(self) -> List[Recovery]:
         possible_errors = [X, Z]
-        return [Recovery(gate=possible_errors[column_index < self._check_matrix.num_physical_qubits],
-                         qubit_index=column_index % self._check_matrix.num_physical_qubits,
-                         symptom=syndrome.tolist())
-                for column_index, syndrome in enumerate(self._check_matrix.matrix.transpose())]
+        transposed_check_matrix = self._check_matrix.matrix.transpose()
+        x_or_z_recoveries = [Recovery(gate=possible_errors[column_index < self._check_matrix.num_physical_qubits],
+                                      qubit_index=column_index % self._check_matrix.num_physical_qubits,
+                                      symptom=syndrome.tolist())
+                             for column_index, syndrome in enumerate(transposed_check_matrix)]
+        y_recoveries = [Recovery(gate=Y,
+                                 qubit_index=column_index,
+                                 symptom=self._get_y_symptom(column_index=column_index))
+                        for column_index in range(self._check_matrix.num_physical_qubits)]
+        return x_or_z_recoveries + y_recoveries
 
+    def _get_y_symptom(self, column_index: int) -> list[int]:
+        transposed_check_matrix = self._check_matrix.matrix.transpose()
+        reciprocal_column = column_index + self._check_matrix.num_physical_qubits
+        return (transposed_check_matrix[column_index] ^ transposed_check_matrix[reciprocal_column]).tolist()
