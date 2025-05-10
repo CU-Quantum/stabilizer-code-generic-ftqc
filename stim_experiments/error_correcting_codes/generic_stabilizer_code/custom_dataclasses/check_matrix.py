@@ -60,8 +60,7 @@ class CheckMatrix:
             self.matrix[:, indices] = self.matrix[:, list(reversed(indices))]
 
     def add_rows(self, row_index: int, target_row_index: int) -> None:
-        self.matrix[target_row_index] += self.matrix[row_index]
-        self.matrix[target_row_index] %= 2
+        self.matrix[target_row_index] ^= self.matrix[row_index]
 
     def swap_xs_and_zs(self) -> None:
         mid = self.num_physical_qubits

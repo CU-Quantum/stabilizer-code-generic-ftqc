@@ -30,5 +30,5 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
             return Circuit(Z(self.data_qubits[0]))
 
     @property
-    def _implemented_operations(self) -> list[LogicalGateLabel]:
+    def implemented_operations(self) -> list[LogicalGateLabel]:
         return [LogicalGateLabel.X, LogicalGateLabel.Z]

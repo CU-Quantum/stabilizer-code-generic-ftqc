@@ -34,17 +34,21 @@ class CheckMatrixStandardizer:
             self._set_rest_of_column_to_zero(row_index_in_identity_form=row_index, column_index=column_index)
 
     def _set_element_equal_to_one(self, row_index: int, column_index: int) -> None:
-            if not self._new_check_matrix.matrix[row_index, column_index]:
+            while not self._new_check_matrix.matrix[row_index, column_index]:
                 row_index_with_one_in_column = NextRowIndexWithOneAtPositionFinder(matrix=self._new_check_matrix.matrix,
                                                                                    row_index=row_index,
                                                                                    column_index=column_index).get_row_index()
                 if row_index_with_one_in_column is not None:
                     self._new_check_matrix.add_rows(row_index=row_index_with_one_in_column, target_row_index=row_index)
                 else:
-                    column_index_with_one_in_row = NextColumnIndexWithOneAtPositionFinder(matrix=self._new_check_matrix.matrix,
+                    is_pauli_z_section = int(column_index >= self._new_check_matrix.num_physical_qubits)
+                    start_column = is_pauli_z_section * self._new_check_matrix.num_physical_qubits
+                    matrix_separating_x_and_z = self._new_check_matrix.matrix[:, start_column:start_column + self._new_check_matrix.num_physical_qubits]
+                    column_index_with_one_in_row = NextColumnIndexWithOneAtPositionFinder(matrix=matrix_separating_x_and_z,
                                                                                           row_index=row_index,
-                                                                                          column_index=column_index).get_column_index()
-                    self._new_check_matrix.swap_qubits(qubit_indices=(column_index, column_index_with_one_in_row))
+                                                                                          column_index=column_index % self._new_check_matrix.num_physical_qubits
+                                                                                          ).get_column_index()
+                    self._new_check_matrix.swap_qubits(qubit_indices=(column_index, start_column + column_index_with_one_in_row))
 
     def _set_rest_of_column_to_zero(self, row_index_in_identity_form: int, column_index: int) -> None:
         for i in range(len(self._new_check_matrix.matrix)):

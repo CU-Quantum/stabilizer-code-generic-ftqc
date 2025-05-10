@@ -38,7 +38,7 @@ class CodeStub(ErrorCorrectingCode):
         return Circuit()
 
     @property
-    def _implemented_operations(self) -> list[LogicalGateLabel]:
+    def implemented_operations(self) -> list[LogicalGateLabel]:
         return [LogicalGateLabel.Z, LogicalGateLabel.H]
 
 

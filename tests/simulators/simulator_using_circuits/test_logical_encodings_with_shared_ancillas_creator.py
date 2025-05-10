@@ -33,7 +33,7 @@ class CodeStub(ErrorCorrectingCode):
         pass
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def implemented_operations(self) -> List[LogicalGateLabel]:
         pass
 
 

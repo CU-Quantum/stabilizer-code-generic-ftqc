@@ -10,6 +10,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
+from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
@@ -18,6 +19,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generi
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
+from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.utilities import states_are_equal
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
@@ -33,6 +35,14 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
+    "ThreeCatCode": ParametersForCorrectionsTest(
+        code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
+        expected_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
+        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats),
+        qubit_indices_to_test=list(range(0,
+                                         ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats,
+                                         ExpectedStatesThreeCat().arbitrary_num_qubits + 1)),
+    ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),
         expected_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),

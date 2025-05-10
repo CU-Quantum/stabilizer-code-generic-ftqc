@@ -1,14 +1,13 @@
 from cirq import Circuit, I, LineQubit, Simulator, Z, density_matrix_from_state_vector
 
 from stim_experiments.utilities import TYPE_DENSITY_MATRIX, tensor
-from tests.error_correcting_codes.expected_states_utilities import ExpectedStatesUtilities
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from tests.utilities import get_cat_state_vector
 
 
-class ExpectedStatesThreeCat(ExpectedStatesUtilities):
+class ExpectedStatesThreeCat:
     arbitrary_num_qubits = 4
-    _num_repetitions = ThreeCatCode.num_repetitions
+    _num_repetitions = ThreeCatCode.num_cats
 
     def get_logical_zero_density_matrix(self) -> TYPE_DENSITY_MATRIX:
         return density_matrix_from_state_vector(self.get_logical_zero_state_vector())

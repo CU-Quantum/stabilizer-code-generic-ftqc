@@ -84,7 +84,7 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def implemented_operations(self) -> List[LogicalGateLabel]:
         return [LogicalGateLabel.X, LogicalGateLabel.Z, LogicalGateLabel.H]
 
     def get_error_correction_circuit(self) -> Circuit:

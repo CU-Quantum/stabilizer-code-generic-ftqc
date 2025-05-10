@@ -40,12 +40,12 @@ class ErrorCorrectingCode(ABC):
 
     @property
     @abstractmethod
-    def _implemented_operations(self) -> list[LogicalGateLabel]:
+    def implemented_operations(self) -> list[LogicalGateLabel]:
         pass
 
     def get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
-        if operation.gate not in self._implemented_operations:
-            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self._implemented_operations]}.")
+        if operation.gate not in self.implemented_operations:
+            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self.implemented_operations]}.")
         if not 0 <= operation.qubit_index < self._num_logical_qubits:
             raise ValueError(f"Qubit index must be between 0 and {self._num_logical_qubits - 1}. Was given {operation.qubit_index}.")
         return self._perform_get_operation_circuit(operation=operation)

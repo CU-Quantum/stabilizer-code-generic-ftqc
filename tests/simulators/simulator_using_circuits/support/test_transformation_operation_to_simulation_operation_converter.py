@@ -40,7 +40,7 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
         return None
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def implemented_operations(self) -> List[LogicalGateLabel]:
         return [
             LogicalGateLabel.H,
             LogicalGateLabel.X,

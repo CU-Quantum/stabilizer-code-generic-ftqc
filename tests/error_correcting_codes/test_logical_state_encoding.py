@@ -46,12 +46,12 @@ PARAMETERS = {
         zero=ParametersForStateEncodingTest(
             code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
             expected_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_repetitions),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats),
         ),
         one=ParametersForStateEncodingTest(
             code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
             expected_state=ExpectedStatesThreeCat().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesThreeCat().arbitrary_num_qubits - 1))] * ThreeCatCode.num_repetitions),
+            initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesThreeCat().arbitrary_num_qubits - 1))] * ThreeCatCode.num_cats),
         ),
     ),
     "GenericStabilizerCodeFiveQubit": StateParameters(

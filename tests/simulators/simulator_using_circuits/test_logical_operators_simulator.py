@@ -58,7 +58,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
         return Circuit(gates)
 
     @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
+    def implemented_operations(self) -> List[LogicalGateLabel]:
         return [
             LogicalGateLabel.X,
             LogicalGateLabel.Z,

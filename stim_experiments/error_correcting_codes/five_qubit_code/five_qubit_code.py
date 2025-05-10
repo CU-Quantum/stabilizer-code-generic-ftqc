@@ -58,7 +58,7 @@ class FiveQubitCode(ErrorCorrectingCode):
         pass
 
     @property
-    def _implemented_operations(self) -> list[LogicalGateLabel]:
+    def implemented_operations(self) -> list[LogicalGateLabel]:
         return []
 
     def get_error_correction_circuit(self) -> Circuit:

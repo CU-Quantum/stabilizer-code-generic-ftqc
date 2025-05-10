@@ -11,7 +11,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.mat
     CheckMatrixStandardizer
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_8_qubit, \
-    get_check_matrix_values_8_qubit_standardized, get_check_matrix_values_steane, \
+    get_check_matrix_values_8_qubit_standardized, get_check_matrix_values_shors, \
+    get_check_matrix_values_shors_standardized, get_check_matrix_values_steane, \
     get_check_matrix_values_steane_standardized
 
 
@@ -49,3 +50,12 @@ class TestCheckMatrixStandardizer:
         original_check_matrix = CheckMatrix(matrix=copy.deepcopy(generators))
         CheckMatrixStandardizer(check_matrix=original_check_matrix).get_standardized_matrix()
         assert original_check_matrix.matrix.tolist() == generators.tolist()
+
+    def test_shors(self):
+        generators = get_check_matrix_values_shors()
+        standardizer = CheckMatrixStandardizer(check_matrix=CheckMatrix(matrix=generators))
+        standardized_check = standardizer.get_standardized_matrix()
+        assert standardized_check == CheckMatrixStandardized(
+            matrix=get_check_matrix_values_shors_standardized(),
+            qubit_order=[0, 3, 2, 1, 4, 5, 6, 7, 8],
+        )
