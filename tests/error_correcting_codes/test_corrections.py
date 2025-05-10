@@ -5,10 +5,12 @@ from cirq import Circuit, Gate, LineQubit, X, Y, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.utilities import states_are_equal
@@ -26,6 +28,12 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
+    "FiveQubitCode": ParametersForCorrectionsTest(
+        code=FiveQubitCode(),
+        expected_state=ExpectedStatesFiveQubit().get_logical_zero_state_vector(),
+        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
+        qubit_indices_to_test=list(range(5)),
+    ),
     "SteaneCode": ParametersForCorrectionsTest(
         code=SteaneCode(),
         expected_state=ExpectedStatesSteane().get_logical_zero_state_vector(),
