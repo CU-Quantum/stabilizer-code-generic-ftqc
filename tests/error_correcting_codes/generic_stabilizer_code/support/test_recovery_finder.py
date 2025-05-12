@@ -1,7 +1,7 @@
 from cirq import X, Y, Z
 from numpy import array
 
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
+from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import \
     CheckMatrix
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
@@ -13,7 +13,7 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             1: [
-                Recovery(
+                RecoveryGates(
                     gate=Z,
                     qubit_index=0,
                     symptom=[1]
@@ -26,7 +26,7 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             1: [
-                Recovery(
+                RecoveryGates(
                     gate=X,
                     qubit_index=0,
                     symptom=[1]
@@ -39,21 +39,21 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             1: [
-                Recovery(
+                RecoveryGates(
                     gate=X,
                     qubit_index=0,
                     symptom=[0, 1]
                 ),
             ],
             2: [
-                Recovery(
+                RecoveryGates(
                     gate=Z,
                     qubit_index=0,
                     symptom=[1, 0]
                 ),
             ],
             3: [
-                Recovery(
+                RecoveryGates(
                     gate=Y,
                     qubit_index=0,
                     symptom=[1, 1]
@@ -66,12 +66,12 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             1: [
-                Recovery(
+                RecoveryGates(
                     gate=Z,
                     qubit_index=0,
                     symptom=[1]
                 ),
-                Recovery(
+                RecoveryGates(
                     gate=X,
                     qubit_index=0,
                     symptom=[1]
@@ -84,7 +84,7 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             3: [
-                Recovery(
+                RecoveryGates(
                     gate=Z,
                     qubit_index=0,
                     symptom=[1, 1]
@@ -97,7 +97,7 @@ class TestRecoveryFinder:
         recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
         assert recoveries == {
             2: [
-                Recovery(
+                RecoveryGates(
                     gate=Z,
                     qubit_index=1,
                     symptom=[1, 0]
