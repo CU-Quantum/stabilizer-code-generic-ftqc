@@ -5,35 +5,32 @@ from cirq import Circuit, CircuitOperation, H, KeyCondition, LineQubit, M, Measu
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.control_qubits_preparer import \
-    StatePropagationParityEnsurer
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.cat_state_creator_basic_undeterministic import \
+    CatStateCreatorBasicUndeterministic
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.utilities import FreshAncillasPool
 
 
-class FaultTolerantApplier:
+class OperationsApplierUsingCatState:
     def __init__(self,
                  operations: list[Operation],
-                 measurement_qubit: LineQubit,
-                 measurement_qubit_preparer: Circuit,
+                 initial_control_qubit: Optional[LineQubit] = None,
                  ):
         self._operations = operations
-        self._measurement_qubit = measurement_qubit
-        self._measurement_qubit_preparer = measurement_qubit_preparer
+        self._initial_control_qubit = initial_control_qubit
 
     def get_circuit(self) -> Circuit:
         self._validate()
         if not self._operations:
             return Circuit()
 
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._operations) - 1) as ancilla_qubits:
-            control_qubits = [self._measurement_qubit] + ancilla_qubits
-            propagated_state = StatePropagationParityEnsurer(target_qubits=control_qubits,
-                                                             first_qubit_preparer=self._measurement_qubit_preparer)
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._operations) - bool(self._initial_control_qubit)) as ancilla_qubits:
+            control_qubits = [self._initial_control_qubit] + ancilla_qubits if self._initial_control_qubit else ancilla_qubits
+            propagated_state = CatStateCreatorBasicUndeterministic(target_qubits=control_qubits)
             return Circuit(
                 propagated_state.prepare_state(),
-                ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
+                ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze(),
                 propagated_state.decode_state(),
             )
 
@@ -42,9 +39,9 @@ class FaultTolerantApplier:
 
     def _validate_disjoint_qubits(self) -> None:
         operation_qubits = [qubit for operation in self._operations for qubit in operation.qubits]
-        if self._measurement_qubit in operation_qubits:
+        if self._initial_control_qubit in operation_qubits:
             raise ValueError(f"The target qubits and measurement qubit must be disjoint. "
-                             f"Found duplicate qubit {self._measurement_qubit}.")
+                             f"Found duplicate qubit {self._initial_control_qubit}.")
 
 
 class FaultTolerantMeasurer:
@@ -58,10 +55,8 @@ class FaultTolerantMeasurer:
     def get_measurement_circuit(self) -> Circuit:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measurement_qubit = ancilla_qubits[0]
-            hadamard_first_qubit = Circuit(H(measurement_qubit))
-            applier = FaultTolerantApplier(operations=self._operations,
-                                           measurement_qubit=measurement_qubit,
-                                           measurement_qubit_preparer=hadamard_first_qubit)
+            applier = OperationsApplierUsingCatState(operations=self._operations,
+                                                     initial_control_qubit=measurement_qubit)
             condition = ThreeRepetitionsMajorityVote(desired_measurement_key=self._measurement_key)
             return Circuit(
                 CircuitOperation(

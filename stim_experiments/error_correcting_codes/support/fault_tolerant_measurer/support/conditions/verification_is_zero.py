@@ -1,21 +1,18 @@
-from uuid import uuid4
-
 from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey
 from cirq.protocols import json_serialization
 
 
 class VerificationIsZero(Condition):
-    def __init__(self, last_num_measurements: int = 0):
-        self.key = MeasurementKey(f'VERIFICATION_{uuid4().hex}')
-        self.last_num_measurements = last_num_measurements
+    def __init__(self, key: MeasurementKey):
+        self.key = key
+        self._last_num_measurements = 0
 
     @property
     def keys(self):
         return (self.key,)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        self.key = replacement
-        return self
+        return VerificationIsZero(replacement) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
@@ -27,16 +24,16 @@ class VerificationIsZero(Condition):
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when verifying all zeros.')
         num_measurements = len(classical_data.records[self.key])
-        all_zero = all(classical_data.get_int(self.key, i) == 0 for i in range(self.last_num_measurements, num_measurements))
-        self.last_num_measurements = num_measurements
+        all_zero = all(classical_data.get_int(self.key, i) == 0 for i in range(self._last_num_measurements, num_measurements))
+        self._last_num_measurements = num_measurements
         return all_zero
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, last_num_measurements: int = 0, **kwargs):
-        return cls(last_num_measurements=last_num_measurements)
+    def _from_json_dict_(cls, key: MeasurementKey, **kwargs):
+        return cls(key=key)
 
     @property
     def qasm(self):

@@ -4,9 +4,7 @@ from cirq import Circuit, H, LineQubit, M, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantApplier, FaultTolerantMeasurer
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.control_qubits_preparer import \
-    StatePropagationParityEnsurer
+    OperationsApplierUsingCatState, FaultTolerantMeasurer
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     SimulationOperation
 
@@ -37,9 +35,9 @@ class CircuitFromOperationCreator:
         control_measurements = self._encoding_ancilla_qubits + LineQubit.range(self._num_state_qubits, self._num_state_qubits + controls_missing)
         control_ancillas = LineQubit.range(control_measurements[-1].x + 1, control_measurements[-1].x + len(control_operations))
         control_propagator = [
-            FaultTolerantApplier(
+            OperationsApplierUsingCatState(
                 operations=control_operations,
-                measurement_qubit=control_measurements[i],
+                initial_control_qubit=control_measurements[i],
                 ancillas=control_ancillas,
                 measurement_qubit_preparer=Circuit(H(control_measurements[i])),
             ).get_circuit()

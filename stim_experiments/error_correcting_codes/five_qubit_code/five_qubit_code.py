@@ -1,8 +1,43 @@
-from cirq import Circuit, H, I, LineQubit, Operation, R, X, Y, Z
+from dataclasses import dataclass, field
+from functools import cached_property
+from typing import Optional, Tuple
+from uuid import uuid4
+
+from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, Gate, H, I, \
+    KeyCondition, LineQubit, \
+    MeasurementKey, \
+    Operation, R, X, \
+    Y, Z
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import Recovery
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
+    OperationsApplierUsingCatState, FaultTolerantMeasurer
 from stim_experiments.utilities import FreshAncillasPool
+
+
+@dataclass(frozen=True)
+class RecoveryCondition(Condition):
+    # TODO test class
+    key: MeasurementKey
+    symptom: list[int] = field(default_factory=list)
+
+    @property
+    def keys(self) -> Tuple[MeasurementKey, ...]:
+        return (self.key,)
+
+    def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
+        return RecoveryCondition(replacement, self.symptom) if self.key == current else self
+
+    def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
+        if self.key not in classical_data.keys():
+            raise ValueError(f'Measurement key {self.key} missing when checking for recovery')
+        measurements = [x[0] for x in classical_data.records[self.key]]
+        return measurements == self.symptom
+
+    @property
+    def qasm(self):
+        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -28,19 +63,24 @@ class FiveQubitCode(ErrorCorrectingCode):
                          qubit_start_index=qubit_start_index)
 
     def encode_logical_qubit(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            return Circuit(
-                self._syndrome_circuit,
-                [self._get_phase_corrections(ancilla_qubits=ancilla_qubits, ancilla_index=ancilla_index)
-                 for ancilla_index in range(self._num_ancilla_qubits)],
-                [H(ancilla) for ancilla in ancilla_qubits],
-            )
+        measurement_keys = [MeasurementKey(f'FIVE_QUBIT_ENCODE_{i}_{uuid4()}') for i in range(len(self._generators))]
+        return Circuit(
+            [
+                [
+                    FaultTolerantMeasurer(operations=[gate(self.data_qubits[target_index])
+                                                  for target_index, gate in enumerate(gates)],
+                                      measurement_key=measurement_key).get_measurement_circuit(),
+                    CircuitOperation(
+                        FrozenCircuit(self._get_phase_corrections(generator_index=generator_index)),
+                    ).with_classical_controls(measurement_key),
+                ]
+                for generator_index, (measurement_key, gates) in enumerate(zip(measurement_keys, self._generators))
+            ],
+        )
 
-    def _get_phase_corrections(self, ancilla_qubits: list[LineQubit], ancilla_index: int) -> list[list[Operation]]:
-        fix_qubits = self._flip_corrections[ancilla_index]
-        return [
-            [Z(fix_qubit).controlled_by(ancilla_qubits[ancilla_index]) for fix_qubit in fix_qubits],
-        ]
+    def _get_phase_corrections(self, generator_index: int) -> list[Operation]:
+        fix_qubits = self._flip_corrections[generator_index]
+        return [Z(fix_qubit) for fix_qubit in fix_qubits]
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
@@ -128,27 +168,30 @@ class FiveQubitCode(ErrorCorrectingCode):
             ),
         ]
 
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            recovery_circuit = Circuit(
-                [recovery.gate(self.data_qubits[recovery.qubit_index]).controlled_by(*ancilla_qubits, control_values=recovery.symptom)
-                 for recovery in recoveries]
-            )
-            return Circuit(
-                self._syndrome_circuit,
-                recovery_circuit,
-                [R(ancilla) for ancilla in ancilla_qubits],
-            )
+        measurement_key = MeasurementKey(f'FIVE_QUBIT_RECOVERY_{uuid4()}')
 
-    @property
-    def _syndrome_circuit(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            return Circuit(
-                [H(ancilla) for ancilla in ancilla_qubits],
-                [gate(self.data_qubits[target_index]).controlled_by(ancilla_qubits[generator])
-                 for generator, gates in enumerate(self._generators) for target_index, gate in enumerate(gates)],
-                [H(ancilla) for ancilla in ancilla_qubits],
-            )
+        recovery_circuit = Circuit(
+            [
+                recovery.gate(self.data_qubits[recovery.qubit_index])
+                    .with_classical_controls(RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
+                for recovery in recoveries
+            ],
+        )
 
-    @property
-    def _num_ancilla_qubits(self) -> int:
-        return 4
+        return Circuit(
+            self._get_syndrome_circuit(measurement_key=measurement_key),
+            recovery_circuit,
+        )
+
+    def _get_syndrome_circuit(self, measurement_key: Optional[MeasurementKey] = None) -> Circuit:
+        return Circuit(
+            FaultTolerantMeasurer(operations=[gate(self.data_qubits[target_index]) for target_index, gate in enumerate(gates)],
+                                  measurement_key=measurement_key,
+                                  ).get_measurement_circuit()
+            for gates in self._generators
+        )
+
+    @cached_property
+    def _generators_with_measurement_keys(self) -> dict[MeasurementKey, list[Gate]]:
+        return {MeasurementKey(f'FIVE_QUBIT_CODE_{i}_{uuid4()}'): generator
+                for i, generator in enumerate(self._generators)}
