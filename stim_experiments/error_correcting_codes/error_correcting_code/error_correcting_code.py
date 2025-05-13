@@ -4,7 +4,7 @@ from typing import Optional
 
 from cirq import Circuit, LineQubit
 
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
 
 
 class ErrorCorrectingCode(ABC):
@@ -13,18 +13,18 @@ class ErrorCorrectingCode(ABC):
         instance._saved_init_args = (args, kwargs)
         return instance
 
-    def create_new(self, qubit_start_index: int = 0) -> 'ErrorCorrectingCode':
-        self._saved_init_args[1]['qubit_start_index'] = qubit_start_index
+    def create_new(self, qubits: list[LineQubit] = 0) -> 'ErrorCorrectingCode':
+        self._saved_init_args[1]['qubits'] = qubits
         return self.__class__(*self._saved_init_args[0], **self._saved_init_args[1])
 
     def __init__(self,
                  num_data_qubits: int,
                  num_logical_qubits: int,
-                 qubit_start_index: int,
+                 qubits: Optional[list[LineQubit]] = None,
                  ):
         self._num_data_qubits = num_data_qubits
         self._num_logical_qubits = num_logical_qubits
-        self._qubit_start_index = qubit_start_index
+        self._qubits = qubits
 
     @abstractmethod
     def encode_logical_qubit(self) -> Circuit:
@@ -48,7 +48,11 @@ class ErrorCorrectingCode(ABC):
 
     @cached_property
     def data_qubits(self) -> list[LineQubit]:
-        return LineQubit.range(self._qubit_start_index, self._qubit_start_index + self._num_data_qubits)
+        if self._qubits:
+            if len(self._qubits) != self._num_data_qubits:
+                raise ValueError(f"The number of qubits ({len(self._qubits)}) must be equal to the number of data qubits ({self._num_data_qubits}).") #TODO test this
+            return self._qubits
+        return LineQubit.range(self._num_data_qubits)
 
     @property
     def num_logical_qubits(self) -> int:

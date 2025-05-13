@@ -3,7 +3,6 @@ from typing import List, Optional
 
 from cirq import Circuit, Gate, H, LineQubit, Operation, X, Z
 
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
@@ -23,11 +22,11 @@ from stim_experiments.utilities import FreshAncillasPool
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
-    def __init__(self, generators: TYPE_CHECK_MATRIX, qubit_start_index: int = 0):
+    def __init__(self, generators: TYPE_CHECK_MATRIX, qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = CheckMatrix(matrix=generators)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_logical_qubits=self._check_matrix.num_logical_qubits,
-                         qubit_start_index=qubit_start_index)
+                         qubits=qubits)
         self._generators = generators
 
     def encode_logical_qubit(self) -> Circuit:

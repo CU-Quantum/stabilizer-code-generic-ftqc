@@ -11,10 +11,10 @@ from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRI
 class SteaneCode(ErrorCorrectingCode):
     _stabilizer_indices = [(3, 4, 5, 6), (1, 2, 5, 6), (0, 2, 4, 6)]
 
-    def __init__(self, qubit_start_index: int = 0):
+    def __init__(self, qubits: Optional[list[LineQubit]] = None):
         super().__init__(num_data_qubits=7,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index,)
+                         qubits=qubits,)
 
     def encode_logical_qubit(self) -> Circuit:
         return self.get_error_correction_circuit()

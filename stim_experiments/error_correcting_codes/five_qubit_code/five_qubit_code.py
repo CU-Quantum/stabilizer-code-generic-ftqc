@@ -1,23 +1,14 @@
-from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Optional, Tuple
-from uuid import uuid4
+from typing import Optional
 
-from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, Gate, H, I, \
-    KeyCondition, LineQubit, \
-    MeasurementKey, \
-    Operation, R, X, \
-    Y, Z
+from cirq import Circuit, I, LineQubit, Operation, X, Y, Z
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates, RecoveryOperations
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
     FaultTolerantErrorCorrection
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
-    OperationsApplierUsingCatState, FaultTolerantMeasurer
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
-from stim_experiments.utilities import FreshAncillasPool
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -37,11 +28,10 @@ class FiveQubitCode(ErrorCorrectingCode):
             [self.data_qubits[i] for i in (1,4)],
         ]
 
-    def __init__(self, qubit_start_index: int = 0):
+    def __init__(self, qubits: Optional[list[LineQubit]] = None):
         super().__init__(num_data_qubits=5,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index)
-
+                         qubits=qubits)
     def encode_logical_qubit(self) -> Circuit:
         phase_corrections = [self._get_phase_corrections(generator_index=generator_index)
                              for generator_index in range(len(self._generators))]

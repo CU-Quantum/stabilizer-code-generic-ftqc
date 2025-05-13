@@ -9,11 +9,10 @@ from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRI
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
-    def __init__(self,
-                 qubit_start_index: int = 0,):
+    def __init__(self, qubits: Optional[list[LineQubit]] = None,):
         super().__init__(num_data_qubits=9,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index)
+                         qubits=qubits)
 
     def encode_logical_qubit(self) -> Circuit:
         outer_qubits_indices = list(range(0, self._num_data_qubits, 3))

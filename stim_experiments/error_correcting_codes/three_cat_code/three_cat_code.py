@@ -2,7 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, MeasurementKey, X, Z
+from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, LineQubit, \
+    MeasurementKey, X, Z
 from cirq.protocols import json_serialization
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -61,11 +62,11 @@ class ParityCheckReader(Condition):
 class ThreeCatCode(ErrorCorrectingCode):
     num_cats = 3
 
-    def __init__(self, num_qubits_in_cat_state: int):
+    def __init__(self, num_qubits_in_cat_state: int, qubits: Optional[list[LineQubit]] = None):
         self._num_qubits_in_cat_state = num_qubits_in_cat_state
         super().__init__(num_data_qubits=num_qubits_in_cat_state * self.num_cats,
                          num_logical_qubits=1,
-                         qubit_start_index=0)
+                         qubits=qubits)
 
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(

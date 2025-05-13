@@ -2,7 +2,7 @@ from functools import cached_property
 from typing import Optional
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, KeyCondition, MeasurementKey, Operation, R, X, Z
+from cirq import Circuit, CircuitOperation, FrozenCircuit, KeyCondition, LineQubit, MeasurementKey, Operation, R, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -35,7 +35,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 class UniversalHadamardCode(ErrorCorrectingCode):
     num_cats = ThreeCatCode.num_cats
 
-    def __init__(self, num_qubits_in_cat_state: int, qubit_start_index: int = 0):
+    def __init__(self, num_qubits_in_cat_state: int, qubits: Optional[list[LineQubit]] = None):
         self._num_qubits_in_cat_state = num_qubits_in_cat_state
         num_data_qubits = num_qubits_in_cat_state * self.num_cats
         num_parity_checks_per_register = num_qubits_in_cat_state - 1
@@ -55,7 +55,7 @@ class UniversalHadamardCode(ErrorCorrectingCode):
         self._check_matrix = CheckMatrix(matrix=array(x_stabilizers + z_stabilizers))
         super().__init__(num_data_qubits=self._num_qubits_in_cat_state * self.num_cats,
                          num_logical_qubits=1,
-                         qubit_start_index=qubit_start_index)
+                         qubits=qubits)
 
     def _qubit_has_x_stabilizer_in_generator(self, cat_index: int, parity_check_index: int, qubit_index: int) -> int:
         low_index = cat_index * self._num_qubits_in_cat_state + parity_check_index
@@ -102,64 +102,107 @@ class UniversalHadamardCode(ErrorCorrectingCode):
             generic_five_qubit = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
             num_qubits_needed_per_register = len(generic_five_qubit.data_qubits)
             extra_qubits_per_register = max(0, num_qubits_needed_per_register - self._num_qubits_in_cat_state)
-            with FreshAncillasPool().use_fresh_ancillas(num_ancillas=extra_qubits_per_register * self.num_cats) as ancilla_qubits:
-                extra_qubits_per_register = [ancilla_qubits[i * extra_qubits_per_register:(i + 1) * extra_qubits_per_register]
-                                             for i in range(self.num_cats)]
-                data_registers = [self.data_qubits[start_index:start_index + self._num_qubits_in_cat_state]
-                                  for start_index in range(0, len(self.data_qubits), self._num_qubits_in_cat_state)]
-                registers = [data_register + extra_qubits for data_register, extra_qubits in zip(data_registers, extra_qubits_per_register)]
-                five_qubit_codes = [generic_five_qubit.create_new(qubit_start_index=i * num_qubits_needed_per_register)
-                                    for i in range(self.num_cats)]
+            num_additional_codes = 2
+            with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_data_qubits * num_additional_codes) as ancilla_qubits:
+                helper_codes = [UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
+                                                      qubits=ancilla_qubits[i * self._num_data_qubits:(i + 1) * self._num_data_qubits])
+                                for i in range(num_additional_codes)]
+                helper_3cat = ThreeCatCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state * self.num_cats,
+                                           qubits=ancilla_qubits + self.data_qubits)
                 return Circuit(
-                    [
-                        [
-                            [
-                                [
-                                    X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1]),
-                                    R(register[i]),
-                                ] for i in range(num_qubits_needed_per_register, self._num_qubits_in_cat_state)
-                            ],
-                            [
-                                [
-                                    [
-                                        X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1])
-                                        for i in range(self._num_qubits_in_cat_state, num_qubits_needed_per_register)
-                                    ],
-                                    CatStateCreatorFlagPattern(qubit_register=register[self._num_qubits_in_cat_state:num_qubits_needed_per_register]).correct_errors(),
-                                ],
-                                CatStateCreatorFlagPattern(qubit_register=register).correct_errors(),
-                            ]
-                        ] for register in registers
-                    ],
                     [
                         [
                             code.encode_logical_qubit(),
                             code.get_error_correction_circuit(),
-                            code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0)),
+                            self.get_error_correction_circuit(),
+
+                            [X(target_qubit).controlled_by(control_qubit) for target_qubit, control_qubit in zip(code.data_qubits, self.data_qubits)],
                             code.get_error_correction_circuit(),
-                            code.decode_logical_qubit(),
-                        ] for code in five_qubit_codes
+                            self.get_error_correction_circuit(),
+
+                            [
+                                [
+                                    [X(code.data_qubits[i]).controlled_by(code.data_qubits[0])
+                                     for i in range(1, self._num_qubits_in_cat_state)],
+                                    CatStateCreatorFlagPattern(qubit_register=subregister).get_cat_state_circuit(),
+                                ] for subregister in code.subregisters
+                            ],
+                        ] for code in helper_codes
                     ],
+                    helper_3cat.get_error_correction_circuit(),
                     [
                         [
-                            [
-                                [
-                                    X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1])
-                                    for i in range(self._num_qubits_in_cat_state - 1, num_qubits_needed_per_register, -1)
-                                ],
-                                CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
-                            ],
-                            [
-                                [
-                                    [
-                                        X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1]),
-                                        R(register[i]),
-                                    ] for i in range(num_qubits_needed_per_register - 1, self._num_qubits_in_cat_state, -1)
-                                ],
-                                CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
-                            ]
-                        ] for data_register, register in zip(data_registers, registers)
-                    ],
-                    self.get_error_correction_circuit()
+                            code.encode_logical_qubit(),
+                            code.get_error_correction_circuit(),
+                            FaultTolerantMeasurer(operations=list(code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).all_operations()),
+                                                  measurement_key=MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}')
+                                                  ).get_measurement_circuit(),
+                        ] for code in helper_codes
+                    ]
+
                 )
+                # extra_qubits_per_register = [ancilla_qubits[i * extra_qubits_per_register:(i + 1) * extra_qubits_per_register]
+                #                              for i in range(self.num_cats)]
+                # data_registers = [self.data_qubits[start_index:start_index + self._num_qubits_in_cat_state]
+                #                   for start_index in range(0, len(self.data_qubits), self._num_qubits_in_cat_state)]
+                # registers = [data_register + extra_qubits for data_register, extra_qubits in zip(data_registers, extra_qubits_per_register)]
+                # five_qubit_codes = [generic_five_qubit.create_new(qubit_start_index=i * num_qubits_needed_per_register)
+                #                     for i in range(self.num_cats)]
+                # return Circuit(
+                #     [
+                #         [
+                #             [
+                #                 [
+                #                     X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1]),
+                #                     R(register[i]),
+                #                 ] for i in range(num_qubits_needed_per_register, self._num_qubits_in_cat_state)
+                #             ],
+                #             [
+                #                 [
+                #                     [
+                #                         X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1])
+                #                         for i in range(self._num_qubits_in_cat_state, num_qubits_needed_per_register)
+                #                     ],
+                #                     CatStateCreatorFlagPattern(qubit_register=register[self._num_qubits_in_cat_state:num_qubits_needed_per_register]).correct_errors(),
+                #                 ],
+                #                 CatStateCreatorFlagPattern(qubit_register=register).correct_errors(),
+                #             ]
+                #         ] for register in registers
+                #     ],
+                #     [
+                #         [
+                #             code.encode_logical_qubit(),
+                #             code.get_error_correction_circuit(),
+                #             code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0)),
+                #             code.get_error_correction_circuit(),
+                #             code.decode_logical_qubit(),
+                #         ] for code in five_qubit_codes
+                #     ],
+                #     [
+                #         [
+                #             [
+                #                 [
+                #                     X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1])
+                #                     for i in range(self._num_qubits_in_cat_state - 1, num_qubits_needed_per_register, -1)
+                #                 ],
+                #                 CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
+                #             ],
+                #             [
+                #                 [
+                #                     [
+                #                         X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1]),
+                #                         R(register[i]),
+                #                     ] for i in range(num_qubits_needed_per_register - 1, self._num_qubits_in_cat_state, -1)
+                #                 ],
+                #                 CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
+                #             ]
+                #         ] for data_register, register in zip(data_registers, registers)
+                #     ],
+                #     self.get_error_correction_circuit()
+                # )
         return None
+
+    @cached_property
+    def subregisters(self) -> list[list[LineQubit]]:
+        return [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
+                for i in range(self.num_cats)]
