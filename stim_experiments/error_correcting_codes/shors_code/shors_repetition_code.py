@@ -29,10 +29,6 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
 
-    @property
-    def implemented_operations(self) -> list[LogicalGateLabel]:
-        return []
-
     def get_error_correction_circuit(self) -> Circuit:
         return Circuit(
             self._correct_bit_flips(),

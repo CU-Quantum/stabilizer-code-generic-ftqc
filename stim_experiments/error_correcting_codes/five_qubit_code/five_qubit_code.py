@@ -54,75 +54,87 @@ class FiveQubitCode(ErrorCorrectingCode):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
 
-    @property
-    def implemented_operations(self) -> list[LogicalGateLabel]:
-        return []
-
     def get_error_correction_circuit(self) -> Circuit:
         recoveries = [
-            RecoveryOperations(
-                operation=Z(self.data_qubits[0]),
+            RecoveryGates(
+                gate=Z,
+                qubit_index=0,
                 symptom=[1, 0, 1, 0]
             ),
-            RecoveryOperations(
-                operation=Z(self.data_qubits[1]),
+            RecoveryGates(
+                gate=Z,
+                qubit_index=1,
                 symptom=[0, 1, 0, 1]
             ),
-            RecoveryOperations(
-                operation=Z(self.data_qubits[2]),
+            RecoveryGates(
+                gate=Z,
+                qubit_index=2,
                 symptom=[0, 0, 1, 0]
             ),
-            RecoveryOperations(
-                operation=Z(self.data_qubits[3]),
+            RecoveryGates(
+                gate=Z,
+                qubit_index=3,
                 symptom=[1, 0, 0, 1]
             ),
-            RecoveryOperations(
-                operation=Z(self.data_qubits[4]),
+            RecoveryGates(
+                gate=Z,
+                qubit_index=4,
                 symptom=[0, 1, 0, 0]
             ),
-            RecoveryOperations(
-                operation=X(self.data_qubits[0]),
+            RecoveryGates(
+                gate=X,
+                qubit_index=0,
                 symptom=[0, 0, 0, 1]
             ),
-            RecoveryOperations(
-                operation=X(self.data_qubits[1]),
+            RecoveryGates(
+                gate=X,
+                qubit_index=1,
                 symptom=[1, 0, 0, 0]
             ),
-            RecoveryOperations(
-                operation=X(self.data_qubits[2]),
+            RecoveryGates(
+                gate=X,
+                qubit_index=2,
                 symptom=[1, 1, 0, 0]
             ),
-            RecoveryOperations(
-                operation=X(self.data_qubits[3]),
+            RecoveryGates(
+                gate=X,
+                qubit_index=3,
                 symptom=[0, 1, 1, 0]
             ),
-            RecoveryOperations(
-                operation=X(self.data_qubits[4]),
+            RecoveryGates(
+                gate=X,
+                qubit_index=4,
                 symptom=[0, 0, 1, 1]
             ),
-            RecoveryOperations(
-                operation=Y(self.data_qubits[0]),
+            RecoveryGates(
+                gate=Y,
+                qubit_index=0,
                 symptom=[1, 0, 1, 1]
             ),
-            RecoveryOperations(
-                operation=Y(self.data_qubits[1]),
+            RecoveryGates(
+                gate=Y,
+                qubit_index=1,
                 symptom=[1, 1, 0, 1]
             ),
-            RecoveryOperations(
-                operation=Y(self.data_qubits[2]),
+            RecoveryGates(
+                gate=Y,
+                qubit_index=2,
                 symptom=[1, 1, 1, 0]
             ),
-            RecoveryOperations(
-                operation=Y(self.data_qubits[3]),
+            RecoveryGates(
+                gate=Y,
+                qubit_index=3,
                 symptom=[1, 1, 1, 1]
             ),
-            RecoveryOperations(
-                operation=Y(self.data_qubits[4]),
+            RecoveryGates(
+                gate=Y,
+                qubit_index=4,
                 symptom=[0, 1, 1, 1]
             ),
         ]
 
         return FaultTolerantErrorCorrection(generator_operations=self._generator_operations,
+                                            qubits=self.data_qubits,
                                             recoveries=recoveries).get_error_correction_circuit()
 
     @cached_property

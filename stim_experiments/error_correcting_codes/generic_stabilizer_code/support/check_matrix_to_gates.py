@@ -1,6 +1,6 @@
 from typing import List
 
-from cirq import Gate, X, Z
+from cirq import Gate, LineQubit, Operation, X, Z
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
 
@@ -30,3 +30,16 @@ class CheckMatrixToGates:
             if is_negative:
                 operations.append(X)
         return operations
+
+
+class CheckMatrixToOperations:
+    def __init__(self, check_matrix: CheckMatrix, qubits: list[LineQubit]):
+        self._check_matrix = check_matrix
+        self._qubits = qubits
+
+    def get_operations(self) -> list[list[Operation]]:
+        generator_gates = CheckMatrixToGates(check_matrix=self._check_matrix).get_gates()
+        return [[gate(self._qubits[target_index])
+                 for target_index, gates in enumerate(qubit_gates)
+                 for gate in gates]
+                for qubit_gates in generator_gates]

@@ -128,7 +128,3 @@ class ThreeCatCode(ErrorCorrectingCode):
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         return None
-
-    @property
-    def implemented_operations(self) -> list[LogicalGateLabel]:
-        return [LogicalGateLabel.X, LogicalGateLabel.Z]

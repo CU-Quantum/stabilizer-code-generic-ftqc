@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Tuple
 from uuid import uuid4
 
-from cirq import Circuit, ClassicalDataStoreReader, Condition, MeasurementKey, Operation
+from cirq import Circuit, ClassicalDataStoreReader, Condition, LineQubit, MeasurementKey, Operation
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates, RecoveryOperations
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
@@ -34,9 +34,10 @@ class RecoveryCondition(Condition):
 
 
 class FaultTolerantErrorCorrection:
-    def __init__(self, generator_operations: list[list[Operation]], recoveries: list[RecoveryOperations]):
+    def __init__(self, generator_operations: list[list[Operation]], recoveries: list[RecoveryGates], qubits: list[LineQubit]):
         self._generator_operations = generator_operations
-        self._recoveries = recoveries
+        self._recovery_gates = recoveries
+        self._qubits = qubits
 
     def get_error_correction_circuit(self) -> Circuit:
         measurement_key = MeasurementKey(f'ERROR_CORRECTION_{uuid4()}')
@@ -58,3 +59,13 @@ class FaultTolerantErrorCorrection:
             syndrome_operations,
             recovery_operations,
         )
+
+    @property
+    def _recoveries(self) -> list[RecoveryOperations]:
+        return [
+            RecoveryOperations(
+                operation=recovery_gates.gate(self._qubits[recovery_gates.qubit_index]),
+                symptom=recovery_gates.symptom
+            )
+            for recovery_gates in self._recovery_gates
+        ]

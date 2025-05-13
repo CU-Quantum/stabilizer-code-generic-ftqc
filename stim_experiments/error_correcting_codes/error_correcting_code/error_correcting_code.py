@@ -38,17 +38,13 @@ class ErrorCorrectingCode(ABC):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         pass
 
-    @property
-    @abstractmethod
-    def implemented_operations(self) -> list[LogicalGateLabel]:
-        pass
-
     def get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
-        if operation.gate not in self.implemented_operations:
-            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self.implemented_operations]}.")
         if not 0 <= operation.qubit_index < self._num_logical_qubits:
             raise ValueError(f"Qubit index must be between 0 and {self._num_logical_qubits - 1}. Was given {operation.qubit_index}.")
-        return self._perform_get_operation_circuit(operation=operation)
+        circuit = self._perform_get_operation_circuit(operation=operation)
+        if circuit is None:
+            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self.implemented_operations]}.")
+        return circuit
 
     @cached_property
     def data_qubits(self) -> list[LineQubit]:

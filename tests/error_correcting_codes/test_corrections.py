@@ -11,6 +11,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
+from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
+    UniversalHadamardCode
 from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
@@ -20,51 +22,62 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
+from tests.error_correcting_codes.universal_hadamard_code.expected_stated_universal_hadamard import \
+    ExpectedStatesUniversalHadamard
 from tests.utilities import states_are_equal
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
+QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS = list(
+    range(0,
+          ExpectedStatesUniversalHadamard().arbitrary_num_qubits * UniversalHadamardCode.num_cats,
+          ExpectedStatesUniversalHadamard().arbitrary_num_qubits + 2,
+          )) + [ExpectedStatesUniversalHadamard().arbitrary_num_qubits * UniversalHadamardCode.num_cats - 1]
 
 
 @dataclass
 class ParametersForCorrectionsTest:
     code: ErrorCorrectingCode
-    expected_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
     initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
     qubit_indices_to_test: list[int]
 
 
 PARAMETERS = {
+    "UniversalHadamardZeroState": ParametersForCorrectionsTest(
+        code=UniversalHadamardCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
+        initial_state=ExpectedStatesUniversalHadamard().get_logical_zero_state_vector(),
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
+    ),
+    "UniversalHadamardOneState": ParametersForCorrectionsTest(
+        code=UniversalHadamardCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
+        initial_state=ExpectedStatesUniversalHadamard().get_logical_one_state_vector(),
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
+    ),
     "ThreeCatCode": ParametersForCorrectionsTest(
         code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
-        expected_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
-        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats),
+        initial_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(0,
                                          ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats,
-                                         ExpectedStatesThreeCat().arbitrary_num_qubits + 1)),
+                                         ExpectedStatesThreeCat().arbitrary_num_qubits + 2)) + [ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats - 1],
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),
-        expected_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
-        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
+        initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(5)),
     ),
     "FiveQubitCode": ParametersForCorrectionsTest(
         code=FiveQubitCode(),
-        expected_state=ExpectedStatesFiveQubit().get_logical_zero_state_vector(),
-        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
+        initial_state=ExpectedStatesFiveQubit().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(5)),
     ),
     "SteaneCode": ParametersForCorrectionsTest(
         code=SteaneCode(),
-        expected_state=ExpectedStatesSteane().get_logical_zero_state_vector(),
-        initial_state=tensor(*[KET_ZERO_STATE_VECTOR] * 7),
+        initial_state=ExpectedStatesSteane().get_logical_zero_state_vector(),
         qubit_indices_to_test=ARBITRARY_QUBIT_INDICES
     ),
     "ShorsRepetitionCode": ParametersForCorrectionsTest(
         code=ShorsRepetitionCode(),
-        expected_state=ExpectedStatesShor().get_logical_zero_density_matrix(),
-        initial_state=tensor(*[KET_ZERO_DENSITY_MATRIX] * 9),
+        initial_state=ExpectedStatesShor().get_logical_zero_density_matrix(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS
     ),
 }
@@ -102,4 +115,4 @@ class TestCorrections:
                                                              num_data_qubits=len(self._parameters.code.data_qubits),
                                                              initial_data_state=self._parameters.initial_state,
                                                              )
-        assert states_are_equal(simulation_state.state, self._parameters.expected_state)
+        assert states_are_equal(simulation_state.state, self._parameters.initial_state)

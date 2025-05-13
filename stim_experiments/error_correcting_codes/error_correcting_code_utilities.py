@@ -33,6 +33,8 @@ class ErrorCorrectingCodeUtilities(ABC):
                                 initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                 noise_model: Optional[NoiseModel] = None,
                                 ) -> StateAndMeasurements:
+        if initial_data_state is None:
+            initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
         num_ancillas = len(qubits) - num_data_qubits
         initial_state = tensor(initial_data_state, *[self.zero_state] * num_ancillas)

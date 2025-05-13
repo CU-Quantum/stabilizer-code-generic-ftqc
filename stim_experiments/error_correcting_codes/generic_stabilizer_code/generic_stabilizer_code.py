@@ -1,8 +1,7 @@
 from functools import cached_property
 from typing import List, Optional
-from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, Gate, H, KeyCondition, LineQubit, MeasurementKey, Operation, R, X, Z
+from cirq import Circuit, Gate, H, LineQubit, Operation, X, Z
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -10,21 +9,17 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
     TYPE_CHECK_MATRIX
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.logical_qubit_encoder import \
-    LogicalQubitEncoderGottesman
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
-    CheckMatrixToGates
+    CheckMatrixToGates, CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
     FaultTolerantErrorCorrection
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
-from stim_experiments.utilities import FreshAncillasPool, int_to_binary_array
+from stim_experiments.utilities import FreshAncillasPool
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):
@@ -42,16 +37,15 @@ class GenericStabilizerCode(ErrorCorrectingCode):
                                          phase_corrections=phase_corrections).encode_state()
 
     def _get_phase_correction(self, generator_index: int) -> Operation:
-        if generator_index < self._check_matrix_standardized.rank_of_pauli_x_portion:
-            return Z(self._get_qubit_at_index(generator_index))
-        else:
-            return X(self._get_qubit_at_index(generator_index + self._check_matrix_standardized.num_physical_qubits))
+        gate = Z if generator_index < self._check_matrix_standardized.rank_of_pauli_x_portion else X
+        return gate(self._get_qubit_at_index(generator_index))
 
-
-    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
-        return self._get_logical_hadamard(operation=operation) \
-            if operation.gate == LogicalGateLabel.H \
-            else self._get_logical_x_or_z(operation=operation)
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
+        if operation.gate == LogicalGateLabel.H:
+            return self._get_logical_hadamard(operation=operation)
+        elif operation.gate in [LogicalGateLabel.X, LogicalGateLabel.Z]:
+            return self._get_logical_x_or_z(operation=operation)
+        return None
 
     def _get_logical_hadamard(self, operation: LogicalOperation) -> Circuit:
         should_use_transversal = self._check_matrix_standardized.num_logical_qubits == 1
@@ -100,28 +94,18 @@ class GenericStabilizerCode(ErrorCorrectingCode):
         operation_matrix = self._check_matrix_standardized.logical_xs if gate_label is LogicalGateLabel.X else self._check_matrix_standardized.logical_zs
         return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
 
-    @property
-    def implemented_operations(self) -> List[LogicalGateLabel]:
-        return [LogicalGateLabel.X, LogicalGateLabel.Z, LogicalGateLabel.H]
-
     def get_error_correction_circuit(self) -> Circuit:
-        recoveries = [
-            RecoveryOperations(
-                operation=recovery_gates.gate(self._get_qubit_at_index(qubit_index=recovery_gates.qubit_index)),
-                symptom=recovery_gates.symptom
-            )
-            for recovery_gates in RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries()
-        ]
         return FaultTolerantErrorCorrection(generator_operations=self._generator_operations,
-                                            recoveries=recoveries).get_error_correction_circuit()
+                                            recoveries=RecoveryFinder(check_matrix=self._check_matrix_standardized).find_recoveries(),
+                                            qubits=self._ordered_qubits).get_error_correction_circuit()
 
     @cached_property
     def _generator_operations(self) -> list[list[Operation]]:
-        generator_gates = CheckMatrixToGates(check_matrix=self._check_matrix_standardized).get_gates()
-        return[[gate(self._get_qubit_at_index(target_index))
-                for target_index, gates in enumerate(qubit_gates)
-                for gate in gates]
-               for qubit_gates in generator_gates]
+        return CheckMatrixToOperations(check_matrix=self._check_matrix_standardized, qubits=self._ordered_qubits).get_operations()
+
+    @property
+    def _ordered_qubits(self) -> list[LineQubit]:
+        return [self._get_qubit_at_index(qubit_index=qubit_index) for qubit_index in range(self._check_matrix.num_physical_qubits)]
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
         return self.data_qubits[qubit_index]
