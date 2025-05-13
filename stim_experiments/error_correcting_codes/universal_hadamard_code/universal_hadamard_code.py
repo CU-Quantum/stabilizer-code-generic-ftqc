@@ -91,7 +91,7 @@ class UniversalHadamardCode(ErrorCorrectingCode):
         elif operation.gate == LogicalGateLabel.H:
             first_register = self.data_qubits[:self._num_qubits_in_cat_state]
             return Circuit(
-                CatStateCreatorCxFromFirstQubit(target_qubits=first_register).create_circuit(),
+                [X(first_register[i]).controlled_by(first_register[0]) for i in range(1, len(first_register))],
                 CatStateCreatorFlagPattern(qubit_register=first_register).get_cat_state_circuit(),
             )
         return None

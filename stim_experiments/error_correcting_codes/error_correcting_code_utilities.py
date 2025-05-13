@@ -22,6 +22,7 @@ class ErrorCorrectingCodeUtilities(ABC):
     @abstractmethod
     def _get_simulation_result(self,
                                circuit: Circuit,
+                               qubits: list[LineQubit],
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
@@ -39,7 +40,7 @@ class ErrorCorrectingCodeUtilities(ABC):
         num_ancillas = len(qubits) - num_data_qubits
         initial_state = tensor(initial_data_state, *[self.zero_state] * num_ancillas)
 
-        simulation = self._get_simulation_result(circuit=circuit, initial_state=initial_state, noise_model=noise_model)
+        simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
 
         return StateAndMeasurements(
@@ -58,11 +59,12 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
 
     def _get_simulation_result(self,
                                circuit: Circuit,
+                               qubits: list[LineQubit],
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
         simulator = DensityMatrixSimulator(noise=noise_model)
-        simulation = simulator.simulate(circuit, initial_state=initial_state)
+        simulation = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
             measurements=dict(simulation.measurements),
@@ -76,11 +78,12 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
 
     def _get_simulation_result(self,
                                circuit: Circuit,
+                               qubits: list[LineQubit],
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
         simulator = Simulator(noise=noise_model)
-        simulation: StateVectorTrialResult = simulator.simulate(circuit, initial_state=initial_state)
+        simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,
             measurements=dict(simulation.measurements),
