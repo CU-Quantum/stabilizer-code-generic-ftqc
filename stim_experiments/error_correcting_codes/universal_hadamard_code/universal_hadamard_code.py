@@ -2,34 +2,26 @@ from functools import cached_property
 from typing import Optional
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, KeyCondition, LineQubit, MeasurementKey, Operation, R, X, Z
+import sympy
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Operation, R, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
-    GenericStabilizerCode
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
-    CheckMatrixToGates, CheckMatrixToOperations
+    CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
 from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
     FaultTolerantErrorCorrection
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.cat_state_creator import \
-    CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.verification_is_zero import \
-    VerificationIsZero
+    FaultTolerantMeasurer, OperationsApplierUsingCatState
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.utilities import FreshAncillasPool
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 
 
 class UniversalHadamardCode(ErrorCorrectingCode):
@@ -99,10 +91,12 @@ class UniversalHadamardCode(ErrorCorrectingCode):
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         elif operation.gate == LogicalGateLabel.H:
-            generic_five_qubit = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
-            num_qubits_needed_per_register = len(generic_five_qubit.data_qubits)
-            extra_qubits_per_register = max(0, num_qubits_needed_per_register - self._num_qubits_in_cat_state)
+            # TODO create Singleton logical encoding store so that all encodings can be corrected at any time or place throughout the code
+            # note that this is not valid for an arbitrary state and should only be used as part of the Universal Hadamard Gate
             num_additional_codes = 2
+            measurement_keys = [MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}') for _ in range(num_additional_codes)]
+            measurement_key_symbols = sympy.symbols(' '.join([key.name for key in measurement_keys]))
+            xor_measurements = sympy.Xor(*measurement_key_symbols)
             with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_data_qubits * num_additional_codes) as ancilla_qubits:
                 helper_codes = [UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
                                                       qubits=ancilla_qubits[i * self._num_data_qubits:(i + 1) * self._num_data_qubits])
@@ -113,16 +107,16 @@ class UniversalHadamardCode(ErrorCorrectingCode):
                     [
                         [
                             code.encode_logical_qubit(),
+
                             code.get_error_correction_circuit(),
                             self.get_error_correction_circuit(),
-
                             [X(target_qubit).controlled_by(control_qubit) for target_qubit, control_qubit in zip(code.data_qubits, self.data_qubits)],
                             code.get_error_correction_circuit(),
-                            self.get_error_correction_circuit(),
 
+                            self.get_error_correction_circuit(),
                             [
                                 [
-                                    [X(code.data_qubits[i]).controlled_by(code.data_qubits[0])
+                                    [X(subregister[i]).controlled_by(subregister[0])
                                      for i in range(1, self._num_qubits_in_cat_state)],
                                     CatStateCreatorFlagPattern(qubit_register=subregister).get_cat_state_circuit(),
                                 ] for subregister in code.subregisters
@@ -130,76 +124,28 @@ class UniversalHadamardCode(ErrorCorrectingCode):
                         ] for code in helper_codes
                     ],
                     helper_3cat.get_error_correction_circuit(),
+                    [code.encode_logical_qubit() for code in helper_codes],
                     [
                         [
-                            code.encode_logical_qubit(),
                             code.get_error_correction_circuit(),
-                            FaultTolerantMeasurer(operations=list(code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).all_operations()),
-                                                  measurement_key=MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}')
-                                                  ).get_measurement_circuit(),
-                        ] for code in helper_codes
+                            FaultTolerantMeasurer(
+                                operations=list(code.get_operation_circuit(
+                                    LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
+                                ).all_operations()),
+                                measurement_key=measurement_key
+                            ).get_measurement_circuit(),
+                        ] for measurement_key, code in zip(measurement_keys, helper_codes)
+                    ],
+                    OperationsApplierUsingCatState(
+                        operations=list(self.get_operation_circuit(
+                            LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+                        ).all_operations()),
+                        condition=xor_measurements
+                    ).get_circuit(),
+                    [
+                        R(qubit) for qubit in ancilla_qubits
                     ]
-
                 )
-                # extra_qubits_per_register = [ancilla_qubits[i * extra_qubits_per_register:(i + 1) * extra_qubits_per_register]
-                #                              for i in range(self.num_cats)]
-                # data_registers = [self.data_qubits[start_index:start_index + self._num_qubits_in_cat_state]
-                #                   for start_index in range(0, len(self.data_qubits), self._num_qubits_in_cat_state)]
-                # registers = [data_register + extra_qubits for data_register, extra_qubits in zip(data_registers, extra_qubits_per_register)]
-                # five_qubit_codes = [generic_five_qubit.create_new(qubit_start_index=i * num_qubits_needed_per_register)
-                #                     for i in range(self.num_cats)]
-                # return Circuit(
-                #     [
-                #         [
-                #             [
-                #                 [
-                #                     X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1]),
-                #                     R(register[i]),
-                #                 ] for i in range(num_qubits_needed_per_register, self._num_qubits_in_cat_state)
-                #             ],
-                #             [
-                #                 [
-                #                     [
-                #                         X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1])
-                #                         for i in range(self._num_qubits_in_cat_state, num_qubits_needed_per_register)
-                #                     ],
-                #                     CatStateCreatorFlagPattern(qubit_register=register[self._num_qubits_in_cat_state:num_qubits_needed_per_register]).correct_errors(),
-                #                 ],
-                #                 CatStateCreatorFlagPattern(qubit_register=register).correct_errors(),
-                #             ]
-                #         ] for register in registers
-                #     ],
-                #     [
-                #         [
-                #             code.encode_logical_qubit(),
-                #             code.get_error_correction_circuit(),
-                #             code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.H, qubit_index=0)),
-                #             code.get_error_correction_circuit(),
-                #             code.decode_logical_qubit(),
-                #         ] for code in five_qubit_codes
-                #     ],
-                #     [
-                #         [
-                #             [
-                #                 [
-                #                     X(register[i]).controlled_by(register[num_qubits_needed_per_register - 1])
-                #                     for i in range(self._num_qubits_in_cat_state - 1, num_qubits_needed_per_register, -1)
-                #                 ],
-                #                 CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
-                #             ],
-                #             [
-                #                 [
-                #                     [
-                #                         X(register[i]).controlled_by(register[self._num_qubits_in_cat_state - 1]),
-                #                         R(register[i]),
-                #                     ] for i in range(num_qubits_needed_per_register - 1, self._num_qubits_in_cat_state, -1)
-                #                 ],
-                #                 CatStateCreatorFlagPattern(qubit_register=data_register).correct_errors(),
-                #             ]
-                #         ] for data_register, register in zip(data_registers, registers)
-                #     ],
-                #     self.get_error_correction_circuit()
-                # )
         return None
 
     @cached_property

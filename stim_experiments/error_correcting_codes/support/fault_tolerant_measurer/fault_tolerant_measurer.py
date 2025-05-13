@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Callable, Optional
 
-from cirq import Circuit, CircuitOperation, H, KeyCondition, LineQubit, M, MeasurementKey, Operation, R, X
+from cirq import Circuit, CircuitOperation, Condition, H, KeyCondition, LineQubit, M, MeasurementKey, Operation, R, X
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
@@ -16,9 +16,11 @@ class OperationsApplierUsingCatState:
     def __init__(self,
                  operations: list[Operation],
                  initial_control_qubit: Optional[LineQubit] = None,
+                 condition: Optional[Condition] = None,
                  ):
         self._operations = operations
         self._initial_control_qubit = initial_control_qubit
+        self._condition = condition
 
     def get_circuit(self) -> Circuit:
         self._validate()
@@ -30,7 +32,11 @@ class OperationsApplierUsingCatState:
             propagated_state = CatStateCreatorBasicUndeterministic(target_qubits=control_qubits)
             return Circuit(
                 propagated_state.prepare_state(),
-                ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze(),
+                CircuitOperation(
+                    ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze()
+                ).with_classical_controls(self._condition)
+                    if self._condition
+                    else ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
                 propagated_state.decode_state(),
             )
 
