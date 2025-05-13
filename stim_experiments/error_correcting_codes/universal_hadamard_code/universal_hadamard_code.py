@@ -22,6 +22,8 @@ from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encode
     FaultTolerantStateEncoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.error_correcting_codes.universal_hadamard_code.support.universal_hadamard_code_helper import \
+    UniversalHadamardCodeHelper
 
 
 class UniversalHadamardCode(ErrorCorrectingCode):
@@ -91,61 +93,7 @@ class UniversalHadamardCode(ErrorCorrectingCode):
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         elif operation.gate == LogicalGateLabel.H:
-            # TODO create Singleton logical encoding store so that all encodings can be corrected at any time or place throughout the code
-            # note that this is not valid for an arbitrary state and should only be used as part of the Universal Hadamard Gate
-            num_additional_codes = 2
-            measurement_keys = [MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}') for _ in range(num_additional_codes)]
-            measurement_key_symbols = sympy.symbols(' '.join([key.name for key in measurement_keys]))
-            xor_measurements = sympy.Xor(*measurement_key_symbols)
-            with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_data_qubits * num_additional_codes) as ancilla_qubits:
-                helper_codes = [UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
-                                                      qubits=ancilla_qubits[i * self._num_data_qubits:(i + 1) * self._num_data_qubits])
-                                for i in range(num_additional_codes)]
-                helper_3cat = ThreeCatCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state * self.num_cats,
-                                           qubits=ancilla_qubits + self.data_qubits)
-                return Circuit(
-                    [
-                        [
-                            code.encode_logical_qubit(),
-
-                            code.get_error_correction_circuit(),
-                            self.get_error_correction_circuit(),
-                            [X(target_qubit).controlled_by(control_qubit) for target_qubit, control_qubit in zip(code.data_qubits, self.data_qubits)],
-                            code.get_error_correction_circuit(),
-
-                            self.get_error_correction_circuit(),
-                            [
-                                [
-                                    [X(subregister[i]).controlled_by(subregister[0])
-                                     for i in range(1, self._num_qubits_in_cat_state)],
-                                    CatStateCreatorFlagPattern(qubit_register=subregister).get_cat_state_circuit(),
-                                ] for subregister in code.subregisters
-                            ],
-                        ] for code in helper_codes
-                    ],
-                    helper_3cat.get_error_correction_circuit(),
-                    [code.encode_logical_qubit() for code in helper_codes],
-                    [
-                        [
-                            code.get_error_correction_circuit(),
-                            FaultTolerantMeasurer(
-                                operations=list(code.get_operation_circuit(
-                                    LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
-                                ).all_operations()),
-                                measurement_key=measurement_key
-                            ).get_measurement_circuit(),
-                        ] for measurement_key, code in zip(measurement_keys, helper_codes)
-                    ],
-                    OperationsApplierUsingCatState(
-                        operations=list(self.get_operation_circuit(
-                            LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
-                        ).all_operations()),
-                        condition=xor_measurements
-                    ).get_circuit(),
-                    [
-                        R(qubit) for qubit in ancilla_qubits
-                    ]
-                )
+            return UniversalHadamardCodeHelper(code=self).get_circuit()
         return None
 
     @cached_property

@@ -2,6 +2,7 @@ from functools import cached_property
 from typing import Callable, Optional
 
 from cirq import Circuit, CircuitOperation, Condition, H, KeyCondition, LineQubit, M, MeasurementKey, Operation, R, X
+from sympy import Expr
 
 from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
@@ -16,7 +17,7 @@ class OperationsApplierUsingCatState:
     def __init__(self,
                  operations: list[Operation],
                  initial_control_qubit: Optional[LineQubit] = None,
-                 condition: Optional[Condition] = None,
+                 condition: Optional[Condition | Expr] = None,
                  ):
         self._operations = operations
         self._initial_control_qubit = initial_control_qubit

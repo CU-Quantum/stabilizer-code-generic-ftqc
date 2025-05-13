@@ -79,7 +79,8 @@ class CatStateCreatorFlagPattern:
             )
         return Circuit(
             self._create_cat_state(),
-            self.correct_errors(),
+            self._measure_flags(),
+            self._recover_from_errors(),
         )
 
     def _create_cat_state(self) -> list[list[Operation]]:
@@ -87,14 +88,6 @@ class CatStateCreatorFlagPattern:
             [H(self._control_qubit)],
             [X(target_qubit).controlled_by(self._control_qubit) for target_qubit in reversed(self._qubit_register[1:])],
         ]
-
-    def correct_errors(self) -> Circuit:
-        if not self._num_data_qubits or self._num_data_qubits <= 3:
-            return Circuit()
-        return Circuit(
-            self._measure_flags(),
-            self._recover_from_errors(),
-        )
 
     def _measure_flags(self) -> list[list[Operation]]:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
