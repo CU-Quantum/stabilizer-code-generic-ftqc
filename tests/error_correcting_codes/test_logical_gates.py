@@ -11,7 +11,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.utilities import FreshAncillasPool, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
@@ -87,15 +87,18 @@ class TestLogicalGates:
         assert allclose(current_state.state, expected_state)
 
     def test_logical_h(self):
+        from stim_experiments.utilities import tensor
+        from cirq import dirac_notation
         target_index = self._parameters.code.num_logical_qubits - 1
         operation = LogicalOperation(gate=LogicalGateLabel.H, qubit_index=target_index)
         initial_data_state = self._parameters.expected_states.get_logical_one_state_vector()
         utilities = get_error_correcting_code_utilities(state=initial_data_state)
 
+        all_zeros = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_data_qubits)
+        all_ones = tensor(*[KET_ONE_STATE_VECTOR] * self._num_data_qubits)
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
                 self._parameters.code.get_operation_circuit(operation=operation),
-                self._parameters.code.get_error_correction_circuit(),
             ),
             num_data_qubits=self._num_data_qubits,
             initial_data_state=initial_data_state,
