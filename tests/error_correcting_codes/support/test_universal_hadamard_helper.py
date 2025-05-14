@@ -1,5 +1,6 @@
+import pytest
 from cirq import Circuit, LineQubit, X, Z
-from numpy import sqrt
+from numpy import array, sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
@@ -14,7 +15,7 @@ from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_h
     UniversalHadamardCode
 from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_ZERO_STATE_VECTOR
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 from tests.utilities import states_are_equal
@@ -29,12 +30,18 @@ class TestUniversalHadamardCodeHelper:
     #     self._num_qubits_in_cat_state = arbitrary_num_qubits_in_cat_state
     #     FreshAncillasPool().set_first_ancilla_num(len(self._main_code.data_qubits))
 
-    def test_puts_zero_into_plus(self):
+    @pytest.fixture(autouse=True)
+    def _set_configuration_to_reduce_ancilla_qubits(self):
         configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
         configuration.measurer_type = MeasurerWithSingleQubit
+        # TODO include FaultTolerantStateEncoder and possibly FaultTolerantErrorCorrection
 
-        arbitrary_desired_code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+    def test_puts_zero_into_plus(self):
+        arbitrary_desired_code = GenericStabilizerCode(generators=array([
+            [0, 0, 0, 1, 1, 0],
+            [0, 0, 0, 0, 1, 1],
+        ]))
         universal_hadamard_code = UniversalHadamardCode(num_qubits_in_cat_state=len(arbitrary_desired_code.data_qubits))
         num_data_qubits = len(universal_hadamard_code.data_qubits)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=num_data_qubits)
@@ -47,7 +54,7 @@ class TestUniversalHadamardCodeHelper:
             circuit=circuit,
             num_data_qubits=num_data_qubits,
         ).state
-        expected_state = (1 / sqrt(2)) * (ExpectedStatesFiveQubit().get_logical_zero_state_vector() + ExpectedStatesFiveQubit().get_logical_one_state_vector())
+        expected_state = (1 / sqrt(2)) * (tensor(*[KET_ZERO_STATE_VECTOR] * 3) + tensor(*[KET_ONE_STATE_VECTOR] * 3))
         assert states_are_equal(simulated_state, expected_state)
 
 
