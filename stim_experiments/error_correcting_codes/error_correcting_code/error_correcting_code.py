@@ -57,3 +57,6 @@ class ErrorCorrectingCode(ABC):
     @property
     def num_logical_qubits(self) -> int:
         return self._num_logical_qubits
+
+    def __eq__(self, other):
+        return self.__class__ == other.__class__ and self._saved_init_args == other._saved_init_args

@@ -1,9 +1,7 @@
 from functools import cached_property
 from typing import Optional
-from uuid import uuid4
 
-import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Operation, R, X, Z
+from cirq import Circuit, LineQubit, Operation, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -12,16 +10,11 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
-    CatStateCreatorFlagPattern
 from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
     FaultTolerantErrorCorrection
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer, OperationsApplierUsingCatState
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.utilities import FreshAncillasPool
 from stim_experiments.error_correcting_codes.universal_hadamard_code.support.universal_hadamard_code_helper import \
     UniversalHadamardCodeHelper
 
