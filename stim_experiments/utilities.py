@@ -1,6 +1,3 @@
-from contextlib import contextmanager
-from typing import ContextManager, Generator, Optional
-
 from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, density_matrix_from_state_vector, kron
 from numpy import array, log2, sqrt, trace
 from numpy._typing import NDArray
@@ -85,33 +82,3 @@ def cx_sequentially_closer_qubits_from_first(qubits: list[LineQubit]) -> list[Op
 
 def cx_sequentially_further_qubits_from_first(qubits: list[LineQubit]) -> list[Operation]:
     return [X(qubits[i]).controlled_by(qubits[0]) for i in range(1, len(qubits))]
-
-
-class FreshAncillasPool:
-    # TODO test class
-    # TODO add async locking
-
-    _pool: list[LineQubit] = []
-    _next_ancilla_num = 0
-
-    @classmethod
-    def set_first_ancilla_num(cls, first_ancilla_num: int):
-        if first_ancilla_num < 0:
-            raise ValueError("First ancilla number must be non-negative.")  # TODO test this
-        cls._pool = []
-        cls._next_ancilla_num = first_ancilla_num
-
-    @contextmanager
-    def use_fresh_ancillas(self, num_ancillas: int) -> Generator[list[LineQubit], None, None]:
-        ancillas = []
-        while len(ancillas) < num_ancillas:
-            if self._pool:
-                ancillas.append(self._pool.pop())
-            else:
-                ancillas.append(LineQubit(self._next_ancilla_num))
-                self.__class__._next_ancilla_num += 1
-
-        yield ancillas
-
-        for ancillas in ancillas:
-            self._pool.append(ancillas)

@@ -2,7 +2,7 @@ from typing import List
 
 from cirq import Circuit, LineQubit, M, MeasurementKey, R, X
 
-from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 
 
 class ParityVerifier:

@@ -24,7 +24,7 @@ class OperationsApplier(ABC):
         self._validate_disjoint_qubits()
 
     def _validate_disjoint_qubits(self) -> None:
-        operation_qubits = [qubit for operation in self._operations for qubit in operation.qubits]
+        operation_qubits = {qubit for operation in self._operations for qubit in operation.qubits}
         if self._measurement_qubit in operation_qubits:
             raise ValueError(f"The target qubits and measurement qubit must be disjoint. "
                              f"Found duplicate qubit {self._measurement_qubit}.")

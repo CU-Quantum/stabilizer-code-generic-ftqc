@@ -11,12 +11,12 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
-from tests.error_correcting_codes.universal_hadamard_code.expected_stated_universal_hadamard import \
+from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
     ExpectedStatesUniversalHadamard
 
 

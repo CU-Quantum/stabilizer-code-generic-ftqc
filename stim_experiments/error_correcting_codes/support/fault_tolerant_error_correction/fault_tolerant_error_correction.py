@@ -5,7 +5,7 @@ from uuid import uuid4
 from cirq import Circuit, ClassicalDataStoreReader, Condition, LineQubit, MeasurementKey, Operation
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates, RecoveryOperations
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 
 

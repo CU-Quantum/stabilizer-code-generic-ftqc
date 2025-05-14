@@ -18,7 +18,7 @@ from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correc
     FaultTolerantErrorCorrection
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
-from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):

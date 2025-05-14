@@ -13,8 +13,7 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit

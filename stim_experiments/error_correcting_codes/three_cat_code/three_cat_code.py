@@ -8,9 +8,9 @@ from cirq.protocols import json_serialization
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 
 

@@ -3,9 +3,8 @@ from typing import Optional
 from cirq import CX, Circuit, H, LineQubit, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
-    tensor
+from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):

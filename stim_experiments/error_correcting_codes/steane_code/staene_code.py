@@ -1,11 +1,10 @@
 from typing import Optional
 
-from cirq import CX, Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, Gate, H, LineQubit, R, X, Z
+from cirq import CX, Circuit, Gate, H, LineQubit, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import FreshAncillasPool, KET_ZERO_DENSITY_MATRIX, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, int_to_binary_array, tensor
+from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.utilities import int_to_binary_array, tensor
 
 
 class SteaneCode(ErrorCorrectingCode):

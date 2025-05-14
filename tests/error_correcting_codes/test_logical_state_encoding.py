@@ -13,10 +13,10 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool, KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
     KET_ZERO_DENSITY_MATRIX, \
-    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, int_to_binary_array, tensor, \
-    trace_out_ancillas_in_zero_state
+    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
@@ -27,7 +27,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.universal_hadamard_code.expected_stated_universal_hadamard import \
+from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
     ExpectedStatesUniversalHadamard
 from tests.utilities import states_are_equal
 

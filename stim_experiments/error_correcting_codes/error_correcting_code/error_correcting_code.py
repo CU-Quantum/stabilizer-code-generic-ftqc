@@ -43,7 +43,7 @@ class ErrorCorrectingCode(ABC):
             raise ValueError(f"Qubit index must be between 0 and {self._num_logical_qubits - 1}. Was given {operation.qubit_index}.")
         circuit = self._perform_get_operation_circuit(operation=operation)
         if circuit is None:
-            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented. Implemented gates are: {[x.name for x in self.implemented_operations]}.")
+            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented for code {self.__class__}.")
         return circuit
 
     @cached_property

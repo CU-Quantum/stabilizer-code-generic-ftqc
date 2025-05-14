@@ -4,7 +4,8 @@ from cirq import Circuit, LineQubit, MeasurementKey, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
-from stim_experiments.utilities import FreshAncillasPool, KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, \
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, \
     KET_PLUS_STATE_VECTOR, tensor
 
 
@@ -20,7 +21,7 @@ class TestMeasurerWithSingleQubit:
 
     def test_one_operation_z(self):
         qubits = LineQubit.range(1)
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
+        FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
         measurer = MeasurerWithSingleQubit(operations=[Z(qubits[0])],
                                            measurement_key=measurement_key)
@@ -40,7 +41,7 @@ class TestMeasurerWithSingleQubit:
 
     def test_multiple_operations_z(self):
         qubits = LineQubit.range(2)
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
+        FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
         measurer = MeasurerWithSingleQubit(operations=[X(qubits[0]), Z(qubits[1])],
                                            measurement_key=measurement_key)

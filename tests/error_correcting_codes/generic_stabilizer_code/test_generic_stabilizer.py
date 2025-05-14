@@ -7,9 +7,9 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.utilities import FreshAncillasPool, KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
-    KET_PLUS_DENSITY_MATRIX, \
-    KET_PLUS_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities import KET_ONE_STATE_VECTOR, \
+    KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, tensor
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit

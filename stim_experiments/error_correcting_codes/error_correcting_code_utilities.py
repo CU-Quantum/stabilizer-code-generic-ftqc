@@ -1,20 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Optional
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, NoiseModel, \
-    SimulationTrialResult, Simulator, \
+from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseModel, \
+    Simulator, \
     StateVectorTrialResult
 
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, tensor, \
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector, tensor, \
     trace_out_ancillas_in_zero_state
 
 
 class ErrorCorrectingCodeUtilities(ABC):
-    # TODO delete this
-
     @property
     @abstractmethod
     def zero_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:

@@ -1,9 +1,10 @@
 import pytest
 from cirq import LineQubit
 
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.utilities import FreshAncillasPool, get_ket_cat_state_vector
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities import get_ket_cat_state_vector
 from tests.error_correcting_codes.support.cat_state_creator.utilities import circuit_results_in_expected_state, \
     get_cat_state_with_x_error, get_circuit_with_x_error_on_first_n_qubits
 

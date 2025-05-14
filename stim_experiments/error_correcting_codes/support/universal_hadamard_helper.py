@@ -1,27 +1,20 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Generator, Type
+from typing import Generator
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, LineQubit, MeasurementKey, OP_TREE, Operation, R, X
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, OP_TREE, Operation, R, X
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
-    CatStateCreatorFlagPattern
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer
-from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
-    OperationsApplierUsingCatState
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool, cx_sequentially_further_qubits_from_first
+from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
 
 
 @dataclass
@@ -39,15 +32,13 @@ class UniversalHadamardHelper:
     def __init__(self,
                  universal_hadamard_code: UniversalHadamardCode,
                  desired_encoding: ErrorCorrectingCode,
-                 cat_state_creator_type: Type[CatStateCreator] = CatStateCreatorFlagPattern,
-                 measurer_type: Type[Measurer] = FaultTolerantMeasurer,
-                 operations_applier_type: Type[OperationsApplier] = OperationsApplierUsingCatState,
                  ):
         self._universal_hadamard_code = universal_hadamard_code
         self._desired_encoding = desired_encoding
-        self._cat_state_creator_type = cat_state_creator_type
-        self._measurer_type = measurer_type
-        self._operations_applier_type = operations_applier_type
+
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        self._cat_state_creator_type = configuration.cat_state_creator_type
+        self._measurer_type = configuration.measurer_type
 
     def get_circuit(self) -> Circuit:
         # TODO create Singleton logical encoding store so that all encodings can be corrected at any time or place throughout the code
@@ -107,14 +98,18 @@ class UniversalHadamardHelper:
         ]
 
     def measure_helper_codes(self, helper_codes: list[UniversalHadamardCode]) -> list[Circuit]:
+        operations_per_code = [
+            list(code.get_operation_circuit(
+                LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)  # TODO allow for multiqubit encoding
+            ).all_operations())
+            for code in helper_codes
+        ]
         return [
             self._measurer_type(
-                operations=list(code.get_operation_circuit(
-                    LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)  # TODO allow for multiqubit encoding
-                ).all_operations()),
+                operations=operations,
                 measurement_key=measurement_key
             ).get_measurement_circuit()
-            for measurement_key, code in zip(self._measurement_keys, helper_codes)
+            for measurement_key, operations in zip(self._measurement_keys, operations_per_code)
         ]
 
     @cached_property
@@ -122,10 +117,11 @@ class UniversalHadamardHelper:
         return [MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}') for _ in range(self._num_additional_universal_hadamard_codes)]
 
     def get_recovery_circuit(self) -> Circuit:
-        return self._operations_applier_type(
-            operations=self._get_operations_for_recovery(),
-            condition=self._get_xor_condition()
-        ).get_application_circuit()
+        return Circuit(
+            CircuitOperation(
+                FrozenCircuit(self._get_operations_for_recovery()),
+            ).with_classical_controls(self._get_xor_condition())
+        )
 
     def _get_operations_for_recovery(self) -> list[Operation]:
         logical_operation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
