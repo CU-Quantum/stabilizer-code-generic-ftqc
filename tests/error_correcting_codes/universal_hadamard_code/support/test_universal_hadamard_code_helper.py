@@ -1,4 +1,5 @@
-from cirq import LineQubit
+import pytest
+from cirq import Circuit, I, LineQubit, R, Simulator, X, Z
 
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.support.universal_hadamard_code_helper import \
@@ -6,25 +7,68 @@ from stim_experiments.error_correcting_codes.universal_hadamard_code.support.uni
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
 from stim_experiments.utilities import FreshAncillasPool
+from tests.utilities import states_are_equal
 
 
 class TestUniversalHadamardCodeHelper:
-    def test_use_fresh_ancilla_qubits(self):
-        arbitrary_num_qubits_in_cat_state = 5
-        code = UniversalHadamardCode(num_qubits_in_cat_state=arbitrary_num_qubits_in_cat_state)
-        universal_hadamard_code_helper = UniversalHadamardCodeHelper(code=code)
-        FreshAncillasPool().set_first_ancilla_num(len(code.data_qubits))
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        arbitrary_num_qubits_in_cat_state = 2
+        self._main_code = UniversalHadamardCode(num_qubits_in_cat_state=arbitrary_num_qubits_in_cat_state)
+        self._universal_hadamard_code_helper = UniversalHadamardCodeHelper(code=self._main_code)
+        self._num_qubits_in_cat_state = arbitrary_num_qubits_in_cat_state
+        FreshAncillasPool().set_first_ancilla_num(len(self._main_code.data_qubits))
 
+    def test_use_fresh_ancilla_qubits(self):
         expected_helper_codes = [
-            UniversalHadamardCode(num_qubits_in_cat_state=arbitrary_num_qubits_in_cat_state,
-                                  qubits=LineQubit.range(15, 30)),
-            UniversalHadamardCode(num_qubits_in_cat_state=arbitrary_num_qubits_in_cat_state,
-                                  qubits=LineQubit.range(30, 45)),
+            UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
+                                  qubits=LineQubit.range(6, 12)),
+            UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
+                                  qubits=LineQubit.range(12, 18)),
         ]
-        with universal_hadamard_code_helper.use_fresh_ancilla_qubits() as universal_hadamard_code_helper_context:
+        with self._universal_hadamard_code_helper.use_fresh_ancilla_qubits() as universal_hadamard_code_helper_context:
             assert universal_hadamard_code_helper_context == UniversalHadamardCodeHelperContext(
-                ancilla_qubits=LineQubit.range(15, 45),
+                ancilla_qubits=LineQubit.range(6, 18),
                 helper_codes=expected_helper_codes,
-                all_universal_hadamard_codes=[code, *expected_helper_codes],
-                helper_3cat=ThreeCatCode(num_qubits_in_cat_state=15, qubits=LineQubit.range(45)),
+                all_universal_hadamard_codes=[self._main_code, *expected_helper_codes],
+                helper_3cat=ThreeCatCode(num_qubits_in_cat_state=6, qubits=LineQubit.range(18)),
             )
+
+    def test_encode_helper_registers(self):
+        arbitrary_num_codes = 2
+
+        codes = [UniHCodeStub(num_qubits_in_cat_state=1, id_index=i) for i in range(arbitrary_num_codes)]
+        operations = self._universal_hadamard_code_helper.encode_helper_registers(helper_codes=codes)
+        expected_circuit = Circuit(X(LineQubit(i)) for i in range(arbitrary_num_codes))
+        assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
+
+    def test_correct_codes(self):
+        arbitrary_num_codes = 2
+
+        codes = [UniHCodeStub(num_qubits_in_cat_state=1, id_index=i) for i in range(arbitrary_num_codes)]
+        operations = self._universal_hadamard_code_helper.correct_codes(codes=codes)
+        expected_circuit = Circuit(Z(LineQubit(i)) for i in range(arbitrary_num_codes))
+        assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
+
+    def test_reset_ancilla_qubits(self):
+        arbitrary_num_qubits = 2
+
+        ancillas = LineQubit.range(arbitrary_num_qubits)
+        operations = self._universal_hadamard_code_helper.reset_ancilla_qubits(ancilla_qubits=ancillas)
+        expected_circuit = Circuit(R(ancilla) for ancilla in ancillas)
+        assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
+
+
+class UniHCodeStub(UniversalHadamardCode):
+    _id_index = 0
+
+    def __init__(self, num_qubits_in_cat_state: int, id_index: int):
+        super().__init__(num_qubits_in_cat_state=num_qubits_in_cat_state)
+        self._id_index = id_index
+
+    def encode_logical_qubit(self) -> Circuit:
+        return Circuit(X(LineQubit(self._id_index)))
+
+    def get_error_correction_circuit(self) -> Circuit:
+        return Circuit(Z(LineQubit(self._id_index)))
+
