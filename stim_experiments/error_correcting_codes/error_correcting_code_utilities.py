@@ -8,7 +8,8 @@ from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector, tensor, trace_out_ancillas_in_zero_state
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, tensor, \
+    trace_out_ancillas_in_zero_state
 
 
 class ErrorCorrectingCodeUtilities(ABC):

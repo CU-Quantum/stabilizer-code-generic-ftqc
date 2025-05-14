@@ -15,8 +15,6 @@ from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correc
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.support.universal_hadamard_helper import \
-    UniversalHadamardHelper
 
 
 class UniversalHadamardCode(ErrorCorrectingCode):

@@ -4,7 +4,7 @@ from cirq import Circuit, LineQubit, Simulator, X, \
     Z
 from numpy.ma.core import allequal
 
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 

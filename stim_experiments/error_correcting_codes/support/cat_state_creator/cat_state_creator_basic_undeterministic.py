@@ -8,7 +8,7 @@ from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_mea
     VerificationIsZero
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.parity_verifier import \
     ParityVerifier
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.cat_state_creator import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
 
 

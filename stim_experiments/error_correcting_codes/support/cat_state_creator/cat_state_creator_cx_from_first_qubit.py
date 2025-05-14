@@ -1,6 +1,7 @@
-from cirq import Circuit, H, LineQubit, X
+from cirq import Circuit, H, LineQubit
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
 
 
 class CatStateCreatorCxFromFirstQubit(CatStateCreator):
@@ -14,5 +15,5 @@ class CatStateCreatorCxFromFirstQubit(CatStateCreator):
             return Circuit()
         return Circuit(
             H(self._qubit_register[0]),
-            [X(self._qubit_register[i]).controlled_by(self._qubit_register[0]) for i in range(1, len(self._qubit_register))],
+            cx_sequentially_further_qubits_from_first(qubits=self._qubit_register),
         )

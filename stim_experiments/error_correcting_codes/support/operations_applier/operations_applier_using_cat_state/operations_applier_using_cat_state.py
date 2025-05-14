@@ -3,9 +3,9 @@ from typing import Optional
 from cirq import Circuit, CircuitOperation, Condition, LineQubit, Operation
 from sympy import Expr
 
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.cat_state_creator_basic_undeterministic import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_undeterministic import \
     CatStateCreatorBasicUndeterministic
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.controlled_single_qubit_gates_applier import \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
 from stim_experiments.utilities import FreshAncillasPool

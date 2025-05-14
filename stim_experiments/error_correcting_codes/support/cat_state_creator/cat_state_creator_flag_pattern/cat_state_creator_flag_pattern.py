@@ -14,7 +14,8 @@ from numpy.ma.extras import average
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
-from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.utilities import FreshAncillasPool, cx_sequentially_closer_qubits_from_first
+
 
 @dataclass
 class ParityCheckInfo:
@@ -87,7 +88,7 @@ class CatStateCreatorFlagPattern(CatStateCreator):
     def _create_cat_state(self) -> list[list[Operation]]:
         return [
             [H(self._control_qubit)],
-            [X(target_qubit).controlled_by(self._control_qubit) for target_qubit in reversed(self._qubit_register[1:])],
+            cx_sequentially_closer_qubits_from_first(qubits=self._qubit_register),
         ]
 
     def _measure_flags(self) -> list[list[Operation]]:

@@ -21,7 +21,7 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
-from stim_experiments.utilities import FreshAncillasPool
+from stim_experiments.utilities import FreshAncillasPool, cx_sequentially_further_qubits_from_first
 
 
 @dataclass
@@ -65,7 +65,6 @@ class UniversalHadamardHelper:
                 self.create_cat_states_on_all_subregisters(codes=all_universal_hadamard_codes),
                 self.correct_codes(codes=[helper_3cat]),
 
-                # TODO encode directly into desired code instead
                 self.encode_to_desired_code(),
                 self.correct_codes(codes=[self._desired_encoding] + additional_universal_hadamard_codes),
 
@@ -91,7 +90,7 @@ class UniversalHadamardHelper:
     def create_cat_states_on_all_subregisters(self, codes: list[UniversalHadamardCode]) -> OP_TREE:
         return [
             [
-                [X(subregister[i]).controlled_by(subregister[0]) for i in range(1, len(subregister))],
+                cx_sequentially_further_qubits_from_first(qubits=subregister),
                 self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit(),
             ] for code in codes for subregister in code.subregisters
         ]

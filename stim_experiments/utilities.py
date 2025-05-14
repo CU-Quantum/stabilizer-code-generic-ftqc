@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from typing import ContextManager, Generator, Optional
 
-from cirq import KET_ONE, KET_PLUS, KET_ZERO, LineQubit, density_matrix_from_state_vector, kron
+from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, density_matrix_from_state_vector, kron
 from numpy import array, log2, sqrt, trace
 from numpy._typing import NDArray
 
@@ -12,6 +12,7 @@ TYPE_STATE_VECTOR_OR_DENSITY_MATRIX = TYPE_DENSITY_MATRIX | TYPE_STATE_VECTOR
 KET_ZERO_STATE_VECTOR = KET_ZERO.state_vector()
 KET_ONE_STATE_VECTOR = KET_ONE.state_vector()
 KET_PLUS_STATE_VECTOR = KET_PLUS.state_vector()
+KET_MINUS_STATE_VECTOR = KET_MINUS.state_vector()
 
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
@@ -76,6 +77,14 @@ def binary_array_to_int(binary_array: list[int]) -> int:
 
 def tensor(*states: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
     return kron(*states, shape_len=len(states[0].shape)) if states else array([])
+
+
+def cx_sequentially_closer_qubits_from_first(qubits: list[LineQubit]) -> list[Operation]:
+    return list(reversed(cx_sequentially_further_qubits_from_first(qubits=qubits)))
+
+
+def cx_sequentially_further_qubits_from_first(qubits: list[LineQubit]) -> list[Operation]:
+    return [X(qubits[i]).controlled_by(qubits[0]) for i in range(1, len(qubits))]
 
 
 class FreshAncillasPool:
