@@ -1,9 +1,9 @@
 from functools import cached_property
 
-from cirq import Circuit, H, LineQubit, M, R
+from cirq import Circuit, H, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
     OperationsApplierUsingCatState, FaultTolerantMeasurer
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     SimulationOperation
@@ -40,7 +40,7 @@ class CircuitFromOperationCreator:
                 initial_control_qubit=control_measurements[i],
                 ancillas=control_ancillas,
                 measurement_qubit_preparer=Circuit(H(control_measurements[i])),
-            ).get_circuit()
+            ).get_application_circuit()
             for i in range(controls_needed)
         ]
         target_controlled_by_ancilla = [target_operation.controlled_by(control_measurement)

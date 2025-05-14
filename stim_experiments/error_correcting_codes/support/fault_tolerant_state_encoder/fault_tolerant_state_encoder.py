@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Operation
 
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 
 

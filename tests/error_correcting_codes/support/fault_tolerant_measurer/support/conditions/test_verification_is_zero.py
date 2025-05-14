@@ -1,9 +1,8 @@
-import numpy
 import pytest
 from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, FrozenCircuit, LineQubit, M, MeasurementKey, \
     Simulator
 
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.conditions.verification_is_zero import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.conditions.verification_is_zero import \
     VerificationIsZero
 
 

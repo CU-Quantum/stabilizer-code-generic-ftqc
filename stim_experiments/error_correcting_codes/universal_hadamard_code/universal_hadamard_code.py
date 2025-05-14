@@ -15,8 +15,8 @@ from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correc
 from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
     FaultTolerantStateEncoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.universal_hadamard_code.support.universal_hadamard_code_helper import \
-    UniversalHadamardCodeHelper
+from stim_experiments.error_correcting_codes.support.universal_hadamard_helper import \
+    UniversalHadamardHelper
 
 
 class UniversalHadamardCode(ErrorCorrectingCode):
@@ -85,8 +85,6 @@ class UniversalHadamardCode(ErrorCorrectingCode):
             return Circuit(
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
-        elif operation.gate == LogicalGateLabel.H:
-            return UniversalHadamardCodeHelper(code=self).get_circuit()
         return None
 
     @cached_property

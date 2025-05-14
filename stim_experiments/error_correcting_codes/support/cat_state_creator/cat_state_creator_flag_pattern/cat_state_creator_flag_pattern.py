@@ -11,7 +11,8 @@ from numpy import array
 from numpy._typing import NDArray
 from numpy.ma.extras import average
 
-from stim_experiments.error_correcting_codes.support.cat_state_creator.support.flag_sequnce_generator import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
 from stim_experiments.utilities import FreshAncillasPool
 
@@ -61,14 +62,14 @@ class ParityCheckIndexLimit(Condition):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
-class CatStateCreatorFlagPattern:
+class CatStateCreatorFlagPattern(CatStateCreator):
     # TODO clean this up
     """
     Idea comes from https://quantum-journal.org/papers/q-2023-10-24-1154/
     Note that you apparently cannot use this for syndrome measurement.
     """
     def __init__(self, qubit_register: list[LineQubit]):
-        self._qubit_register = qubit_register
+        super().__init__(qubit_register=qubit_register)
 
     def get_cat_state_circuit(self) -> Circuit:
         if not self._num_data_qubits:

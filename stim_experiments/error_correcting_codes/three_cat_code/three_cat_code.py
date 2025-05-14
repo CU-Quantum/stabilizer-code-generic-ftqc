@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, ClassicalDataStoreReader, Condition, FrozenCircuit, LineQubit, \
+from cirq import Circuit, ClassicalDataStoreReader, Condition, LineQubit, \
     MeasurementKey, X, Z
 from cirq.protocols import json_serialization
 
@@ -10,11 +10,8 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.fault_tolerant_measurer import \
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
-from stim_experiments.error_correcting_codes.support.fault_tolerant_measurer.support.parity_verifier import \
-    ParityVerifier
-from stim_experiments.utilities import FreshAncillasPool
 
 
 @dataclass(frozen=True)
