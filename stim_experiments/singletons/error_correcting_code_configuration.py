@@ -19,7 +19,7 @@ class ConfigurationErrorCorrectingCodeManager:
     _configuration = None
 
     @classmethod
-    def get_configuration(cls) -> 'ConfigurationErrorCorrectingCode':
+    def get_configuration(cls) -> ConfigurationErrorCorrectingCode:
         if cls._configuration is None:
             cls._configuration = ConfigurationErrorCorrectingCode()
         return cls._configuration

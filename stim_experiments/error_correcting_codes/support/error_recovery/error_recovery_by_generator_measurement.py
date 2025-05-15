@@ -7,6 +7,7 @@ from cirq import Circuit, ClassicalDataStoreReader, Condition, LineQubit, Measur
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates, RecoveryOperations
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
+from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 @dataclass(frozen=True)
@@ -33,17 +34,20 @@ class RecoveryCondition(Condition):
         raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
-class FaultTolerantErrorCorrection:
+class ErrorRecoveryByGeneratorMeasurement:
     def __init__(self, generator_operations: list[list[Operation]], recoveries: list[RecoveryGates], qubits: list[LineQubit]):
         self._generator_operations = generator_operations
         self._recovery_gates = recoveries
         self._qubits = qubits
 
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        self._measurer_type = configuration.measurer_type
+
     def get_error_correction_circuit(self) -> Circuit:
         measurement_key = MeasurementKey(f'ERROR_CORRECTION_{uuid4()}')
 
         syndrome_operations = [
-            FaultTolerantMeasurer(
+            self._measurer_type(
                 operations=operations,
                 measurement_key=measurement_key,
                 ).get_measurement_circuit()

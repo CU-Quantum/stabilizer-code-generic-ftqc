@@ -2,13 +2,13 @@ from functools import cached_property
 from typing import Optional
 
 from cirq import Circuit, I, LineQubit, Operation, X, Y, Z
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates, RecoveryOperations
+from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
-    FaultTolerantErrorCorrection
-from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
-    FaultTolerantStateEncoder
+from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
+    ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
+    StateEncoderByGeneratorMeasurement
 
 
 class FiveQubitCode(ErrorCorrectingCode):
@@ -35,7 +35,7 @@ class FiveQubitCode(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> Circuit:
         phase_corrections = [self._get_phase_corrections(generator_index=generator_index)
                              for generator_index in range(len(self._generators))]
-        return FaultTolerantStateEncoder(generators=self._generator_operations, phase_corrections=phase_corrections).encode_state()
+        return StateEncoderByGeneratorMeasurement(generators=self._generator_operations, phase_corrections=phase_corrections).encode_state()
 
     def _get_phase_corrections(self, generator_index: int) -> list[Operation]:
         fix_qubits = self._flip_corrections[generator_index]
@@ -123,9 +123,9 @@ class FiveQubitCode(ErrorCorrectingCode):
             ),
         ]
 
-        return FaultTolerantErrorCorrection(generator_operations=self._generator_operations,
-                                            qubits=self.data_qubits,
-                                            recoveries=recoveries).get_error_correction_circuit()
+        return ErrorRecoveryByGeneratorMeasurement(generator_operations=self._generator_operations,
+                                                   qubits=self.data_qubits,
+                                                   recoveries=recoveries).get_error_correction_circuit()
 
     @cached_property
     def _generator_operations(self) -> list[list[Operation]]:

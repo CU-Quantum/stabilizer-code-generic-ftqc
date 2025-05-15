@@ -10,10 +10,10 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.che
     CheckMatrixToGates
 
 
-class LogicalQubitEncoderGottesman:
-    def __init__(self, check_matrix_standardized: CheckMatrixStandardized, data_qubits: List[LineQubit]):
+class StateEncoderGottesman:
+    def __init__(self, check_matrix_standardized: CheckMatrixStandardized, data_qubits: list[LineQubit]):
+        super().__init__(check_matrix=check_matrix_standardized, data_qubits=data_qubits)
         self._check_matrix_standardized = check_matrix_standardized
-        self._data_qubits = data_qubits
 
     def get_encoding_circuit(self) -> Circuit:
         hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in

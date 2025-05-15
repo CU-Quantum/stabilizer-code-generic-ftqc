@@ -18,11 +18,8 @@ class OperationsApplierUsingCatStateControl(OperationsApplier):
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._operations) - 1) as ancilla_qubits:
             control_qubits = [self._measurement_qubit] + ancilla_qubits
             cat_state_creator = CatStateCreatorBasicNondeterministic(qubit_register=control_qubits)
-            circuit = ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit()
             return Circuit(
                 cat_state_creator.get_cat_state_circuit(),
-                CircuitOperation(circuit.freeze()).with_classical_controls(self._condition)
-                    if self._condition
-                    else circuit,
+                ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
                 cat_state_creator.decode_state(),
             )

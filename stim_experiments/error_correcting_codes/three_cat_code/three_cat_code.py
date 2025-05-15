@@ -12,6 +12,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     CatStateCreatorFlagPattern
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
+from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 @dataclass(frozen=True)
@@ -65,11 +66,16 @@ class ThreeCatCode(ErrorCorrectingCode):
                          num_logical_qubits=1,
                          qubits=qubits)
 
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        self._cat_state_creator_type = configuration.cat_state_creator_type
+        self._measurer_type = configuration.measurer_type
+
     def encode_logical_qubit(self) -> Circuit:
+        subregisters = [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
+                        for i in range(self.num_cats)]
         return Circuit(
-            CatStateCreatorFlagPattern(qubit_register=self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
-                                       ).get_cat_state_circuit()
-            for i in range(self.num_cats)
+            self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
+            for subregister in subregisters
         )
 
     def get_error_correction_circuit(self) -> Circuit:
@@ -84,9 +90,9 @@ class ThreeCatCode(ErrorCorrectingCode):
             measurement_key = MeasurementKey(f"THREE_CAT_Z_STABILIZER_{cat_index}_{uuid4()}")
             circuit.append([
                 [
-                    FaultTolerantMeasurer(operations=[Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state + pair_start_index + i])
-                                                      for i in range(2)],
-                                          measurement_key=measurement_key).get_measurement_circuit()
+                    self._measurer_type(operations=[Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state + pair_start_index + i])
+                                                    for i in range(2)],
+                                        measurement_key=measurement_key).get_measurement_circuit()
                     for pair_start_index in range(self._num_qubits_in_cat_state - 1)
                 ],
                 [
@@ -102,7 +108,7 @@ class ThreeCatCode(ErrorCorrectingCode):
         measurement_key = MeasurementKey(f"THREE_CAT_X_STABILIZER_{uuid4()}")
         for cat_index in range(self.num_cats - 1):
             circuit.append(
-                FaultTolerantMeasurer(
+                self._measurer_type(
                     operations=[X(self.data_qubits[cat_index * self._num_qubits_in_cat_state + i])
                                 for i in range(2 * self._num_qubits_in_cat_state)],
                     measurement_key=measurement_key).get_measurement_circuit()

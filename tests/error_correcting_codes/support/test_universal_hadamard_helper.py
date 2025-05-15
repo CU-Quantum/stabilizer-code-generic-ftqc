@@ -35,7 +35,6 @@ class TestUniversalHadamardCodeHelper:
         configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
         configuration.measurer_type = MeasurerWithSingleQubit
-        # TODO include FaultTolerantStateEncoder and possibly FaultTolerantErrorCorrection
 
     def test_puts_zero_into_plus(self):
         arbitrary_desired_code = GenericStabilizerCode(generators=array([

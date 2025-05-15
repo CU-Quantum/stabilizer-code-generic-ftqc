@@ -9,10 +9,8 @@ class OperationsApplier(ABC):
     def __init__(self,
                  operations: list[Operation],
                  measurement_qubit: LineQubit,
-                 condition: Optional[Condition | Expr] = None,
                  ):
         self._operations = operations
-        self._condition = condition
         self._measurement_qubit = measurement_qubit
 
     @abstractmethod

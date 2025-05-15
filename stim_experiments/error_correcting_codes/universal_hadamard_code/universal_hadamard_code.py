@@ -10,10 +10,10 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_data
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
     CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
-from stim_experiments.error_correcting_codes.support.fault_tolerant_error_correction.fault_tolerant_error_correction import \
-    FaultTolerantErrorCorrection
-from stim_experiments.error_correcting_codes.support.fault_tolerant_state_encoder.fault_tolerant_state_encoder import \
-    FaultTolerantStateEncoder
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
+    ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
+    StateEncoderByGeneratorMeasurement
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 
 
@@ -50,8 +50,8 @@ class UniversalHadamardCode(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> Circuit:
         phase_corrections = [self._get_phase_correction(generator_index=generator_index)
                              for generator_index in range(len(self._generator_operations))]
-        return FaultTolerantStateEncoder(generators=self._generator_operations,
-                                         phase_corrections=phase_corrections).encode_state()
+        return StateEncoderByGeneratorMeasurement(generators=self._generator_operations,
+                                                  phase_corrections=phase_corrections).encode_state()
 
     def _get_phase_correction(self, generator_index: int) -> list[Operation]:
         is_x_stabilizer = generator_index < len(self._generator_operations) - 2
@@ -66,9 +66,9 @@ class UniversalHadamardCode(ErrorCorrectingCode):
             return [Z(self.data_qubits[0 - is_last_generator])]
 
     def get_error_correction_circuit(self) -> Circuit:
-        return FaultTolerantErrorCorrection(generator_operations=self._generator_operations,
-                                            recoveries=RecoveryFinder(check_matrix=self._check_matrix).find_recoveries(),
-                                            qubits=self.data_qubits).get_error_correction_circuit()
+        return ErrorRecoveryByGeneratorMeasurement(generator_operations=self._generator_operations,
+                                                   recoveries=RecoveryFinder(check_matrix=self._check_matrix).find_recoveries(),
+                                                   qubits=self.data_qubits).get_error_correction_circuit()
 
     @cached_property
     def _generator_operations(self) -> list[list[Operation]]:

@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, H
+from cirq import Circuit, H
 
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
@@ -13,15 +13,10 @@ class OperationsApplierUsingSingleQubitHadamardControl(OperationsApplier):
 
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1 - bool(self._measurement_qubit)) as ancilla_qubits:
             self._measurement_qubit = self._measurement_qubit or ancilla_qubits[0]
-            circuit = Circuit(
+            return Circuit(
                 H(self._measurement_qubit),
                 [
                     operation.controlled_by(self._measurement_qubit)
                     for operation in self._operations
                 ],
             )
-            if self._condition:
-                return Circuit(
-                    CircuitOperation(circuit.freeze()).with_classical_controls(self._condition)
-                )
-            return circuit

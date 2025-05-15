@@ -9,6 +9,8 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, Measuremen
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
+    CatStateCreatorCxFromFirstQubit
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
@@ -46,7 +48,7 @@ class UniversalHadamardHelper:
             ancilla_qubits = universal_hadamard_code_helper_context.ancilla_qubits
             additional_universal_hadamard_codes = universal_hadamard_code_helper_context.additional_universal_hadamard_codes
             all_universal_hadamard_codes = universal_hadamard_code_helper_context.all_universal_hadamard_codes
-            helper_3cat = universal_hadamard_code_helper_context.helper_3cat
+            large_3cat = universal_hadamard_code_helper_context.helper_3cat
             return Circuit(
                 self.encode_helper_registers(codes=additional_universal_hadamard_codes),
                 self.correct_codes(codes=all_universal_hadamard_codes),
@@ -54,9 +56,9 @@ class UniversalHadamardHelper:
                 self.cx_data_to_helpers(codes=additional_universal_hadamard_codes, codes_to_correct=all_universal_hadamard_codes),
 
                 self.create_cat_states_on_all_subregisters(codes=all_universal_hadamard_codes),
-                self.correct_codes(codes=[helper_3cat]),
+                self.correct_codes(codes=[large_3cat]),
 
-                self.encode_to_desired_code(),
+                self.encode_to_desired_code(all_universal_hadamard_codes=all_universal_hadamard_codes),
                 self.correct_codes(codes=[self._desired_encoding] + additional_universal_hadamard_codes),
 
                 self.measure_helper_codes(helper_codes=additional_universal_hadamard_codes),
@@ -86,14 +88,18 @@ class UniversalHadamardHelper:
             ] for code in codes for subregister in code.subregisters
         ]
 
-    def encode_to_desired_code(self):
+    def encode_to_desired_code(self, all_universal_hadamard_codes: list[UniversalHadamardCode]) -> OP_TREE:
         desired_code = self._desired_encoding.create_new(qubits=self._universal_hadamard_code.subregisters[0])
-        unentangle_extra_subregisters = [  # TODO do this for all three uni h codes, then correct with 3cat before encoding desired
-            X(self._universal_hadamard_code.data_qubits[0]).controlled_by(self._universal_hadamard_code.data_qubits[i])
-            for i in range(len(self._universal_hadamard_code.subregisters[0]), len(self._universal_hadamard_code.data_qubits))
+        unentangle_extra_subregisters = [
+            cx_sequentially_further_qubits_from_first(qubits=subregister)
+            for code in all_universal_hadamard_codes
+            for subregister in code.subregisters
         ]
+        qubits_for_3cat = [qubit for code in all_universal_hadamard_codes for qubit in code.subregisters[0]]
+        correcting_3cat = ThreeCatCode(num_qubits_in_cat_state=len(desired_code.data_qubits), qubits=qubits_for_3cat)
         return [
             unentangle_extra_subregisters,
+            correcting_3cat.get_error_correction_circuit(),
             desired_code.encode_logical_qubit()
         ]
 
