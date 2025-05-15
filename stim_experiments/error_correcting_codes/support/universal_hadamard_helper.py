@@ -9,8 +9,8 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, Measuremen
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
-    CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.parity_verifier import \
+    ParityVerifier
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
     UniversalHadamardCode
@@ -20,7 +20,7 @@ from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
 
 
 @dataclass
-class UniversalHadamardHelperContext:
+class UniversalHadamardCodeToDesiredCodeHadamard:
     ancilla_qubits: list[LineQubit]
     additional_universal_hadamard_codes: list[UniversalHadamardCode]
     all_universal_hadamard_codes: list[UniversalHadamardCode]
@@ -49,6 +49,11 @@ class UniversalHadamardHelper:
             additional_universal_hadamard_codes = universal_hadamard_code_helper_context.additional_universal_hadamard_codes
             all_universal_hadamard_codes = universal_hadamard_code_helper_context.all_universal_hadamard_codes
             large_3cat = universal_hadamard_code_helper_context.helper_3cat
+
+            three_desired_codes = [
+                self._desired_encoding.create_new(qubits=code.subregisters[0])
+                for code in all_universal_hadamard_codes
+            ]
             return Circuit(
                 self.encode_helper_registers(codes=additional_universal_hadamard_codes),
                 self.correct_codes(codes=all_universal_hadamard_codes),
@@ -58,15 +63,20 @@ class UniversalHadamardHelper:
                 self.create_cat_states_on_all_subregisters(codes=all_universal_hadamard_codes),
                 self.correct_codes(codes=[large_3cat]),
 
-                self.encode_to_desired_code(all_universal_hadamard_codes=all_universal_hadamard_codes),
-                self.correct_codes(codes=[self._desired_encoding] + additional_universal_hadamard_codes),
+                self.encode_to_desired_code(desired_codes=three_desired_codes, all_universal_hadamard_codes=all_universal_hadamard_codes),
 
-                self.measure_helper_codes(helper_codes=additional_universal_hadamard_codes),
+                self.measure_helper_codes(helper_codes=three_desired_codes[1:]),
+                self.correct_codes(codes=[three_desired_codes[0]]),
+                self.get_recovery_circuit(desired_code=three_desired_codes[0]),
+
                 self.reset_ancilla_qubits(ancilla_qubits=ancilla_qubits),
-                self.correct_codes(codes=[self._desired_encoding]),
-
-                self.get_recovery_circuit(),
             )
+
+    def cx_additional_universal_hadamard_codes(self, codes: list[ErrorCorrectingCode]) -> OP_TREE:
+        return [
+            cx_sequentially_further_qubits_from_first(qubits=code.data_qubits)
+            for code in codes
+        ]
 
     def cx_data_to_helpers(self, codes: list[UniversalHadamardCode], codes_to_correct: list[ErrorCorrectingCode]) -> OP_TREE:
         return [
@@ -88,22 +98,52 @@ class UniversalHadamardHelper:
             ] for code in codes for subregister in code.subregisters
         ]
 
-    def encode_to_desired_code(self, all_universal_hadamard_codes: list[UniversalHadamardCode]) -> OP_TREE:
-        desired_code = self._desired_encoding.create_new(qubits=self._universal_hadamard_code.subregisters[0])
+    def encode_to_desired_code(self, desired_codes: list[ErrorCorrectingCode], all_universal_hadamard_codes: list[UniversalHadamardCode]) -> OP_TREE:
         unentangle_extra_subregisters = [
-            cx_sequentially_further_qubits_from_first(qubits=subregister)
+            cx_sequentially_further_qubits_from_first(qubits=code.data_qubits[len(code.subregisters[0]) - 1:])
             for code in all_universal_hadamard_codes
-            for subregister in code.subregisters
         ]
-        qubits_for_3cat = [qubit for code in all_universal_hadamard_codes for qubit in code.subregisters[0]]
-        correcting_3cat = ThreeCatCode(num_qubits_in_cat_state=len(desired_code.data_qubits), qubits=qubits_for_3cat)
-        return [
-            unentangle_extra_subregisters,
-            correcting_3cat.get_error_correction_circuit(),
-            desired_code.encode_logical_qubit()
+        small_3cat_qubits = [qubit for code in desired_codes for qubit in code.data_qubits]
+        small_3cat = ThreeCatCode(num_qubits_in_cat_state=len(desired_codes[0].data_qubits), qubits=small_3cat_qubits)
+        logical_x_operations = [
+            list(code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)).all_operations()) # TODO allow for multiqubit encoding
+            for code in desired_codes
         ]
 
-    def measure_helper_codes(self, helper_codes: list[UniversalHadamardCode]) -> list[Circuit]:
+        measurement_keys = [MeasurementKey(f'ENCODE_DESIRED_MEASURE{uuid4()}') for _ in desired_codes]
+        measurement_symbols = sympy.symbols(' '.join([key.name for key in measurement_keys]))
+        symptoms = [
+            sympy.And(sympy.Ne(*measurement_symbols[:2]), sympy.Eq(*measurement_symbols[1:])),
+            sympy.And(sympy.Eq(*measurement_symbols[:2]), sympy.Eq(*measurement_symbols[1:])),
+            sympy.And(sympy.Eq(*measurement_symbols[:2]), sympy.Ne(*measurement_symbols[1:])),
+        ]
+        logical_z_operations = [
+            list(code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).all_operations()) # TODO allow for multiqubit encoding
+            for code in desired_codes
+        ]
+
+        return [
+            unentangle_extra_subregisters,
+            small_3cat.get_error_correction_circuit(),
+            [
+                desired_code.encode_logical_qubit()
+                for desired_code in desired_codes
+            ],
+            self.correct_codes(codes=desired_codes),
+            [
+                [
+                    self._measurer_type(operations=logical_x_operations[i], measurement_key=measurement_key),
+                    self._measurer_type(operations=logical_x_operations[i + 1], measurement_key=measurement_key)
+                ]
+                for i, measurement_key in enumerate(measurement_keys)
+            ],
+            [
+                CircuitOperation(FrozenCircuit(logical_z)).with_classical_controls(condition)
+                for condition, logical_z in zip(symptoms, logical_z_operations)
+            ]
+        ]
+
+    def measure_helper_codes(self, helper_codes: list[ErrorCorrectingCode]) -> list[Circuit]:
         operations_per_code = [
             list(code.get_operation_circuit(
                 LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)  # TODO allow for multiqubit encoding
@@ -118,27 +158,25 @@ class UniversalHadamardHelper:
             for measurement_key, operations in zip(self._measurement_keys, operations_per_code)
         ]
 
+    def get_recovery_circuit(self, desired_code: ErrorCorrectingCode) -> Circuit:
+        xor_condition = sympy.Xor(*self._measurement_key_symbols)
+        logical_operation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+        return Circuit(
+            CircuitOperation(
+                FrozenCircuit(list(desired_code.get_operation_circuit(logical_operation).all_operations())),
+            ).with_classical_controls(xor_condition)
+        )
+
+    @property
+    def _measurement_key_symbols(self) -> list[sympy.Symbol]:
+        return sympy.symbols(' '.join([key.name for key in self._measurement_keys]))
+
     @cached_property
     def _measurement_keys(self) -> list[MeasurementKey]:
         return [MeasurementKey(f'UNIVERSAL_HADAMARD_CODE_MEASURE_{uuid4()}') for _ in range(self._num_additional_universal_hadamard_codes)]
 
-    def get_recovery_circuit(self) -> Circuit:
-        return Circuit(
-            CircuitOperation(
-                FrozenCircuit(self._get_operations_for_recovery()),
-            ).with_classical_controls(self._get_xor_condition())
-        )
-
-    def _get_operations_for_recovery(self) -> list[Operation]:
-        logical_operation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
-        return list(self._desired_encoding.get_operation_circuit(logical_operation).all_operations())
-
-    def _get_xor_condition(self) -> sympy.Expr:
-        measurement_key_symbols = sympy.symbols(' '.join([key.name for key in self._measurement_keys]))
-        return sympy.Xor(*measurement_key_symbols)
-
     @contextmanager
-    def use_fresh_ancilla_qubits(self) -> Generator[UniversalHadamardHelperContext, None, None]:
+    def use_fresh_ancilla_qubits(self) -> Generator[UniversalHadamardCodeToDesiredCodeHadamard, None, None]:
         num_qubits_in_universal_hadamard_code = len(self._universal_hadamard_code.data_qubits)
         num_ancilla_qubits = num_qubits_in_universal_hadamard_code * self._num_additional_universal_hadamard_codes
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_ancilla_qubits) as ancilla_qubits:
@@ -150,7 +188,7 @@ class UniversalHadamardHelper:
             ]
             helper_3cat = ThreeCatCode(num_qubits_in_cat_state=num_qubits_in_universal_hadamard_code,
                                        qubits=self._universal_hadamard_code.data_qubits + ancilla_qubits)
-            yield UniversalHadamardHelperContext(
+            yield UniversalHadamardCodeToDesiredCodeHadamard(
                 ancilla_qubits=ancilla_qubits,
                 additional_universal_hadamard_codes=additional_universal_hadamard_codes,
                 all_universal_hadamard_codes=[self._universal_hadamard_code] + additional_universal_hadamard_codes,

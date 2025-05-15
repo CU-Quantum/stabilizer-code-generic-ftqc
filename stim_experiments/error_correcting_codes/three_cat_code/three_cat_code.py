@@ -71,11 +71,9 @@ class ThreeCatCode(ErrorCorrectingCode):
         self._measurer_type = configuration.measurer_type
 
     def encode_logical_qubit(self) -> Circuit:
-        subregisters = [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
-                        for i in range(self.num_cats)]
         return Circuit(
             self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
-            for subregister in subregisters
+            for subregister in self.subregisters
         )
 
     def get_error_correction_circuit(self) -> Circuit:
@@ -88,18 +86,20 @@ class ThreeCatCode(ErrorCorrectingCode):
         circuit = Circuit()
         for cat_index in range(self.num_cats):
             measurement_key = MeasurementKey(f"THREE_CAT_Z_STABILIZER_{cat_index}_{uuid4()}")
+            syndrome_measurement = [
+                self._measurer_type(operations=[Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state + pair_start_index + i])
+                                                for i in range(2)],
+                                    measurement_key=measurement_key).get_measurement_circuit()
+                for pair_start_index in range(self._num_qubits_in_cat_state - 1)
+            ]
+            recovery = [
+                X(self.data_qubits[cat_index * self._num_qubits_in_cat_state + i])
+                    .with_classical_controls(ParityCheckReader(key=measurement_key, qubit_correction_index=i))
+                for i in range(self._num_qubits_in_cat_state)
+            ] if syndrome_measurement else []
             circuit.append([
-                [
-                    self._measurer_type(operations=[Z(self.data_qubits[cat_index * self._num_qubits_in_cat_state + pair_start_index + i])
-                                                    for i in range(2)],
-                                        measurement_key=measurement_key).get_measurement_circuit()
-                    for pair_start_index in range(self._num_qubits_in_cat_state - 1)
-                ],
-                [
-                    X(self.data_qubits[cat_index * self._num_qubits_in_cat_state + i])
-                        .with_classical_controls(ParityCheckReader(key=measurement_key, qubit_correction_index=i))
-                    for i in range(self._num_qubits_in_cat_state)
-                ]
+                syndrome_measurement,
+                recovery
             ])
         return circuit
 
@@ -132,3 +132,8 @@ class ThreeCatCode(ErrorCorrectingCode):
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         return None
+
+    @property
+    def subregisters(self) -> list[list[LineQubit]]:
+        return [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
+                for i in range(self.num_cats)]

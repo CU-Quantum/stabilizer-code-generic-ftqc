@@ -85,7 +85,7 @@ class UniversalHadamardCode(ErrorCorrectingCode):
             )
         return None
 
-    @cached_property
+    @property
     def subregisters(self) -> list[list[LineQubit]]:
         return [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
                 for i in range(self.num_cats)]

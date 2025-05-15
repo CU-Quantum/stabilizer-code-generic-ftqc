@@ -11,7 +11,6 @@ class MeasurerWithSingleQubit(Measurer):
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measuring_qubit = ancilla_qubits[0]
             return Circuit(
-                H(measuring_qubit),
                 OperationsApplierUsingSingleQubitHadamardControl(
                     operations=self._operations,
                     measurement_qubit=measuring_qubit,
