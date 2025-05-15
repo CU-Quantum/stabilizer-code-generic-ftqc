@@ -104,3 +104,8 @@ class TestRecoveryFinder:
                 ),
             ],
         }
+
+    def test_no_symptoms_of_all_zero(self):
+        check_matrix = CheckMatrix(matrix=array([[0, 0]]))
+        recoveries = RecoveryFinder(check_matrix=check_matrix).find_recoveries()
+        assert recoveries == []

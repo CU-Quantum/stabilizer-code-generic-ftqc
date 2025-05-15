@@ -110,12 +110,10 @@ class UniversalHadamardHelper:
             for code in desired_codes
         ]
 
-        measurement_keys = [MeasurementKey(f'ENCODE_DESIRED_MEASURE{uuid4()}') for _ in desired_codes]
-        measurement_symbols = sympy.symbols(' '.join([key.name for key in measurement_keys]))
         symptoms = [
-            sympy.And(sympy.Ne(*measurement_symbols[:2]), sympy.Eq(*measurement_symbols[1:])),
-            sympy.And(sympy.Eq(*measurement_symbols[:2]), sympy.Eq(*measurement_symbols[1:])),
-            sympy.And(sympy.Eq(*measurement_symbols[:2]), sympy.Ne(*measurement_symbols[1:])),
+            sympy.And(sympy.Eq(self._measurement_key_symbols[0], 1), sympy.Eq(self._measurement_key_symbols[1], 0)),
+            sympy.And(sympy.Eq(self._measurement_key_symbols[0], 1), sympy.Eq(self._measurement_key_symbols[1], 1)),
+            sympy.And(sympy.Eq(self._measurement_key_symbols[0], 0), sympy.Eq(self._measurement_key_symbols[1], 1)),
         ]
         logical_z_operations = [
             list(code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).all_operations()) # TODO allow for multiqubit encoding
@@ -131,11 +129,8 @@ class UniversalHadamardHelper:
             ],
             self.correct_codes(codes=desired_codes),
             [
-                [
-                    self._measurer_type(operations=logical_x_operations[i], measurement_key=measurement_key),
-                    self._measurer_type(operations=logical_x_operations[i + 1], measurement_key=measurement_key)
-                ]
-                for i, measurement_key in enumerate(measurement_keys)
+                self._measurer_type(operations=logical_x_operations[i] + logical_x_operations[i + 1], measurement_key=measurement_key).get_measurement_circuit()
+                for i, measurement_key in enumerate(self._measurement_keys)
             ],
             [
                 CircuitOperation(FrozenCircuit(logical_z)).with_classical_controls(condition)
@@ -167,7 +162,7 @@ class UniversalHadamardHelper:
             ).with_classical_controls(xor_condition)
         )
 
-    @property
+    @cached_property
     def _measurement_key_symbols(self) -> list[sympy.Symbol]:
         return sympy.symbols(' '.join([key.name for key in self._measurement_keys]))
 

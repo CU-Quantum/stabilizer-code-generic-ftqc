@@ -21,7 +21,7 @@ class RecoveryFinder:
                                       qubit_index=column_index,
                                       symptom=self._get_y_symptom(column_index=column_index))
                         for column_index in range(self._check_matrix.num_physical_qubits)]
-        return x_or_z_recoveries + y_recoveries
+        return [recovery for recovery in x_or_z_recoveries + y_recoveries if any(recovery.symptom)]
 
     def _get_y_symptom(self, column_index: int) -> list[int]:
         transposed_check_matrix = self._check_matrix.matrix.transpose()

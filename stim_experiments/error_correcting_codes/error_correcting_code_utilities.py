@@ -48,7 +48,7 @@ class ErrorCorrectingCodeUtilities(ABC):
         )
 
     def get_max_qubit_index(self, circuit: Circuit) -> int:
-        return max(qubit.x for qubit in circuit.all_qubits())
+        return max(circuit.all_qubits()).x
 
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):

@@ -19,119 +19,71 @@ from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_h
     UniversalHadamardCode
 from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
+    KET_ZERO_STATE_VECTOR, \
+    TYPE_STATE_VECTOR, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 from tests.utilities import states_are_equal
 
 
 class TestUniversalHadamardCodeHelper:
-    # @pytest.fixture(autouse=True)
-    # def _setup(self):
-    #     arbitrary_num_qubits_in_cat_state = 2
-    #     self._main_code = UniversalHadamardCode(num_qubits_in_cat_state=arbitrary_num_qubits_in_cat_state)
-    #     self._universal_hadamard_code_helper = UniversalHadamardHelper(code=self._main_code)
-    #     self._num_qubits_in_cat_state = arbitrary_num_qubits_in_cat_state
-    #     FreshAncillasPool().set_first_ancilla_num(len(self._main_code.data_qubits))
 
     @pytest.fixture(autouse=True)
+    def _setup(self):
+        self._set_configuration_to_reduce_ancilla_qubits()
+        arbitrary_desired_code = SingleQubit()
+        self._universal_hadamard_code = UniversalHadamardCode(num_qubits_in_cat_state=len(arbitrary_desired_code.data_qubits))
+        self._num_data_qubits = len(self._universal_hadamard_code.data_qubits)
+        self._helper = UniversalHadamardHelper(universal_hadamard_code=self._universal_hadamard_code, desired_encoding=arbitrary_desired_code)
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=self._num_data_qubits)
+
     def _set_configuration_to_reduce_ancilla_qubits(self):
         configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
         configuration.measurer_type = MeasurerWithSingleQubit
 
     def test_puts_zero_into_plus(self):
-        class SingleQubit(ErrorCorrectingCode):
-            def __init__(self, qubits: Optional[list[LineQubit]] = None):
-                super().__init__(num_data_qubits=1,
-                                 num_logical_qubits=1,
-                                 qubits=qubits)
+        circuit = Circuit(
+            self._universal_hadamard_code.encode_logical_qubit(),
+            self._helper.get_circuit()
+        )
+        expected_state = tensor(KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
+        assert self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
-            def encode_logical_qubit(self) -> Circuit:
-                return Circuit()
+    def test_puts_one_into_minus(self):
+        circuit = Circuit(
+            [X(qubit) for qubit in self._universal_hadamard_code.data_qubits],
+            self._universal_hadamard_code.encode_logical_qubit(),
+            self._helper.get_circuit()
+        )
+        expected_state = tensor(KET_MINUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
+        assert self._circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
-            def get_error_correction_circuit(self) -> Circuit:
-                return Circuit()
-
-            def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
-                if operation.gate == LogicalGateLabel.X:
-                    return Circuit(X(self.data_qubits[0]))
-                elif operation.gate == LogicalGateLabel.Z:
-                    return Circuit(Z(self.data_qubits[0]))
-                return None
-
-        arbitrary_desired_code = SingleQubit()
-        universal_hadamard_code = UniversalHadamardCode(num_qubits_in_cat_state=len(arbitrary_desired_code.data_qubits))
-        num_data_qubits = len(universal_hadamard_code.data_qubits)
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=num_data_qubits)
-
-        helper = UniversalHadamardHelper(universal_hadamard_code=universal_hadamard_code, desired_encoding=arbitrary_desired_code)
-        circuit = helper.get_circuit()
-
-        utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+    def _circuit_results_in_expected_state(self, circuit: Circuit, expected_state: TYPE_STATE_VECTOR):
+        utilities = get_error_correcting_code_utilities(state=expected_state)
         simulated_state = utilities.get_state_after_circuit(
             circuit=circuit,
-            num_data_qubits=num_data_qubits,
+            num_data_qubits=self._num_data_qubits,
         ).state
-        expected_state = (1 / sqrt(2)) * (tensor(*[KET_ZERO_STATE_VECTOR] * 3) + tensor(*[KET_ONE_STATE_VECTOR] * 3))
-        assert states_are_equal(simulated_state, expected_state)
+        return states_are_equal(simulated_state, expected_state)
 
 
-    # def test_use_fresh_ancilla_qubits(self):
-    #     expected_helper_codes = [
-    #         UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
-    #                               qubits=LineQubit.range(6, 12)),
-    #         UniversalHadamardCode(num_qubits_in_cat_state=self._num_qubits_in_cat_state,
-    #                               qubits=LineQubit.range(12, 18)),
-    #     ]
-    #     with self._universal_hadamard_code_helper.use_fresh_ancilla_qubits() as universal_hadamard_code_helper_context:
-    #         assert universal_hadamard_code_helper_context == UniversalHadamardHelperContext(
-    #             ancilla_qubits=LineQubit.range(6, 18),
-    #             helper_codes=expected_helper_codes,
-    #             all_universal_hadamard_codes=[self._main_code, *expected_helper_codes],
-    #             helper_3cat=ThreeCatCode(num_qubits_in_cat_state=6, qubits=LineQubit.range(18)),
-    #         )
-    #
-    # def test_encode_helper_registers(self):
-    #     arbitrary_num_codes = 2
-    #
-    #     codes = [UniHCodeStub(num_qubits_in_cat_state=1, id_index=i) for i in range(arbitrary_num_codes)]
-    #     operations = self._universal_hadamard_code_helper.encode_helper_registers(codes=codes)
-    #     expected_circuit = Circuit(X(LineQubit(i)) for i in range(arbitrary_num_codes))
-    #     assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
-    #
-    # def test_correct_codes(self):
-    #     arbitrary_num_codes = 2
-    #
-    #     codes = [UniHCodeStub(num_qubits_in_cat_state=1, id_index=i) for i in range(arbitrary_num_codes)]
-    #     operations = self._universal_hadamard_code_helper.correct_codes(codes=codes)
-    #     expected_circuit = Circuit(Z(LineQubit(i)) for i in range(arbitrary_num_codes))
-    #     assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
-    #
-    # def test_reset_ancilla_qubits(self):
-    #     arbitrary_num_qubits = 2
-    #
-    #     ancillas = LineQubit.range(arbitrary_num_qubits)
-    #     operations = self._universal_hadamard_code_helper.reset_ancilla_qubits(ancilla_qubits=ancillas)
-    #     expected_circuit = Circuit(R(ancilla) for ancilla in ancillas)
-    #     assert list(Circuit(operations).all_operations()) == list(expected_circuit.all_operations())
-    #
-    # def test_cx_data_to_helpers(self):
-    #     with self._universal_hadamard_code_helper.use_fresh_ancilla_qubits() as universal_hadamard_code_helper_context:
-    #         self._universal_hadamard_code_helper.cx_data_to_helpers(codes=universal_hadamard_code_helper_context.all_universal_hadamard_codes
-    #                                                                 )
-
-
-class UniHCodeStub(UniversalHadamardCode):
-    _id_index = 0
-
-    def __init__(self, num_qubits_in_cat_state: int, id_index: int):
-        super().__init__(num_qubits_in_cat_state=num_qubits_in_cat_state)
-        self._id_index = id_index
+class SingleQubit(ErrorCorrectingCode):
+    def __init__(self, qubits: Optional[list[LineQubit]] = None):
+        super().__init__(num_data_qubits=1,
+                         num_logical_qubits=1,
+                         qubits=qubits)
 
     def encode_logical_qubit(self) -> Circuit:
-        return Circuit(X(LineQubit(self._id_index)))
+        return Circuit()
 
     def get_error_correction_circuit(self) -> Circuit:
-        return Circuit(Z(LineQubit(self._id_index)))
+        return Circuit()
 
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
+        if operation.gate == LogicalGateLabel.X:
+            return Circuit(X(self.data_qubits[0]))
+        elif operation.gate == LogicalGateLabel.Z:
+            return Circuit(Z(self.data_qubits[0]))
+        return None
