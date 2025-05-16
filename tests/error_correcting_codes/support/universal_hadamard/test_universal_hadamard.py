@@ -35,4 +35,3 @@ class TestUniversalHadamard:
         random_complex_vector = np.random.randn(dimension) + 1j * np.random.randn(dimension)
         unit_complex_vector = random_complex_vector / np.linalg.norm(random_complex_vector)
         return unit_complex_vector
-

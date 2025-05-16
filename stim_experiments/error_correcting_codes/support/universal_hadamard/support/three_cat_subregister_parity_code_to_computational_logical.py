@@ -10,8 +10,8 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, Measuremen
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
-    UniversalHadamardCode
+from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
+    ThreeCatSubregisterParityCode
 from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
@@ -20,14 +20,14 @@ from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
 @dataclass
 class UniversalHadamardCodeToComputationalLogicalContext:
     ancilla_qubits: list[LineQubit]
-    additional_universal_hadamard_codes: list[UniversalHadamardCode]
-    all_universal_hadamard_codes: list[UniversalHadamardCode]
+    additional_universal_hadamard_codes: list[ThreeCatSubregisterParityCode]
+    all_universal_hadamard_codes: list[ThreeCatSubregisterParityCode]
     helper_3cat: ThreeCatCode
 
 
-class UniversalHadamardCodeToComputationalLogical:
+class ThreeCatSubregisterParityCodeToComputationalLogical:
     def __init__(self,
-                 universal_hadamard_code: UniversalHadamardCode,
+                 universal_hadamard_code: ThreeCatSubregisterParityCode,
                  desired_encoding: ErrorCorrectingCode,
                  ):
         self._universal_hadamard_code = universal_hadamard_code
@@ -74,7 +74,7 @@ class UniversalHadamardCodeToComputationalLogical:
             for code in codes
         ]
 
-    def _cx_data_to_helpers(self, codes: list[UniversalHadamardCode], codes_to_correct: list[ErrorCorrectingCode]) -> OP_TREE:
+    def _cx_data_to_helpers(self, codes: list[ThreeCatSubregisterParityCode], codes_to_correct: list[ErrorCorrectingCode]) -> OP_TREE:
         return [
             [
                 self._cx_data_to_helper(code=code),
@@ -82,11 +82,11 @@ class UniversalHadamardCodeToComputationalLogical:
             ] for code in codes
         ]
 
-    def _cx_data_to_helper(self, code: UniversalHadamardCode) -> list[list[Operation]]:
+    def _cx_data_to_helper(self, code: ThreeCatSubregisterParityCode) -> list[list[Operation]]:
         return [X(target_qubit).controlled_by(control_qubit)
                 for target_qubit, control_qubit in zip(code.data_qubits, self._universal_hadamard_code.data_qubits)]
 
-    def _create_cat_states_on_all_subregisters(self, codes: list[UniversalHadamardCode]) -> OP_TREE:
+    def _create_cat_states_on_all_subregisters(self, codes: list[ThreeCatSubregisterParityCode]) -> OP_TREE:
         return [
             [
                 cx_sequentially_further_qubits_from_first(qubits=subregister),
@@ -94,7 +94,7 @@ class UniversalHadamardCodeToComputationalLogical:
             ] for code in codes for subregister in code.subregisters
         ]
 
-    def _encode_to_desired_code(self, desired_codes: list[ErrorCorrectingCode], all_universal_hadamard_codes: list[UniversalHadamardCode]) -> OP_TREE:
+    def _encode_to_desired_code(self, desired_codes: list[ErrorCorrectingCode], all_universal_hadamard_codes: list[ThreeCatSubregisterParityCode]) -> OP_TREE:
         unentangle_extra_subregisters = [
             cx_sequentially_further_qubits_from_first(qubits=code.data_qubits[len(code.subregisters[0]) - 1:])
             for code in all_universal_hadamard_codes

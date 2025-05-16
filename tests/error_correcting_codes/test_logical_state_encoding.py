@@ -11,8 +11,8 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
-    UniversalHadamardCode
+from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
+    ThreeCatSubregisterParityCode
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
     KET_ZERO_DENSITY_MATRIX, \
@@ -48,12 +48,12 @@ class StateParameters:
 PARAMETERS = {
     "UniversalHadamardCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=UniversalHadamardCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
             expected_state=ExpectedStatesUniversalHadamard().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatCode.num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=UniversalHadamardCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
             expected_state=ExpectedStatesUniversalHadamard().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatCode.num_cats),
         ),

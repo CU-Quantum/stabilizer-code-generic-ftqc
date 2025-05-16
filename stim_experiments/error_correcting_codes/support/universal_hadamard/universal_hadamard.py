@@ -6,11 +6,11 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_code_to_computational_logical import \
-    UniversalHadamardCodeToComputationalLogical
+from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical import \
+    ThreeCatSubregisterParityCodeToComputationalLogical
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
-    UniversalHadamardCode
+from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
+    ThreeCatSubregisterParityCode
 from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 
@@ -27,9 +27,9 @@ class UniversalHadamard:
         num_qubits_in_desired_encoding = len(self._code.data_qubits)
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=3 * num_qubits_in_desired_encoding) as ancilla_qubits:
             three_cat = ThreeCatCode(num_qubits_in_cat_state=num_qubits_in_desired_encoding, qubits=ancilla_qubits)
-            uni_h = UniversalHadamardCode(num_qubits_in_cat_state=num_qubits_in_desired_encoding, qubits=ancilla_qubits)
+            uni_h = ThreeCatSubregisterParityCode(num_qubits_in_cat_state=num_qubits_in_desired_encoding, qubits=ancilla_qubits)
             new_encoding = self._code.create_new(qubits=uni_h.subregisters[0])
-            to_computational_logical = UniversalHadamardCodeToComputationalLogical(universal_hadamard_code=uni_h, desired_encoding=self._code)
+            to_computational_logical = ThreeCatSubregisterParityCodeToComputationalLogical(universal_hadamard_code=uni_h, desired_encoding=self._code)
             logical_x, logical_z = (list(self._code.get_operation_circuit(operation=LogicalOperation(gate=gate, qubit_index=0)).all_operations())  # allow multi qubit encodings
                                     for gate in (LogicalGateLabel.X, LogicalGateLabel.Z))
             return Circuit(

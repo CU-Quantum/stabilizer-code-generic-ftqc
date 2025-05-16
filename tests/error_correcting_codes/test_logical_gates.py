@@ -9,8 +9,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
     GenericStabilizerCode
-from stim_experiments.error_correcting_codes.universal_hadamard_code.universal_hadamard_code import \
-    UniversalHadamardCode
+from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
+    ThreeCatSubregisterParityCode
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
@@ -28,7 +28,7 @@ class ParametersForLogicalGatesTest:
 
 PARAMETERS = {
     "UniversalHadamardCode": ParametersForLogicalGatesTest(
-        code=UniversalHadamardCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
         expected_states=ExpectedStatesUniversalHadamard(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(

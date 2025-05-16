@@ -17,7 +17,7 @@ from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 
 
-class UniversalHadamardCode(ErrorCorrectingCode):
+class ThreeCatSubregisterParityCode(ErrorCorrectingCode):
     num_cats = ThreeCatCode.num_cats
 
     def __init__(self, num_qubits_in_cat_state: int, qubits: Optional[list[LineQubit]] = None):
