@@ -8,6 +8,8 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 class MeasurerWithSingleQubit(Measurer):
     def get_measurement_circuit(self) -> Circuit:
+        if not self._operations:
+            return Circuit()
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measuring_qubit = ancilla_qubits[0]
             return Circuit(
@@ -15,7 +17,6 @@ class MeasurerWithSingleQubit(Measurer):
                     operations=self._operations,
                     measurement_qubit=measuring_qubit,
                 ).get_application_circuit(),
-                H(measuring_qubit),
                 M(measuring_qubit, key=self._measurement_key),
                 R(measuring_qubit)
             )

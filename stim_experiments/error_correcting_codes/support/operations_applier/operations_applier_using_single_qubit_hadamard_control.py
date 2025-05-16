@@ -19,4 +19,5 @@ class OperationsApplierUsingSingleQubitHadamardControl(OperationsApplier):
                     operation.controlled_by(self._measurement_qubit)
                     for operation in self._operations
                 ],
+                H(self._measurement_qubit),
             )

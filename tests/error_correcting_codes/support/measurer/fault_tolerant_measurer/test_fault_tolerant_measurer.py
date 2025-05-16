@@ -1,19 +1,25 @@
 import numpy.random
 from cirq import Circuit, LineQubit, MeasurementKey, Simulator, Z
-from numpy.ma.core import allequal
+from numpy.ma.core import allequal, array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_PLUS_STATE_VECTOR
+from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR
 
 
 class TestFaultTolerantMeasurer:
-    def test_trivial(self):
-        measurer = FaultTolerantMeasurer(operations=[])
+    def test_no_operations(self):
+        measurement_key = MeasurementKey('TEST')
+        measurer = FaultTolerantMeasurer(operations=[], measurement_key=measurement_key)
         circuit = measurer.get_measurement_circuit()
-        assert circuit == Circuit()
+        initial_state = KET_PLUS_STATE_VECTOR
+        utilities = get_error_correcting_code_utilities(state=initial_state)
+        simulation = utilities.get_state_after_circuit(circuit=circuit,
+                                                       num_data_qubits=1,
+                                                       initial_data_state=initial_state)
+        assert simulation.measurements[measurement_key.name] == array([0])
 
     def test_one_qubit_z(self):
         numpy.random.seed(1)
