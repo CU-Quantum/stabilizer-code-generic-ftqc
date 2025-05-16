@@ -5,6 +5,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 class ErrorCorrectingCode(ABC):
@@ -25,6 +26,8 @@ class ErrorCorrectingCode(ABC):
         self._num_data_qubits = num_data_qubits
         self._num_logical_qubits = num_logical_qubits
         self._qubits = qubits
+
+        self._configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
 
     @abstractmethod
     def encode_logical_qubit(self) -> Circuit:

@@ -26,4 +26,6 @@ class RecoveryFinder:
     def _get_y_symptom(self, column_index: int) -> list[int]:
         transposed_check_matrix = self._check_matrix.matrix.transpose()
         reciprocal_column = column_index + self._check_matrix.num_physical_qubits
-        return (transposed_check_matrix[column_index] ^ transposed_check_matrix[reciprocal_column]).tolist()
+        if any(transposed_check_matrix[column_index]) and any(transposed_check_matrix[reciprocal_column]):
+            return (transposed_check_matrix[column_index] ^ transposed_check_matrix[reciprocal_column]).tolist()
+        return []

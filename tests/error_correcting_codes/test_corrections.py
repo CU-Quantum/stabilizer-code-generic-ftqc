@@ -43,17 +43,17 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
-    "ThreeCarSubregisterParityZeroState": ParametersForCorrectionsTest(
+    "ThreeCatSubregisterParityZeroState": ParametersForCorrectionsTest(
         code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
-    "ThreeCarSubregisterParityOneState": ParametersForCorrectionsTest(
+    "ThreeCatSubregisterParityOneState": ParametersForCorrectionsTest(
         code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
-    "ThreeCatCode": ParametersForCorrectionsTest(
+    "ThreeCatCode": ParametersForCorrectionsTest(  # TODO not working because encoding doesn't work consistently
         code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
         initial_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(0,
@@ -77,7 +77,7 @@ PARAMETERS = {
     ),
     "ShorsRepetitionCode": ParametersForCorrectionsTest(
         code=ShorsRepetitionCode(),
-        initial_state=ExpectedStatesShor().get_logical_zero_density_matrix(),
+        initial_state=ExpectedStatesShor().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS
     ),
 }
@@ -104,15 +104,14 @@ class TestCorrections:
         self._error_is_corrected(error_gate=Y, qubit_index=self._qubit_index)
 
     def _error_is_corrected(self, error_gate: Gate, qubit_index: int) -> None:
-        circuit = Circuit(
-            self._parameters.code.encode_logical_qubit(),
-            error_gate(LineQubit(qubit_index)),
-            self._parameters.code.get_error_correction_circuit(),
-        )
-
         utilities = get_error_correcting_code_utilities(state=self._parameters.initial_state)
-        simulation_state = utilities.get_state_after_circuit(circuit=circuit,
-                                                             num_data_qubits=len(self._parameters.code.data_qubits),
-                                                             initial_data_state=self._parameters.initial_state,
-                                                             )
-        assert states_are_equal(simulation_state.state, self._parameters.initial_state)
+        simulation_state = utilities.get_state_after_circuit(
+            circuit=Circuit(
+                self._parameters.code.encode_logical_qubit(),
+                error_gate(LineQubit(qubit_index)),
+                self._parameters.code.get_error_correction_circuit(),
+            ),
+            num_data_qubits=len(self._parameters.code.data_qubits),
+            initial_data_state=self._parameters.initial_state,
+        ).state
+        assert states_are_equal(simulation_state, self._parameters.initial_state)

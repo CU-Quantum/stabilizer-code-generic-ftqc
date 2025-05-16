@@ -8,10 +8,6 @@ from cirq.protocols import json_serialization
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
-    CatStateCreatorFlagPattern
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
@@ -72,8 +68,11 @@ class ThreeCatCode(ErrorCorrectingCode):
 
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(
-            self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
-            for subregister in self.subregisters
+            [
+                self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
+                for subregister in self.subregisters
+            ],
+            self.get_error_correction_circuit()
         )
 
     def get_error_correction_circuit(self) -> Circuit:

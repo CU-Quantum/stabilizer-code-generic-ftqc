@@ -17,11 +17,6 @@ class TestRecoveryFinder:
                 qubit_index=0,
                 symptom=[1]
             ),
-            RecoveryGates(
-                gate=Y,
-                qubit_index=0,
-                symptom=[1]
-            ),
         ]
 
     def test_one_z_stabilizer(self):
@@ -30,11 +25,6 @@ class TestRecoveryFinder:
         assert recoveries == [
             RecoveryGates(
                 gate=X,
-                qubit_index=0,
-                symptom=[1]
-            ),
-            RecoveryGates(
-                gate=Y,
                 qubit_index=0,
                 symptom=[1]
             ),
@@ -86,11 +76,6 @@ class TestRecoveryFinder:
                 qubit_index=0,
                 symptom=[1, 1]
             ),
-            RecoveryGates(
-                gate=Y,
-                qubit_index=0,
-                symptom=[1, 1]
-            ),
         ]
 
     def test_two_stabilizers_one_x_on_second_qubit(self):
@@ -99,11 +84,6 @@ class TestRecoveryFinder:
         assert recoveries == [
             RecoveryGates(
                 gate=Z,
-                qubit_index=1,
-                symptom=[1, 0]
-            ),
-            RecoveryGates(
-                gate=Y,
                 qubit_index=1,
                 symptom=[1, 0]
             ),
