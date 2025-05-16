@@ -2,7 +2,7 @@ from uuid import uuid4
 
 from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Operation
 
-from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 class StateEncoderByGeneratorMeasurement:

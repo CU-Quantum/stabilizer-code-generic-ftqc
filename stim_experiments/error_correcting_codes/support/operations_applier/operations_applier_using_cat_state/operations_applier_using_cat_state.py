@@ -5,7 +5,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class OperationsApplierUsingCatStateControl(OperationsApplier):

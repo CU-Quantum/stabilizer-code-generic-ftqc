@@ -14,7 +14,7 @@ from numpy.ma.extras import average
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import cx_sequentially_closer_qubits_from_first
 
 

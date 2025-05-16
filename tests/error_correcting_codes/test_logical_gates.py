@@ -11,7 +11,7 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit

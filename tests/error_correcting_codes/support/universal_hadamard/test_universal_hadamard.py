@@ -4,7 +4,7 @@ from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.support.universal_hadamard.single_qubit_code import SingleQubitCode
 from tests.utilities import states_are_equal
 

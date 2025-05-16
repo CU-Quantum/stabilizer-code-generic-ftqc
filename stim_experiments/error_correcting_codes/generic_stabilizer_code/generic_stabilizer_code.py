@@ -19,7 +19,7 @@ from stim_experiments.error_correcting_codes.support.error_recovery.error_recove
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_gottesman import StateEncoderGottesman
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class GenericStabilizerCode(ErrorCorrectingCode):

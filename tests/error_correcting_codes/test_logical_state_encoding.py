@@ -13,7 +13,7 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
     KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor

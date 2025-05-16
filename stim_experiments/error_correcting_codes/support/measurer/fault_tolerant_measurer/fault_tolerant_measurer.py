@@ -7,7 +7,7 @@ from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_mea
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class FaultTolerantMeasurer(Measurer):

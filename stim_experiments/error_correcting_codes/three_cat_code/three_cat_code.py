@@ -12,7 +12,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     CatStateCreatorFlagPattern
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
-from stim_experiments.singletons.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 @dataclass(frozen=True)

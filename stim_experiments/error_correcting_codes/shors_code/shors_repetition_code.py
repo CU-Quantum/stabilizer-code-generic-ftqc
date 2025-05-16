@@ -4,7 +4,7 @@ from cirq import CX, Circuit, H, LineQubit, R, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
-from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
