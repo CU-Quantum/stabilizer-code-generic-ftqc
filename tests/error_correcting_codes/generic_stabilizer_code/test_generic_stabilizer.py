@@ -15,10 +15,11 @@ from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generi
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_5_qubit, get_check_matrix_values_8_qubit
+from tests.utilities import states_are_equal
 
 
 class TestGenericStabilizer:
-    def test_logical_logical_z_has_logical_x_effect_after_logical_h(self):
+    def test_logical_z_has_logical_x_effect_after_logical_h(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
@@ -35,9 +36,9 @@ class TestGenericStabilizer:
                                                                    num_data_qubits=len(code.data_qubits),
                                                                    initial_data_state=initial_data_state)
         expected_state = ExpectedStatesGenericFiveQubit().get_logical_one_state_vector()
-        assert allclose(state_and_measurements.state, expected_state)
+        assert states_are_equal(state_and_measurements.state, expected_state)
 
-    def test_logical_logical_x_on_one_out_of_multiple_encoded_qubits(self):
+    def test_logical_x_on_one_out_of_multiple_encoded_qubits(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
@@ -58,7 +59,7 @@ class TestGenericStabilizer:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 3, KET_ONE_STATE_VECTOR)
         ).state
-        assert allclose(state_and_measurements.state, expected_state)
+        assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_logical_h_on_one_out_of_multiple_encoded_qubits(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -81,7 +82,7 @@ class TestGenericStabilizer:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 3, KET_PLUS_STATE_VECTOR)
         ).state
-        assert allclose(state_and_measurements.state, expected_state)
+        assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_two_logical_h_on_one_out_of_multiple_encoded_qubits_is_identity(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -104,9 +105,9 @@ class TestGenericStabilizer:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_data_state
         ).state
-        assert allclose(state_and_measurements.state, expected_state)
+        assert states_are_equal(state_and_measurements.state, expected_state)
 
-    def test_logical_logical_hzh_on_one_out_of_multiple_encoded_qubits_is_logical_x(self):
+    def test_logical_hzh_on_one_out_of_multiple_encoded_qubits_is_logical_x(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
@@ -131,7 +132,7 @@ class TestGenericStabilizer:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 3, KET_ONE_STATE_VECTOR)
         ).state
-        assert allclose(simulated_state, expected_state)
+        assert states_are_equal(simulated_state, expected_state)
 
     def test_qubit_index_must_be_at_most_largest_logical_index(self):
         code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
@@ -161,7 +162,6 @@ class TestGenericStabilizer:
             initial_data_state=initial_data_state
         ).state
 
-
         a_logical_hadamard_basis = (1/sqrt(2)) * (
             tensor(*[KET_ZERO_STATE_VECTOR] * 8)
             + tensor(*[KET_ZERO_STATE_VECTOR] * 4, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
@@ -173,4 +173,4 @@ class TestGenericStabilizer:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=a_logical_hadamard_basis
         ).state
-        assert allclose(simulated_state, expected_state)
+        assert states_are_equal(simulated_state, expected_state)
