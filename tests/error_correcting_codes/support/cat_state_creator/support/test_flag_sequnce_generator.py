@@ -1,6 +1,6 @@
 from numpy.ma import allequal
 
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
 
 

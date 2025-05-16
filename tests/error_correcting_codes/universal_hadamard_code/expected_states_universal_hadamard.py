@@ -6,7 +6,7 @@ from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECT
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 
 
-class ExpectedStatesUniversalHadamard(ExpectedStates):
+class ExpectedStatesThreeCatSubregisterParity(ExpectedStates):
     arbitrary_num_qubits = 4
 
     def get_logical_zero_state_vector(self) -> TYPE_STATE_VECTOR:

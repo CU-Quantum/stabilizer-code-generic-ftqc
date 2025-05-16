@@ -1,6 +1,6 @@
 from cirq import Circuit, I, LineQubit, Simulator, StateVectorTrialResult, X
 
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
 from stim_experiments.utilities import TYPE_STATE_VECTOR, get_ket_cat_state_vector, trace_out_ancillas_in_zero_state
 from tests.utilities import states_are_equal

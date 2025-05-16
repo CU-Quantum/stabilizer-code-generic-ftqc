@@ -28,7 +28,7 @@ from tests.error_correcting_codes.shors_code.expected_states_shor import Expecte
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
-    ExpectedStatesUniversalHadamard
+    ExpectedStatesThreeCatSubregisterParity
 from tests.utilities import states_are_equal
 
 
@@ -48,14 +48,14 @@ class StateParameters:
 PARAMETERS = {
     "UniversalHadamardCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
-            expected_state=ExpectedStatesUniversalHadamard().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatCode.num_cats),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+            expected_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatCode.num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
-            expected_state=ExpectedStatesUniversalHadamard().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatCode.num_cats),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+            expected_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatCode.num_cats),
         ),
     ),
     "ThreeCatCode": StateParameters(

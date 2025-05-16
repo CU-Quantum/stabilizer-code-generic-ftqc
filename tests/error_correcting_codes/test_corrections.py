@@ -21,17 +21,17 @@ from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_c
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.universal_hadamard_code.expected_stated_universal_hadamard import \
-    ExpectedStatesUniversalHadamard
+from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
+    ExpectedStatesThreeCatSubregisterParity
 from tests.utilities import states_are_equal
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS = list(
     range(0,
-          ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats,
-          ExpectedStatesUniversalHadamard().arbitrary_num_qubits + 2,
-          )) + [ExpectedStatesUniversalHadamard().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats - 1]
+          ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats,
+          ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits + 2,
+          )) + [ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats - 1]
 
 
 @dataclass
@@ -42,14 +42,14 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
-    "UniversalHadamardZeroState": ParametersForCorrectionsTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
-        initial_state=ExpectedStatesUniversalHadamard().get_logical_zero_state_vector(),
+    "ThreeCarSubregisterParityZeroState": ParametersForCorrectionsTest(
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
-    "UniversalHadamardOneState": ParametersForCorrectionsTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
-        initial_state=ExpectedStatesUniversalHadamard().get_logical_one_state_vector(),
+    "ThreeCarSubregisterParityOneState": ParametersForCorrectionsTest(
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
     "ThreeCatCode": ParametersForCorrectionsTest(

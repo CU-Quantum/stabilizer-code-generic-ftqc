@@ -17,7 +17,7 @@ from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generi
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
-    ExpectedStatesUniversalHadamard
+    ExpectedStatesThreeCatSubregisterParity
 
 
 @dataclass
@@ -28,8 +28,8 @@ class ParametersForLogicalGatesTest:
 
 PARAMETERS = {
     "UniversalHadamardCode": ParametersForLogicalGatesTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamard().arbitrary_num_qubits),
-        expected_states=ExpectedStatesUniversalHadamard(),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        expected_states=ExpectedStatesThreeCatSubregisterParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
         code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),

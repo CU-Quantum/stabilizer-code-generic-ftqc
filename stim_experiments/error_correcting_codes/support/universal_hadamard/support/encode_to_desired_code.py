@@ -2,7 +2,7 @@ from functools import cached_property
 from uuid import uuid4
 
 import sympy
-from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -95,29 +95,35 @@ class EncodeToDesiredCode:
 
     def _measure_out_additional_codes(self) -> OP_TREE:
         self._encodings_store.replace_tracked_encodings_with(encodings=[self._three_desired_codes[0]])
+        return [
+            self._get_measurement_operations(),
+            self._encodings_store.get_all_correction_circuits(),
+            self._get_recovery_operations(),
+            self._encodings_store.get_all_correction_circuits(),
+        ]
+
+    def _get_measurement_operations(self) -> OP_TREE:
         operations_per_code = [
             list(code.get_operation_circuit(
                 LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)  # TODO allow for multiqubit encoding
             ).all_operations())
             for code in self._three_desired_codes[1:]
         ]
+        return [
+            self._measurer_type(
+                operations=operations,
+                measurement_key=measurement_key
+            ).get_measurement_circuit()
+            for measurement_key, operations in zip(self._measurement_keys, operations_per_code)
+        ]
+
+    def _get_recovery_operations(self) -> OP_TREE:
         xor_condition = sympy.Xor(*self._measurement_key_symbols)
         logical_operation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
-        return [
-            [
-                self._measurer_type(
-                    operations=operations,
-                    measurement_key=measurement_key
-                ).get_measurement_circuit()
-                for measurement_key, operations in zip(self._measurement_keys, operations_per_code)
-            ],
-            self._encodings_store.get_all_correction_circuits(),
-            CircuitOperation(
-                FrozenCircuit(
-                    list(self._three_desired_codes[0].get_operation_circuit(logical_operation).all_operations())),
-            ).with_classical_controls(xor_condition),
-            self._encodings_store.get_all_correction_circuits(),
-        ]
+        return CircuitOperation(
+            FrozenCircuit(
+                list(self._three_desired_codes[0].get_operation_circuit(logical_operation).all_operations())),
+        ).with_classical_controls(xor_condition)
 
     @cached_property
     def _measurement_key_symbols(self) -> list[sympy.Symbol]:
