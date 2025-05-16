@@ -1,48 +1,54 @@
-from cirq import LineQubit
-from numpy import sqrt
+from cirq import Circuit, I, LineQubit
+from numpy import array, sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
+    CatStateCreatorBasicNondeterministic
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
+    CatStateCreatorCxFromFirstQubit
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.utilities import states_are_equal
 
 
-class TestCatStateCircuitCreator:
+class TestCatStateCreatorCxFromFirstQubit:
     def test_create_no_qubits(self):
-        assert False
-        creator = CatStateCircuitCreator(target_qubits=[])
-        circuit = creator.create_circuit()
+        creator = CatStateCreatorCxFromFirstQubit(qubit_register=[])
+        circuit = Circuit(
+            I(LineQubit(0)),
+            creator.get_cat_state_circuit()
+        )
 
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        initial_state=initial_state,
-                                                                        qubit_order=[LineQubit(0)],)
+                                                                        num_data_qubits=1,
+                                                                        initial_data_state=initial_state)
         assert states_are_equal(state.state, initial_state)
 
     def test_create_one_qubit_cat_state(self):
-        assert False
         qubits = LineQubit.range(1)
-        creator = CatStateCircuitCreator(target_qubits=qubits)
-        circuit = creator.create_circuit()
+        creator = CatStateCreatorCxFromFirstQubit(qubit_register=qubits)
+        circuit = creator.get_cat_state_circuit()
 
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        initial_state=initial_state,
-                                                                        qubit_order=qubits,)
+                                                                        num_data_qubits=len(qubits),
+                                                                        initial_data_state=initial_state)
         assert states_are_equal(state.state, KET_PLUS_STATE_VECTOR)
 
     def test_create_two_qubit_cat_state(self):
-        assert False
         qubits = LineQubit.range(2)
-        creator = CatStateCircuitCreator(target_qubits=qubits)
-        circuit = creator.create_circuit()
+        FreshAncillasPool().set_first_ancilla_num(len(qubits))
+        creator = CatStateCreatorCxFromFirstQubit(qubit_register=qubits)
+        circuit = creator.get_cat_state_circuit()
 
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        initial_state=initial_state,
-                                                                        qubit_order=qubits,)
+                                                                        num_data_qubits=len(qubits),
+                                                                        initial_data_state=initial_state)
         expected_state = (1 / sqrt(2)) * (tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
                                           + tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR))
         assert states_are_equal(state.state, expected_state)
