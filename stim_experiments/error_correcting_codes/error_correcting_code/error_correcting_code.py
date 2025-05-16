@@ -43,14 +43,14 @@ class ErrorCorrectingCode(ABC):
             raise ValueError(f"Qubit index must be between 0 and {self._num_logical_qubits - 1}. Was given {operation.qubit_index}.")
         circuit = self._perform_get_operation_circuit(operation=operation)
         if circuit is None:
-            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented for code {self.__class__}.")
+            raise NotImplementedError(f"Operation {operation.gate.name} is not implemented for code {self.__class__.__name__}.")
         return circuit
 
     @cached_property
     def data_qubits(self) -> list[LineQubit]:
         if self._qubits:
             if len(self._qubits) != self._num_data_qubits:
-                raise ValueError(f"The number of qubits ({len(self._qubits)}) must be equal to the number of data qubits ({self._num_data_qubits}).") #TODO test this
+                raise ValueError(f"The number of provided qubits ({len(self._qubits)}) must be equal to the specified number of data qubits ({self._num_data_qubits}).")
             return self._qubits
         return LineQubit.range(self._num_data_qubits)
 

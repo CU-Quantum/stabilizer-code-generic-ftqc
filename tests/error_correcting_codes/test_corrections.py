@@ -13,6 +13,7 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
