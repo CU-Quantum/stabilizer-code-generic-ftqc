@@ -1,8 +1,8 @@
-from cirq import Circuit, CircuitOperation
+from cirq import Circuit
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.support.controlled_single_qubit_gates_applier import \
+from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
 from stim_experiments.singletons.fresh_ancillas_pool import FreshAncillasPool
