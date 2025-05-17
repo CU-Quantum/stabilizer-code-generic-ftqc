@@ -6,9 +6,8 @@ from cirq import ClassicalDataStoreReader, Condition, MeasurementKey
 
 @dataclass(frozen=True)
 class RecoveryCondition(Condition):
-    # TODO test class
     key: MeasurementKey
-    symptom: list[int] = field(default_factory=list)
+    symptom: list[int]
 
     @property
     def keys(self) -> Tuple[MeasurementKey, ...]:
@@ -20,6 +19,8 @@ class RecoveryCondition(Condition):
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when checking for recovery')
+        if not len(self.symptom):
+            raise ValueError(f'No symptom was given for key "{self.key}"')
         measurements = [x[0] for x in classical_data.records[self.key]]
         return measurements == self.symptom
 
