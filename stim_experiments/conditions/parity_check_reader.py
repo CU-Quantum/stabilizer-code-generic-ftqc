@@ -6,7 +6,6 @@ from cirq.protocols import json_serialization
 
 @dataclass(frozen=True)
 class ParityCheckReader(Condition):
-    # TODO test class
     key: MeasurementKey
     qubit_correction_index: int = 0
 
