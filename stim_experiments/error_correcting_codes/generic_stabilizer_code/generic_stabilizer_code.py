@@ -10,15 +10,14 @@ from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
 from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
-from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import \
-    CheckMatrixToGates, CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import CheckMatrixToGates
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
-from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_gottesman import StateEncoderGottesman
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
@@ -119,9 +118,3 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     @property
     def _num_ancilla_qubits(self) -> int:
         return len(self._check_matrix.matrix)
-
-
-class GenericStabilizerCodeGottesmanEncoding(GenericStabilizerCode):
-    def encode_logical_qubit(self) -> Circuit:
-        return StateEncoderGottesman(check_matrix_standardized=self._check_matrix_standardized,
-                                     data_qubits=self.data_qubits).get_encoding_circuit()

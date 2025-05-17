@@ -1,7 +1,7 @@
 from cirq import X, Y, Z
 from numpy import array
 
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates
+from stim_experiments.custom_dataclasses.recovery import RecoveryGates
 from stim_experiments.custom_dataclasses.check_matrix import \
     CheckMatrix
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder

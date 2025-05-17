@@ -7,8 +7,7 @@ from numpy import array
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import \
-    CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement

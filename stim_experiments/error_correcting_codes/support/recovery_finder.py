@@ -2,7 +2,7 @@ from typing import List
 
 from cirq import X, Y, Z
 
-from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates
+from stim_experiments.custom_dataclasses.recovery import RecoveryGates
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.utilities import binary_array_to_int
 

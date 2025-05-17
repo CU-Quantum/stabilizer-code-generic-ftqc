@@ -4,13 +4,13 @@ from typing import Optional
 from uuid import uuid4
 
 import numpy as np
-from cirq import Circuit, ClassicalDataStoreReader, H, LineQubit, M, MeasurementKey, \
-    Operation, R, X, Condition
-from cirq.protocols import json_serialization
+from cirq import Circuit, H, LineQubit, M, MeasurementKey, \
+    Operation, R, X
 from numpy import array
 from numpy._typing import NDArray
 from numpy.ma.extras import average
 
+from stim_experiments.conditions.parity_check_index_limit import ParityCheckIndexLimit
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
@@ -23,45 +23,6 @@ class ParityCheckInfo:
     control_qubit_index: int
     recovery_qubit_num: Optional[int] = None
     flags_outcome: NDArray[int] = field(default_factory=lambda: array([]))
-
-
-@dataclass(frozen=True)
-class ParityCheckIndexLimit(Condition):
-    # TODO test class
-    key: MeasurementKey
-    parity_check_index: int = 0
-    flag_sequence: NDArray[int] = field(default_factory=lambda: array([]))
-
-    @property
-    def keys(self):
-        return (self.key,)
-
-    def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        return ParityCheckIndexLimit(replacement, self.parity_check_index, self.flag_sequence) if self.key == current else self
-
-    def __str__(self):
-        return str(self.key)
-
-    def __repr__(self):
-        return f'ParityCheckIndexLimit({self.key!r}, f{self.parity_check_index})'
-
-    def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
-        if self.key not in classical_data.keys():
-            raise ValueError(f'Measurement key {self.key} missing when checking flags')
-        measurements = [x[0] for x in classical_data.records[self.key]]
-        flag_nums_found = np.where(np.all(self.flag_sequence == measurements, axis=1))[0]
-        return self.parity_check_index <= flag_nums_found[0] if len(flag_nums_found) else False
-
-    def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
-
-    @classmethod
-    def _from_json_dict_(cls, key, parity_check_index, flag_sequence, **kwargs):
-        return cls(key=key, parity_check_index=parity_check_index, flag_sequence=flag_sequence)
-
-    @property
-    def qasm(self):
-        raise ValueError('QASM is defined only for SympyConditions of type key == constant.')
 
 
 class CatStateCreatorFlagPattern(CatStateCreator):
