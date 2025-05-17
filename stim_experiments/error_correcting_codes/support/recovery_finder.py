@@ -3,7 +3,8 @@ from typing import List
 from cirq import X, Y, Z
 
 from stim_experiments.error_correcting_codes.custom_dataclasses.recovery import RecoveryGates
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.utilities import binary_array_to_int
 
 
 class RecoveryFinder:
@@ -21,7 +22,9 @@ class RecoveryFinder:
                                       qubit_index=column_index,
                                       symptom=self._get_y_symptom(column_index=column_index))
                         for column_index in range(self._check_matrix.num_physical_qubits)]
-        return [recovery for recovery in x_or_z_recoveries + y_recoveries if any(recovery.symptom)]
+        one_recovery_per_symptom = {binary_array_to_int(recovery.symptom): recovery
+                                    for recovery in x_or_z_recoveries + y_recoveries if any(recovery.symptom)}
+        return list(one_recovery_per_symptom.values())
 
     def _get_y_symptom(self, column_index: int) -> list[int]:
         transposed_check_matrix = self._check_matrix.matrix.transpose()

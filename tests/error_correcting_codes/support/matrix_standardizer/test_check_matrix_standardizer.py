@@ -4,10 +4,10 @@ from re import escape
 import pytest
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
+from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_8_qubit, \

@@ -50,7 +50,7 @@ class ParityCheckIndexLimit(Condition):
             raise ValueError(f'Measurement key {self.key} missing when checking flags')
         measurements = [x[0] for x in classical_data.records[self.key]]
         flag_nums_found = np.where(np.all(self.flag_sequence == measurements, axis=1))[0]
-        return self.parity_check_index <= flag_nums_found[0] if flag_nums_found else False
+        return self.parity_check_index <= flag_nums_found[0] if len(flag_nums_found) else False
 
     def _json_dict_(self):
         return json_serialization.dataclass_json_dict(self)

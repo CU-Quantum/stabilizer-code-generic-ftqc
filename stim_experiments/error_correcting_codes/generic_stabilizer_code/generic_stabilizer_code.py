@@ -4,15 +4,15 @@ from typing import List, Optional
 from cirq import Circuit, Gate, H, LineQubit, Operation, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
+from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.check_matrix_standardizer import \
+from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
+from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import \
     CheckMatrixToGates, CheckMatrixToOperations
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.recovery_finder import RecoveryFinder
+from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement

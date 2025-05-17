@@ -3,15 +3,12 @@ from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, I, L
 from numpy import array
 from proto.utils import cached_property
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.logical_encodings_with_shared_ancillas import \
     LogicalEncodingsWithSharedAncillas
-from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.simulation_operation_simulator import \
-    SimulationOperationSimulator
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \

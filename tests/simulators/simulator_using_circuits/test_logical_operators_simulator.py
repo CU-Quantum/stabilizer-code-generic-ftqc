@@ -2,14 +2,14 @@ from typing import List, Optional
 
 import numpy.random
 import pytest
-from cirq import Circuit, H, X, Z, kron, LineQubit
+from cirq import Circuit, H, X, Z, LineQubit
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.logical_encodings_with_shared_ancillas import \
     LogicalEncodingsWithSharedAncillas

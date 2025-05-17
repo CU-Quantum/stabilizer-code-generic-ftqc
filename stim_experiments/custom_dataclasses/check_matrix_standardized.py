@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 
 import numpy
-from numpy import array
 from numpy.ma.core import allequal
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix, \
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
 
 

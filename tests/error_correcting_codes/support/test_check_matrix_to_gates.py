@@ -1,9 +1,9 @@
 from cirq import X, Z
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import \
+from stim_experiments.custom_dataclasses.check_matrix import \
     CheckMatrix
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.check_matrix_to_gates import \
+from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit
 

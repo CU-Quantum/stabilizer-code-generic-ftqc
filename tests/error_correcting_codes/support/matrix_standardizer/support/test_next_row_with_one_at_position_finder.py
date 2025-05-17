@@ -1,6 +1,6 @@
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.support.matrix_standardizer.support import \
     NextRowIndexWithOneAtPositionFinder
 
 

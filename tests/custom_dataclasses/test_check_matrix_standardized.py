@@ -1,15 +1,14 @@
 from re import escape
 
 import pytest
-from cirq import I
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import \
+from stim_experiments.custom_dataclasses.check_matrix import \
     TYPE_CHECK_MATRIX
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
+from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized, CheckMatrixSubmatrices
 from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_4_qubit_standardized, \
-    get_check_matrix_values_steane, get_check_matrix_values_steane_standardized
+    get_check_matrix_values_steane_standardized
 
 
 class TestStabilizersStandardizer:

@@ -1,11 +1,11 @@
 import copy
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix_standardized import \
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.support.matrix_standardizer.support.next_column_index_with_one_at_position_finder import \
     NextColumnIndexWithOneAtPositionFinder
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.support.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
+from stim_experiments.error_correcting_codes.support.matrix_standardizer.support.next_row_index_with_one_at_position_finder import \
     NextRowIndexWithOneAtPositionFinder
 
 

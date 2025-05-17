@@ -1,11 +1,9 @@
-from functools import cached_property
-
 import numpy
 import pytest
 from cirq import LineQubit
 from numpy import array
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation

@@ -2,7 +2,7 @@ from re import escape
 
 import pytest
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 
 

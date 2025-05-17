@@ -2,7 +2,7 @@ from typing import List
 
 from cirq import Gate, LineQubit, Operation, X, Z
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 
 
 class CheckMatrixToGates:

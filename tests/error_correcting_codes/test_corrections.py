@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 
+import numpy
 import pytest
-from cirq import Circuit, Gate, LineQubit, X, Y, Z
+from cirq import Circuit, Gate, I, LineQubit, X, Y, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
@@ -53,7 +54,7 @@ PARAMETERS = {
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
-    "ThreeCatCode": ParametersForCorrectionsTest(  # TODO not working because encoding doesn't work consistently
+    "ThreeCatCode": ParametersForCorrectionsTest(
         code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
         initial_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(0,
@@ -90,6 +91,7 @@ PARAMETERS_FLATTENED = [pytest.param((parameters, qubit_index), id=f'{name}_qubi
 class TestCorrections:
     @pytest.fixture(autouse=True, params=PARAMETERS_FLATTENED)
     def _setup(self, request):
+        numpy.random.seed(0)
         self._parameters: ParametersForCorrectionsTest = request.param[0]
         self._qubit_index: int = request.param[1]
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._parameters.code.data_qubits))
@@ -107,7 +109,6 @@ class TestCorrections:
         utilities = get_error_correcting_code_utilities(state=self._parameters.initial_state)
         simulation_state = utilities.get_state_after_circuit(
             circuit=Circuit(
-                self._parameters.code.encode_logical_qubit(),
                 error_gate(LineQubit(qubit_index)),
                 self._parameters.code.get_error_correction_circuit(),
             ),

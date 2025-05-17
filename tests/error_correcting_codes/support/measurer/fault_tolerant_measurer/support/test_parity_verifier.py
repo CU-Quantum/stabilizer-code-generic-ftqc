@@ -3,10 +3,8 @@ from numpy import array, sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.conditions.verification_is_zero import \
-    VerificationIsZero
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.parity_verifier import \
     ParityVerifier
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
