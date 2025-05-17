@@ -1,14 +1,14 @@
 from typing import Optional
 
 import pytest
-from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, Simulator, X
+from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.conditions.verification_is_zero import \
+from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.conditions.verification_is_zero import \
     VerificationIsZero
 from tests.utilities import get_cat_state_vector, states_are_equal
 

@@ -2,7 +2,7 @@ from typing import Optional
 
 from cirq import Circuit, CircuitOperation, M, MeasurementKey, Operation, R
 
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
+from stim_experiments.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \

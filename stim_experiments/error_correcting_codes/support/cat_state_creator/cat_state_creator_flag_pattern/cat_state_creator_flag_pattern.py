@@ -10,7 +10,7 @@ from numpy import array
 from numpy._typing import NDArray
 from numpy.ma.extras import average
 
-from stim_experiments.conditions.parity_check_index_limit import ParityCheckIndexLimit
+from stim_experiments.conditions.flag_index_limit import FlagIndexLimit
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
@@ -79,9 +79,9 @@ class CatStateCreatorFlagPattern(CatStateCreator):
 
     def _recover_from_errors(self) -> list[list[Operation]]:
         return [
-            [X(qubit).with_classical_controls(ParityCheckIndexLimit(key=MeasurementKey(self._measurement_key),
-                                                                    parity_check_index=parity_check_index - 1,
-                                                                    flag_sequence=self._flag_sequence)
+            [X(qubit).with_classical_controls(FlagIndexLimit(key=MeasurementKey(self._measurement_key),
+                                                             parity_check_index=parity_check_index - 1,
+                                                             flag_sequence=self._flag_sequence)
                                               )
              for qubit in self._qubit_register[self._parity_check_infos[parity_check_index - 1].recovery_qubit_num:self._parity_check_infos[parity_check_index].recovery_qubit_num]]
             for parity_check_index in range(2, len(self._parity_check_infos) - 1)

@@ -2,7 +2,7 @@ import numpy
 import pytest
 from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, FrozenCircuit, LineQubit, M, Simulator
 
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.conditions.three_repetitions_majority_vote import \
+from stim_experiments.conditions.three_repetitions_majority_vote import \
     ThreeRepetitionsMajorityVote
 
 
