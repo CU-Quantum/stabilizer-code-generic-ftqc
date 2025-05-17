@@ -10,6 +10,7 @@ class ActiveEncodingsStore:
 
     def __init__(self):
         self._id = uuid4().hex
+        self._tracked_encodings[self._id] = []
 
     def __enter__(self):
         return self

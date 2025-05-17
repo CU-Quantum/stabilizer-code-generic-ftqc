@@ -24,7 +24,7 @@ class CodeStub(ErrorCorrectingCode):
 
 
 class TestActiveEncodingsStore:
-    def test_trivial(self):
+    def test_no_tracked_encodings(self):
         with ActiveEncodingsStore() as encodings_store:
             circuit = encodings_store.get_all_correction_circuits()
             assert circuit == Circuit()

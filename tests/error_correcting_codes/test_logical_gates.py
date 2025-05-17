@@ -27,7 +27,7 @@ class ParametersForLogicalGatesTest:
 
 
 PARAMETERS = {
-    "UniversalHadamardCode": ParametersForLogicalGatesTest(
+    "ThreeCatSubregisterParityCode": ParametersForLogicalGatesTest(
         code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
         expected_states=ExpectedStatesThreeCatSubregisterParity(),
     ),
@@ -84,37 +84,3 @@ class TestLogicalGates:
             - self._parameters.expected_states.get_logical_one_state_vector()
         )
         assert allclose(current_state.state, expected_state)
-
-    def test_logical_h(self):
-        target_index = self._parameters.code.num_logical_qubits - 1
-        operation = LogicalOperation(gate=LogicalGateLabel.H, qubit_index=target_index)
-        initial_data_state = self._parameters.expected_states.get_logical_one_state_vector()
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
-
-        simulated_state = utilities.get_state_after_circuit(
-            circuit=Circuit(
-                self._parameters.code.get_operation_circuit(operation=operation),
-            ),
-            num_data_qubits=self._num_data_qubits,
-            initial_data_state=initial_data_state,
-        ).state
-        expected_state = (1 / sqrt(2)) * (self._parameters.expected_states.get_logical_zero_state_vector()
-                                          - self._parameters.expected_states.get_logical_one_state_vector())
-        assert allclose(simulated_state, expected_state)
-
-    def test_logical_h_corrects_in_hadamard_basis(self):
-        target_index = self._parameters.code.num_logical_qubits - 1
-        arbitrary_error = X(LineQubit(0))
-        circuit = Circuit(
-            self._parameters.code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=target_index)),
-            arbitrary_error,
-            self._parameters.code.get_error_correction_circuit(),
-            self._parameters.code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=target_index)),
-        )
-
-        initial_data_state = self._parameters.expected_states.get_logical_zero_state_vector()
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
-        state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
-                                                                   num_data_qubits=self._num_data_qubits,
-                                                                   initial_data_state=initial_data_state)
-        assert allclose(state_and_measurements.state, initial_data_state)

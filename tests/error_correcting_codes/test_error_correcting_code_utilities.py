@@ -17,7 +17,8 @@ class TestErrorCorrectingCodeUtilities:
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
 
-        qubit = LineQubit(1)
+        num_qubits = 1
+        qubit = LineQubit(num_qubits)
         circuit = Circuit(
             M(qubit),
             X(qubit),
@@ -26,8 +27,8 @@ class TestErrorCorrectingCodeUtilities:
         )
 
         result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         qubit_order=[qubit],
-                                                                         initial_state=initial_state)
+                                                                         num_data_qubits=num_qubits,
+                                                                         initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
             measurements={'q(1)': array([1])}
@@ -49,8 +50,8 @@ class TestErrorCorrectingCodeUtilities:
         )
 
         result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         qubit_order=qubits,
-                                                                         initial_state=initial_state)
+                                                                         num_data_qubits=len(qubits),
+                                                                         initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
             measurements={'q(0)': array([0]), 'q(1)': [1]}

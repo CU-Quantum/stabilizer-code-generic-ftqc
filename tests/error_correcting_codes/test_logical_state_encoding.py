@@ -46,7 +46,7 @@ class StateParameters:
 
 
 PARAMETERS = {
-    "UniversalHadamardCode": StateParameters(
+    "ThreeCatSubregisterParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
             expected_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
