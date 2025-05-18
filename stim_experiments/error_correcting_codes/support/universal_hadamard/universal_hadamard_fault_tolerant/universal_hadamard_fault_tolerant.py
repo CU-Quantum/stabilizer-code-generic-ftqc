@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, KeyCondition, MeasurementKey, R, SWAP
+from cirq import Circuit, CircuitOperation, FrozenCircuit, KeyCondition, MeasurementKey, R, SWAP
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
@@ -26,8 +26,12 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
             new_encoding = self._code.create_new(qubits=uni_h.subregisters[0])
             to_computational_logical = ThreeCatSubregisterParityCodeToComputationalLogical(
                 three_cat_subregister_parity_code=uni_h, desired_encoding=self._code)
-            logical_x, logical_z = (list(self._code.get_operation_circuit(operation=LogicalOperation(gate=gate, qubit_index=0)).all_operations())  # allow multi qubit encodings
-                                    for gate in (LogicalGateLabel.X, LogicalGateLabel.Z))
+            logical_x, logical_z = (
+                list(self._code.get_operation_circuit(
+                    operation=LogicalOperation(gate=gate, qubit_index=self._qubit_index)  # TODO allow multi qubit encodings
+                ).all_operations())
+                for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
+            )
             return Circuit(
                 three_cat.encode_logical_qubit(),
                 [
@@ -35,17 +39,18 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                     for subregister in three_cat.subregisters
                 ],
                 to_computational_logical.get_circuit(),
-                self._measurer_type(operations=logical_z, measurement_key=measurement_key).get_measurement_circuit(),
-                CircuitOperation(
-                    new_encoding.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).freeze()
-                ).with_classical_controls(KeyCondition(key=measurement_key)),
+                FrozenCircuit(  # cirq seemed to be reversing the order of these operations when not frozen
+                    self._measurer_type(operations=logical_z, measurement_key=measurement_key).get_measurement_circuit(),
+                    CircuitOperation(
+                        new_encoding.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._qubit_index)).freeze()  # TODO allow multi qubit encodings
+                    ).with_classical_controls(KeyCondition(key=measurement_key)),
+                ),
                 [
                     SWAP(new_encoding.data_qubits[i], self._code.data_qubits[i])
                     for i in range(len(new_encoding.data_qubits))
                 ],
                 [R(ancilla) for ancilla in ancilla_qubits]
             )
-
 
     @property
     def _measurer_type(self) -> type[Measurer]:

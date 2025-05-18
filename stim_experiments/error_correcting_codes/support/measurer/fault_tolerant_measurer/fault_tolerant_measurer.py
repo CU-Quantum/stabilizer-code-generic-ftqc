@@ -11,12 +11,6 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class FaultTolerantMeasurer(Measurer):
-    def __init__(self,
-                 operations: list[Operation],
-                 measurement_key: Optional[MeasurementKey] = None,
-                 ):
-        super().__init__(operations=operations, measurement_key=measurement_key)
-
     def get_measurement_circuit(self) -> Circuit:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measurement_qubit = ancilla_qubits[0]
