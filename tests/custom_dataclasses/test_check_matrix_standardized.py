@@ -7,8 +7,8 @@ from stim_experiments.custom_dataclasses.check_matrix import \
     TYPE_CHECK_MATRIX
 from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized, CheckMatrixSubmatrices
-from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit_standardized, \
-    get_check_matrix_values_steane_standardized
+from tests.error_correcting_codes.predefined_check_matrix_values_standardized import \
+    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_steane_standardized
 
 
 class TestStabilizersStandardizer:

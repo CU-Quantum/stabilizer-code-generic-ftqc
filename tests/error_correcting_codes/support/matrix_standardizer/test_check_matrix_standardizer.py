@@ -10,10 +10,12 @@ from stim_experiments.custom_dataclasses.check_matrix_standardized import \
 from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_8_qubit, \
-    get_check_matrix_values_8_qubit_standardized, get_check_matrix_values_shors, \
-    get_check_matrix_values_shors_standardized, get_check_matrix_values_steane, \
-    get_check_matrix_values_steane_standardized
+    get_check_matrix_values_8_qubit, \
+    get_check_matrix_values_shors, \
+    get_check_matrix_values_steane
+from tests.error_correcting_codes.predefined_check_matrix_values_standardized import \
+    get_check_matrix_values_4_qubit_standardized, get_check_matrix_values_8_qubit_standardized, \
+    get_check_matrix_values_shors_standardized, get_check_matrix_values_steane_standardized
 
 
 class TestCheckMatrixStandardizer:

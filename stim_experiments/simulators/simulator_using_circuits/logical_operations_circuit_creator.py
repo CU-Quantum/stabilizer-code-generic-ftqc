@@ -1,30 +1,25 @@
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, I, LineQubit, Simulator, \
-    StateVectorTrialResult
-from numpy import array
+from cirq import Circuit, I, LineQubit
 from proto.utils import cached_property
 
-from stim_experiments.custom_dataclasses.state_and_measurements import \
-    StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.logical_encodings_with_shared_ancillas import \
     LogicalEncodingsWithSharedAncillas
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, \
-    is_state_vector, \
-    tensor, trace_out_ancillas_in_zero_state
 
 
-class LogicalOperationsSimulator:
+class LogicalOperationsCircuitCreator:
     def __init__(self, encodings: LogicalEncodingsWithSharedAncillas, operations: list[TransformationOperation]):
         self._encodings = encodings
         self._operations = operations
 
-    def simulate(self) -> StateAndMeasurements:
+    def get_simulation_circuit(self) -> Circuit:
         self._ensure_enough_logical_qubits()
+        FreshAncillasPool().set_first_ancilla_num(len(self._state_qubits))
 
         simulation_operations = [
             TransformationOperationToSimulationOperationConverter(
@@ -40,25 +35,9 @@ class LogicalOperationsSimulator:
                                         ).create_circuit()
             for simulation_operation in simulation_operations
         ]
-        circuit = Circuit(
+        return Circuit(
             [I(qubit) for qubit in self._state_qubits],
             circuit_pieces
-        )
-
-        # TODO initial state should be encoded in circuit. density vs state vector should be chosen in init or done outside this class
-        if is_state_vector(self._get_initial_state()):
-            simulator = Simulator()
-            simulation: StateVectorTrialResult = simulator.simulate(circuit)
-            state = simulation.final_state_vector
-        else:
-            simulator = DensityMatrixSimulator()
-            simulation: DensityMatrixTrialResult = simulator.simulate(circuit)
-            state = simulation.final_density_matrix
-        num_qubits_in_state = get_num_qubits_in_state(state)
-        num_extra_ancillas = num_qubits_in_state - len(self._state_qubits)
-        return StateAndMeasurements(
-            state=trace_out_ancillas_in_zero_state(state, num_ancillas=num_extra_ancillas),
-            measurements=dict(simulation.measurements),
         )
 
     def _ensure_enough_logical_qubits(self) -> None:
@@ -76,21 +55,6 @@ class LogicalOperationsSimulator:
         largest_index = max(qubit_indices_in_operations) if qubit_indices_in_operations else -1
         return largest_index + 1
 
-    def _get_initial_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        if not self._encodings.encodings:
-            return array([])
-        qubit_states_data = [trace_out_ancillas_in_zero_state(state=encoding.encode_logical_qubit(),
-                                                              num_ancillas=len(encoding.ancilla_qubits))
-                             for encoding in self._encodings.encodings]
-        qubit_states_ancilla = [self._encodings.encodings[0].error_correcting_code_utilities.zero_state] * len(self._encodings.ancillas)
-        return tensor(*qubit_states_data, *qubit_states_ancilla)
-
-    @cached_property
-    def _control_ancilla(self) -> LineQubit:
-        return self._encodings.ancillas[0] \
-            if self._encodings.ancillas \
-            else LineQubit(len(self._state_qubits))
-
     @cached_property
     def _state_qubits(self) -> list[LineQubit]:
-        return [qubit for encoding in self._encodings.encodings for qubit in encoding.data_qubits] + self._encodings.ancillas
+        return [qubit for encoding in self._encodings.encodings for qubit in encoding.data_qubits]

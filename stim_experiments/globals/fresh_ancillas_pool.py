@@ -5,8 +5,6 @@ from cirq import LineQubit
 
 
 class FreshAncillasPool:
-    # TODO add async locking
-
     _pool: list[LineQubit] = []
     _next_ancilla_num = 0
 

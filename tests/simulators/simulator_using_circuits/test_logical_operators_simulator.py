@@ -15,7 +15,7 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.log
     LogicalEncodingsWithSharedAncillas
 from stim_experiments.simulators.simulator_using_circuits.logical_encodings_with_shared_ancillas_creator import \
     LogicalEncodingsWithSharedAncillasCreatorMultipleCodes, LogicalEncodingsWithSharedAncillasCreatorSingleCode
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_simulator import LogicalOperationsSimulator
+from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
 from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.utilities import states_are_equal
 
@@ -71,8 +71,8 @@ class TestLogicalOperationsSimulator:
             encodings=[],
             ancillas=[]
         )
-        simulator = LogicalOperationsSimulator(encodings=encodings, operations=[])
-        result = simulator.simulate()
+        simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=[])
+        result = simulator.get_simulation_circuit()
         assert result == StateAndMeasurements(
             state=array([]),
             measurements={},
@@ -83,11 +83,11 @@ class TestLogicalOperationsSimulator:
             error_correcting_code=LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2),
             num_logical_qubits_needed=2
         ).create_encodings()
-        simulator = LogicalOperationsSimulator(
+        simulator = LogicalOperationsCircuitCreator(
             encodings=two_encodings_with_two_shared_ancillas,
             operations=[],
         )
-        result = simulator.simulate()
+        result = simulator.get_simulation_circuit()
 
         expected_states_data = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         only_two_ancilla = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
@@ -110,8 +110,8 @@ class TestLogicalOperationsSimulator:
                 TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
                 TransformationOperation(TransformationGate.M, target_qubit_index=1)
             ]
-            simulator = LogicalOperationsSimulator(encodings=encodings, operations=operations)
-            result = simulator.simulate()
+            simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
+            result = simulator.get_simulation_circuit()
             results.append(result)
         observables = [result.measurements['1'][0] for result in results]
         assert any(observables) and not all(observables)
@@ -126,8 +126,8 @@ class TestLogicalOperationsSimulator:
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=1),
         ]
 
-        simulator = LogicalOperationsSimulator(encodings=encodings, operations=operations)
+        simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 
         with pytest.raises(ValueError, match="Not enough logical qubits available. "
                                              "Operations need at least 2 logical qubits, but 1 was/were provided."):
-            simulator.simulate()
+            simulator.get_simulation_circuit()
