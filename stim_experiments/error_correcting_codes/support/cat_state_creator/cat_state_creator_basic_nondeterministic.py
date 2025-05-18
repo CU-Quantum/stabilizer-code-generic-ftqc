@@ -13,7 +13,6 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 
 
 class CatStateCreatorBasicNondeterministic(CatStateCreator):
-    # TODO test class
     def __init__(self, qubit_register: list[LineQubit]):
         super().__init__(qubit_register=qubit_register)
 

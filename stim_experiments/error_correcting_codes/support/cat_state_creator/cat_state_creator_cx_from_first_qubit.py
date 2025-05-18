@@ -5,7 +5,6 @@ from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_
 
 
 class CatStateCreatorCxFromFirstQubit(CatStateCreator):
-    # TODO test this class
     def __init__(self, qubit_register: list[LineQubit]):
         super().__init__(qubit_register=qubit_register)
         self._qubit_register = qubit_register

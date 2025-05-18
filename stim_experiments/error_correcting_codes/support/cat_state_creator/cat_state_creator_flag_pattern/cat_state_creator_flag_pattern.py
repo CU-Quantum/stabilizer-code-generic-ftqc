@@ -26,7 +26,6 @@ class ParityCheckInfo:
 
 
 class CatStateCreatorFlagPattern(CatStateCreator):
-    # TODO clean this up
     """
     Idea comes from https://quantum-journal.org/papers/q-2023-10-24-1154/
     Note that you apparently cannot use this for syndrome measurement.
@@ -89,7 +88,7 @@ class CatStateCreatorFlagPattern(CatStateCreator):
 
     @cached_property
     def _measurement_key(self) -> str:
-        return f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}"  # TODO test keys needed, test uuid needed
+        return f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}"
 
     @cached_property
     def _parity_check_infos(self) -> list[ParityCheckInfo]:
