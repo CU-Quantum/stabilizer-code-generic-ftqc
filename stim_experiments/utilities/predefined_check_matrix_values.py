@@ -3,6 +3,8 @@ from numpy import array
 from stim_experiments.custom_dataclasses.check_matrix import TYPE_CHECK_MATRIX
 
 
+# TODO move standardized into tests
+
 def get_check_matrix_values_steane() -> TYPE_CHECK_MATRIX:
     return array([
         [0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],

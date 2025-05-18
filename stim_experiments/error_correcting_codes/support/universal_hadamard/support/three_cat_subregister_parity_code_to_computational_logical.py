@@ -54,6 +54,7 @@ class ThreeCatSubregisterParityCodeToComputationalLogical:
         ]
 
     def _cx_data_to_helpers(self) -> OP_TREE:
+        self._encodings_store.replace_tracked_encodings_with(encodings=self._context.all_universal_hadamard_codes)  # TODO this may need to be repetition code correction for each subregister
         return [
             [
                 self._cx_data_to_helper(code=code),

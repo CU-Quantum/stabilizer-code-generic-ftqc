@@ -1,6 +1,6 @@
 from cirq import Circuit
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_standardized_standardized import \
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_gottesman import StateEncoderGottesman
 

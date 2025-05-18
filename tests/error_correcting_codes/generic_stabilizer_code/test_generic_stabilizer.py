@@ -3,7 +3,7 @@ from cirq import Circuit, LineQubit, X
 from numpy import sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_standardized_standardized import \
     GenericStabilizerCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool

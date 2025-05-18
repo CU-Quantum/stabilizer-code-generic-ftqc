@@ -3,40 +3,26 @@ from typing import List, Optional
 
 from cirq import Circuit, Gate, H, LineQubit, Operation, X, Z
 
-from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
 from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
+from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
 from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import CheckMatrixToGates
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
-    ErrorRecoveryByGeneratorMeasurement
-from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
-    StateEncoderByGeneratorMeasurement
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class GenericStabilizerCode(ErrorCorrectingCode):
+class GenericStabilizerCode(StabilizerCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
                  qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = CheckMatrix(matrix=generators)
-        super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
-                         num_logical_qubits=self._check_matrix.num_logical_qubits,
-                         qubits=qubits)
+        super().__init__(check_matrix=self._check_matrix_standardized, qubits=qubits)
 
-    def encode_logical_qubit(self) -> Circuit:
-        # TODO generalize this into ErrorCorrectingCode
-        phase_corrections = [self._get_phase_correction(generator_index=generator_index)
-                             for generator_index in range(len(self._check_matrix_standardized.matrix))]
-        return StateEncoderByGeneratorMeasurement(check_matrix=self._check_matrix_standardized,
-                                                  phase_corrections=phase_corrections,
-                                                  qubits=self._ordered_qubits).encode_state()
-
-    def _get_phase_correction(self, generator_index: int) -> list[Operation]:
+    def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
         gate = Z if generator_index < self._check_matrix_standardized.rank_of_pauli_x_portion else X
         return [gate(self._ordered_qubits[generator_index])]
 
@@ -98,13 +84,6 @@ class GenericStabilizerCode(ErrorCorrectingCode):
     def _get_logical_operation_gates(self, gate_label: LogicalGateLabel) -> Optional[List[List[List[Gate]]]]:
         operation_matrix = self._check_matrix_standardized.logical_xs if gate_label is LogicalGateLabel.X else self._check_matrix_standardized.logical_zs
         return CheckMatrixToGates(check_matrix=CheckMatrix(operation_matrix)).get_gates()
-
-    def get_error_correction_circuit(self) -> Circuit:
-        # TODO generalize this into ErrorCorrectingCode
-        return ErrorRecoveryByGeneratorMeasurement(
-            check_matrix=self._check_matrix_standardized,
-            qubits=self._ordered_qubits,
-        ).get_error_correction_circuit()
 
     @cached_property
     def _check_matrix_standardized(self) -> CheckMatrixStandardized:

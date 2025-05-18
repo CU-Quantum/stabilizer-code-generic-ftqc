@@ -7,7 +7,7 @@ from cirq import Circuit, Gate, LineQubit, X, Y, Z
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_stabilizer_code import \
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_standardized_standardized import \
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
@@ -23,7 +23,7 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
+from tests.error_correcting_codes.universal_hadamard_code.expected_states_three_cat_subregister_parity import \
     ExpectedStatesThreeCatSubregisterParity
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
 
