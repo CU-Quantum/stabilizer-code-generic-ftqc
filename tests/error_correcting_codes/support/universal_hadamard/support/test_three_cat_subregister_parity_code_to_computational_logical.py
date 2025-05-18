@@ -2,19 +2,15 @@ import pytest
 from cirq import Circuit, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
-    CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical import \
     ThreeCatSubregisterParityCodeToComputationalLogical
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
-    TYPE_STATE_VECTOR, tensor
+    TYPE_STATE_VECTOR, states_are_equal, tensor
 from tests.error_correcting_codes.support.universal_hadamard.single_qubit_code import SingleQubitCode
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestUniversalHadamardCodeToComputationalLogical:

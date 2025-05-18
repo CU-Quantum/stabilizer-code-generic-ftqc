@@ -10,17 +10,13 @@ from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_s
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
-    CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
@@ -33,7 +29,7 @@ from tests.error_correcting_codes.steane_code.expected_states_steane import Expe
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_three_cat_subregister_parity import \
     ExpectedStatesThreeCatSubregisterParity
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 @dataclass

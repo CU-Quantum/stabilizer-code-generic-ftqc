@@ -8,8 +8,7 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
     OperationsApplierUsingSingleQubitHadamardControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
-    tensor
-from tests.utilities import states_are_equal
+    states_are_equal, tensor
 
 
 class TestOperationsApplierInstances:

@@ -9,8 +9,8 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.conditions.verification_is_zero import \
     VerificationIsZero
-from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, tensor
-from tests.utilities import get_cat_state_vector, states_are_equal
+from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, states_are_equal, tensor
+from tests.utilities import get_cat_state_vector
 
 
 class TestCatStateCreatorBasicNondeterministic:

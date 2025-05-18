@@ -16,8 +16,8 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.log
 from stim_experiments.simulators.simulator_using_circuits.logical_encodings_with_shared_ancillas_creator import \
     LogicalEncodingsWithSharedAncillasCreatorMultipleCodes, LogicalEncodingsWithSharedAncillasCreatorSingleCode
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
-from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
-from tests.utilities import states_are_equal
+from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
+    states_are_equal, tensor
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):

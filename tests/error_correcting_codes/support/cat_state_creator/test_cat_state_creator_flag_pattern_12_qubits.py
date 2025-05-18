@@ -4,9 +4,9 @@ from cirq import LineQubit
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities.utilities import get_ket_cat_state_vector
 from tests.error_correcting_codes.support.cat_state_creator.utilities import circuit_results_in_expected_state, \
     get_cat_state_with_x_error, get_circuit_with_x_error_on_first_n_qubits
+from tests.utilities import get_cat_state_vector
 
 
 class TestCatStateCreatorFlagPattern12Qubits:
@@ -21,7 +21,7 @@ class TestCatStateCreatorFlagPattern12Qubits:
         qubits = LineQubit.range(self._num_qubits)
         circuit = CatStateCreatorFlagPattern(qubit_register=qubits).get_cat_state_circuit()
 
-        expected_state = get_ket_cat_state_vector(num_qubits=self._num_qubits)
+        expected_state = get_cat_state_vector(num_qubits=self._num_qubits)
         assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     @pytest.mark.parametrize('num_qubits_with_error', [3, 6, 9, 12])
@@ -30,7 +30,7 @@ class TestCatStateCreatorFlagPattern12Qubits:
 
     def _run_multiple_of_3_qubits_affected(self, first_error_qubit_num: int) -> bool:
         circuit = get_circuit_with_x_error_on_first_n_qubits(qubits=self._qubits, n=first_error_qubit_num)
-        expected_state = get_ket_cat_state_vector(num_qubits=self._num_qubits)
+        expected_state = get_cat_state_vector(num_qubits=self._num_qubits)
         return circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
 
     def test_x_error_on_one_less_than_multiple_of_3_creates_error_on_multiple_of_3(self):

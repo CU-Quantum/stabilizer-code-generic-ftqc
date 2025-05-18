@@ -4,8 +4,7 @@ from cirq import CX, Circuit, H, LineQubit, Simulator, X
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
-    TYPE_STATE_VECTOR, tensor
-from tests.utilities import states_are_equal
+    TYPE_STATE_VECTOR, states_are_equal, tensor
 
 
 class TestControlledSingleQubitGatesApplier:

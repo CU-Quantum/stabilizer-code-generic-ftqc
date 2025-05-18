@@ -7,7 +7,8 @@ from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseMode
 
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, \
+from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, TYPE_DENSITY_MATRIX, \
+    TYPE_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector, tensor, trace_out_ancillas_in_zero_state
 
 
@@ -53,7 +54,7 @@ class ErrorCorrectingCodeUtilities(ABC):
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
-    def zero_state(self) -> TYPE_DENSITY_MATRIX:
+    def zero_state(self) ->  TYPE_DENSITY_MATRIX:
         return KET_ZERO_DENSITY_MATRIX
 
     def _get_simulation_result(self,
@@ -73,7 +74,7 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
 class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     @property
     def zero_state(self) -> TYPE_STATE_VECTOR:
-        return KET_ZERO.state_vector()
+        return KET_ZERO_STATE_VECTOR
 
     def _get_simulation_result(self,
                                circuit: Circuit,

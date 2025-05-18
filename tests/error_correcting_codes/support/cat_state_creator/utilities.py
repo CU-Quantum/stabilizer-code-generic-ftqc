@@ -2,9 +2,9 @@ from cirq import Circuit, I, LineQubit, Simulator, StateVectorTrialResult, X
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, get_ket_cat_state_vector, \
-    trace_out_ancillas_in_zero_state
-from tests.utilities import states_are_equal
+from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, \
+    states_are_equal, trace_out_ancillas_in_zero_state
+from tests.utilities import get_cat_state_vector
 
 
 def circuit_results_in_expected_state(circuit: Circuit, expected_state: TYPE_STATE_VECTOR) -> bool:
@@ -21,7 +21,7 @@ def get_circuit_with_x_error_on_first_n_qubits(qubits: list[LineQubit], n: int) 
     return circuit
 
 def get_cat_state_with_x_error(num_qubits: int, qubit_index_with_error: int) -> TYPE_STATE_VECTOR:
-    ideal_state = get_ket_cat_state_vector(num_qubits=num_qubits)
+    ideal_state = get_cat_state_vector(num_qubits=num_qubits)
     circuit = Circuit(
         [I(LineQubit(i)) for i in range(num_qubits)],
         X(LineQubit(qubit_index_with_error))

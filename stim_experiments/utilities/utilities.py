@@ -1,5 +1,6 @@
+import numpy as np
 from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, density_matrix_from_state_vector, kron
-from numpy import array, log2, sqrt, trace
+from numpy import allclose, array, log2, trace
 from numpy._typing import NDArray
 
 TYPE_STATE_VECTOR = NDArray[complex]
@@ -14,9 +15,6 @@ KET_MINUS_STATE_VECTOR = KET_MINUS.state_vector()
 KET_ZERO_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ZERO.state_vector())
 KET_ONE_DENSITY_MATRIX = density_matrix_from_state_vector(KET_ONE.state_vector())
 KET_PLUS_DENSITY_MATRIX = density_matrix_from_state_vector(KET_PLUS_STATE_VECTOR)
-
-def get_ket_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:
-    return (1/sqrt(2)) * (tensor(*[KET_ZERO_STATE_VECTOR] * num_qubits) + tensor(*[KET_ONE_STATE_VECTOR] * num_qubits))
 
 
 def get_num_qubits_in_state(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> int:
@@ -82,3 +80,11 @@ def cx_sequentially_closer_qubits_from_first(qubits: list[LineQubit]) -> list[Op
 
 def cx_sequentially_further_qubits_from_first(qubits: list[LineQubit]) -> list[Operation]:
     return [X(qubits[i]).controlled_by(qubits[0]) for i in range(1, len(qubits))]
+
+
+def states_are_equal(state1: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, state2: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> bool:
+    element_wise_division = state1 / state2
+    no_nans = element_wise_division[~np.isnan(element_wise_division)]
+    has_global_phase = len(no_nans) and np.all(np.isclose(no_nans, no_nans[0], 1e-7))
+    global_phase = no_nans[0] if has_global_phase else 1
+    return allclose(state1 / global_phase, state2, atol=1e-7)

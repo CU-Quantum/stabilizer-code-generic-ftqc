@@ -26,7 +26,8 @@ from tests.error_correcting_codes.steane_code.expected_states_steane import Expe
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_three_cat_subregister_parity import \
     ExpectedStatesThreeCatSubregisterParity
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from stim_experiments.utilities.utilities import states_are_equal
 
 
 @dataclass

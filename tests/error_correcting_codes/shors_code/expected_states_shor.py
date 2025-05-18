@@ -1,14 +1,14 @@
 from numpy import sqrt
 
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR, \
-    get_ket_cat_state_vector, \
     tensor
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
+from tests.utilities import get_cat_state_vector
 
 
 class ExpectedStatesShor(ExpectedStates):
     def get_logical_zero_state_vector(self) -> TYPE_STATE_VECTOR:
-        GHZ_3 = get_ket_cat_state_vector(num_qubits=3)
+        GHZ_3 = get_cat_state_vector(num_qubits=3)
         return tensor(*[GHZ_3] * 3)
 
     def get_logical_one_state_vector(self) -> TYPE_STATE_VECTOR:
