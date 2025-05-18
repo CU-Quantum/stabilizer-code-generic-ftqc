@@ -3,8 +3,8 @@ from cirq import Circuit, LineQubit, X
 from numpy import sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_standardized_standardized import \
-    GenericStabilizerCode
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
+    CodeStabilizerStandardized
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
@@ -17,7 +17,7 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
 
 class TestGenericStabilizer:
     def test_logical_z_has_logical_x_effect_after_logical_h(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
             code.encode_logical_qubit(),
@@ -36,7 +36,7 @@ class TestGenericStabilizer:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_logical_x_on_one_out_of_multiple_encoded_qubits(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
             code.encode_logical_qubit(),
@@ -59,7 +59,7 @@ class TestGenericStabilizer:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_logical_h_on_one_out_of_multiple_encoded_qubits(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
             code.encode_logical_qubit(),
@@ -82,7 +82,7 @@ class TestGenericStabilizer:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_two_logical_h_on_one_out_of_multiple_encoded_qubits_is_identity(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         circuit = Circuit(
             code.encode_logical_qubit(),
@@ -105,7 +105,7 @@ class TestGenericStabilizer:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_logical_hzh_on_one_out_of_multiple_encoded_qubits_is_logical_x(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
@@ -132,16 +132,16 @@ class TestGenericStabilizer:
         assert states_are_equal(simulated_state, expected_state)
 
     def test_qubit_index_must_be_at_most_largest_logical_index(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_4_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 1. Was given 2."):
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=2))
 
-        code = GenericStabilizerCode(generators=get_check_matrix_values_5_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit())
         with pytest.raises(ValueError, match="Qubit index must be between 0 and 0. Was given 1."):
             code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.H, qubit_index=1))
 
     def test_multiqubit_encoding_corrects_errors_in_hadamard_basis(self):
-        code = GenericStabilizerCode(generators=get_check_matrix_values_8_qubit())
+        code = CodeStabilizerStandardized(generators=get_check_matrix_values_8_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))

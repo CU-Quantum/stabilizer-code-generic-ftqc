@@ -15,7 +15,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class GenericStabilizerCode(StabilizerCode):
+class CodeStabilizerStandardized(StabilizerCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
                  qubits: Optional[list[LineQubit]] = None):
@@ -28,22 +28,10 @@ class GenericStabilizerCode(StabilizerCode):
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         if operation.gate == LogicalGateLabel.H:
-            return self._get_logical_hadamard(operation=operation)
+            return self._universal_logical_hadamard(operation=operation)
         elif operation.gate in [LogicalGateLabel.X, LogicalGateLabel.Z]:
             return self._get_logical_x_or_z(operation=operation)
         return None
-
-    def _get_logical_hadamard(self, operation: LogicalOperation) -> Circuit:
-        should_use_transversal = self._check_matrix_standardized.num_logical_qubits == 1
-        return self._hadamard_all_data_qubits() if should_use_transversal else self._universal_logical_hadamard(
-            operation)
-
-    def _hadamard_all_data_qubits(self) -> Circuit:
-        circuit = Circuit(
-            [H(qubit) for qubit in self.data_qubits],
-        )
-        self._check_matrix_standardized.swap_xs_and_zs()
-        return circuit
 
     def _universal_logical_hadamard(self, operation) -> Circuit:
         # TODO turn this into a non-ft strategy

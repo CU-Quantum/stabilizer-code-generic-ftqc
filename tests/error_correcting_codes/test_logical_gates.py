@@ -8,8 +8,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_standardized_standardized import \
-    GenericStabilizerCode
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
+    CodeStabilizerStandardized
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
@@ -42,7 +42,7 @@ PARAMETERS = {
         expected_states=ExpectedStatesThreeCatSubregisterParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
-        code=GenericStabilizerCode(generators=get_check_matrix_values_5_qubit()),
+        code=CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit()),
         expected_states=ExpectedStatesGenericFiveQubit()
     ),
     "ThreeCatCode": ParametersForLogicalGatesTest(

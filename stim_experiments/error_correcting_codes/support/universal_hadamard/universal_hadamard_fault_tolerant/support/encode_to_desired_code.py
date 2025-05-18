@@ -2,12 +2,12 @@ from functools import cached_property
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE
+from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical_context import \
+from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support.three_cat_subregister_parity_code_to_computational_logical_context import \
     ThreeCatSubregisterParityCodeToComputationalLogicalContext
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
