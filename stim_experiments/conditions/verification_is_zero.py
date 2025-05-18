@@ -3,7 +3,6 @@ from cirq.protocols import json_serialization
 
 
 class VerificationIsZero(Condition):
-    #TODO test
     def __init__(self, key: MeasurementKey):
         self.key = key
         self._last_num_measurements = 0
