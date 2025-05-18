@@ -8,7 +8,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
+from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
@@ -16,13 +16,10 @@ from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STA
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):
-    def __init__(self, num_logical_qubits: int = 1, qubit_start_index: int = 0, provided_ancilla_qubits: Optional[list[LineQubit]] = None, ):
+    def __init__(self, num_logical_qubits: int = 1, qubits: Optional[list[LineQubit]] = None):
         super().__init__(num_data_qubits=num_logical_qubits,
-                         num_ancilla_qubits=0,
                          num_logical_qubits=num_logical_qubits,
-                         initial_logical_qubit_state=tensor(*[KET_ZERO_STATE_VECTOR] * num_logical_qubits),
-                         qubit_start_index=qubit_start_index,
-                         provided_ancilla_qubits=provided_ancilla_qubits)
+                         qubits=qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         pass
@@ -73,7 +70,7 @@ class TestTransformationOperationToSimulationOperationConverter:
     def test_target_on_multiple_encodings(self):
         encodings = [
             ErrorCorrectingCodeStub(),
-            ErrorCorrectingCodeStub(qubit_start_index=1)
+            ErrorCorrectingCodeStub(qubits=LineQubit.range(1))
         ]
         transformation_operation = TransformationOperation(gate=TransformationGate.X, target_qubit_index=1)
         converter = TransformationOperationToSimulationOperationConverter(transformation_operation=transformation_operation,
@@ -92,7 +89,7 @@ class TestTransformationOperationToSimulationOperationConverter:
     def test_target_on_multiqubit_encodings(self):
         encodings = [
             ErrorCorrectingCodeStub(num_logical_qubits=2),
-            ErrorCorrectingCodeStub(num_logical_qubits=2, qubit_start_index=2)
+            ErrorCorrectingCodeStub(num_logical_qubits=2, qubits=LineQubit.range(2, 4))
         ]
         transformation_operation = TransformationOperation(gate=TransformationGate.X, target_qubit_index=3)
         converter = TransformationOperationToSimulationOperationConverter(transformation_operation=transformation_operation,
@@ -115,7 +112,7 @@ class TestTransformationOperationToSimulationOperationConverter:
     def test_controlled_operation(self, transformation_gate: TransformationGate, logical_gate_label: LogicalGateLabel):
         encodings = [
             ErrorCorrectingCodeStub(),
-            ErrorCorrectingCodeStub(qubit_start_index=1)
+            ErrorCorrectingCodeStub(qubits=LineQubit.range(1))
         ]
         transformation_operation = TransformationOperation(gate=transformation_gate, target_qubit_index=0, control_qubit_index=1)
         converter = TransformationOperationToSimulationOperationConverter(transformation_operation=transformation_operation,
@@ -132,6 +129,7 @@ class TestTransformationOperationToSimulationOperationConverter:
             control_encoding=LogicalEncodingIndex(
                 encoding=encodings[1],
                 qubit_index_relative=0,
+                qubit_index_logical=1
             )
         )
 
@@ -147,6 +145,7 @@ class TestTransformationOperationToSimulationOperationConverter:
             control_encoding=LogicalEncodingIndex(
                 encoding=encodings[0],
                 qubit_index_relative=0,
+                qubit_index_logical=0
             )
         )
 

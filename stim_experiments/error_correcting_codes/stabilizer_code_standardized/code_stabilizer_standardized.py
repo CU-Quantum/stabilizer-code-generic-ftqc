@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import List, Optional
 
-from cirq import Circuit, Gate, H, LineQubit, Operation, X, Z
+from cirq import Circuit, Gate, LineQubit, Operation, X, Z
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
@@ -12,7 +12,6 @@ from stim_experiments.error_correcting_codes.support.matrix_standardizer.check_m
     CheckMatrixStandardizer
 from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import CheckMatrixToGates
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class CodeStabilizerStandardized(StabilizerCode):
@@ -27,37 +26,6 @@ class CodeStabilizerStandardized(StabilizerCode):
         return [gate(self._ordered_qubits[generator_index])]
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
-        if operation.gate == LogicalGateLabel.H:
-            return self._universal_logical_hadamard(operation=operation)
-        elif operation.gate in [LogicalGateLabel.X, LogicalGateLabel.Z]:
-            return self._get_logical_x_or_z(operation=operation)
-        return None
-
-    def _universal_logical_hadamard(self, operation) -> Circuit:
-        # TODO turn this into a non-ft strategy
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
-            ancilla_qubit = ancilla_qubits[0]
-            logical_operations = (self._get_logical_operation_gates(gate_label=label)
-                                  for label in (LogicalGateLabel.X, LogicalGateLabel.Z))
-            logical_cx, logical_cz = (
-                [gate(self._get_qubit_at_index(qubit_index=qubit_index)).controlled_by(ancilla_qubit)
-                 for qubit_index, qubit_gates in enumerate(logical_operation[operation.qubit_index])
-                 for gate in qubit_gates]
-                for logical_operation in logical_operations
-            )
-            circuit = Circuit(
-                H(ancilla_qubit),
-                logical_cx,
-                logical_cz,
-                H(ancilla_qubit),
-                logical_cx,
-                X(ancilla_qubit),
-                logical_cz,
-                H(ancilla_qubit),
-            )
-            return circuit
-
-    def _get_logical_x_or_z(self, operation: LogicalOperation) -> Circuit:
         if operation.gate in [LogicalGateLabel.X, LogicalGateLabel.Z]:
             logical_gates = self._get_logical_operation_gates(gate_label=operation.gate)
             logical_gates_for_qubit = logical_gates[operation.qubit_index]

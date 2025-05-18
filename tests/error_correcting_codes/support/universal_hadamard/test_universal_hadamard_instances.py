@@ -4,12 +4,15 @@ from cirq import Circuit, LineQubit
 from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
+    CodeStabilizerStandardized
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.universal_hadamard_fault_tolerant import \
     UniversalHadamardFaultTolerant
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.single_qubit_code import SingleQubitCode
 from stim_experiments.utilities.utilities import states_are_equal
 
@@ -20,21 +23,22 @@ class TestUniversalHadamard:
         pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def _setup(self, request):
-        qubits = LineQubit.range(1)
-        self._code = SingleQubitCode(qubits=qubits)
-        universal_hadamard_type: type[UniversalHadamard] = request.param
-        self._universal_hadamard = universal_hadamard_type(code=self._code, qubit_index=0)
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._code.data_qubits))
+        np.random.seed(0)
+        self._universal_hadamard_type: type[UniversalHadamard] = request.param
 
     def test_random_alpha_beta(self):
-        np.random.seed(0)
+        qubits = LineQubit.range(1)
+        code = SingleQubitCode(qubits=qubits)
+        universal_hadamard = self._universal_hadamard_type(code=code, qubit_index=0)
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
+
         initial_state = self._random_complex_unit_vector()
         utilities = get_error_correcting_code_utilities(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
-                self._code.encode_logical_qubit(),
-                self._universal_hadamard.get_hadamard_circuit(),
+                code.encode_logical_qubit(),
+                universal_hadamard.get_hadamard_circuit(),
             ),
             num_data_qubits=1,
             initial_data_state=initial_state,

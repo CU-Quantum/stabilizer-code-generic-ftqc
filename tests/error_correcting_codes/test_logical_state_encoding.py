@@ -18,9 +18,9 @@ from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE
     KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
-from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
+from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_steane import \
+from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_steane import \
     ExpectedStatesGenericSteane
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane

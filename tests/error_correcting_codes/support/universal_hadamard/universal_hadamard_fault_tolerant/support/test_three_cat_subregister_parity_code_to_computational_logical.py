@@ -2,7 +2,7 @@ import pytest
 from cirq import Circuit, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support import \
+from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support.three_cat_subregister_parity_code_to_computational_logical import \
     ThreeCatSubregisterParityCodeToComputationalLogical
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode

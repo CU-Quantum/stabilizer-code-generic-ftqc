@@ -6,7 +6,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
+from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 
 
