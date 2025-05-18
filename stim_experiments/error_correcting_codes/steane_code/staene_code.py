@@ -1,68 +1,52 @@
 from typing import Optional
 
-from cirq import CX, Circuit, Gate, H, LineQubit, R, X, Z
+from cirq import Circuit, LineQubit, Operation, X, Z
 
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import int_to_binary_array, tensor
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
+    ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
+    StateEncoderByGeneratorMeasurement
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
 
 
 class SteaneCode(ErrorCorrectingCode):
-    _stabilizer_indices = [(3, 4, 5, 6), (1, 2, 5, 6), (0, 2, 4, 6)]
-
     def __init__(self, qubits: Optional[list[LineQubit]] = None):
+        self._check_matrix = CheckMatrix(matrix=get_check_matrix_values_steane())
         super().__init__(num_data_qubits=7,
                          num_logical_qubits=1,
                          qubits=qubits,)
 
     def encode_logical_qubit(self) -> Circuit:
-        return self.get_error_correction_circuit()
+        phase_corrections = [
+            self._get_phase_correction(generator_index=generator_index)
+            for generator_index in range(len(self._check_matrix.matrix))
+        ]
+        return StateEncoderByGeneratorMeasurement(
+            check_matrix=self._check_matrix,
+            phase_corrections=phase_corrections,
+            qubits=self.data_qubits,
+        ).encode_state()
 
-    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
-        pass
+    def _get_phase_correction(self, generator_index: int) -> list[Operation]:
+        target_qubit_index_per_sector = [3, 1, 0]
+        target_qubit_index_per_generator = target_qubit_index_per_sector * 2
+        target_qubit = target_qubit_index_per_generator[generator_index]
+        is_x_generator = generator_index < len(target_qubit_index_per_sector)
+        gate = Z if is_x_generator else X
+        return [gate(self.data_qubits[target_qubit])]
+
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
+        if operation.gate == LogicalGateLabel.Z:
+            return Circuit(Z(qubit) for qubit in self.data_qubits)
+        if operation.gate == LogicalGateLabel.X:
+            return Circuit(X(qubit) for qubit in self.data_qubits)
+        return None
 
     def get_error_correction_circuit(self) -> Circuit:
-        return Circuit(
-            self._correct_bit_flips(),
-            self._correct_phase_flips()
-        )
-
-    def _correct_bit_flips(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            syndrome = Circuit(
-                [CX(self.data_qubits[data_index], ancilla_qubits[ancilla_index])
-                 for ancilla_index, data_indices in enumerate(self._stabilizer_indices)
-                 for data_index in data_indices],
-            )
-            return self._correct_error(syndrome=syndrome, correction_gate=X, ancillas=ancilla_qubits)
-
-    def _correct_phase_flips(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=self._num_ancilla_qubits) as ancilla_qubits:
-            syndrome = Circuit(
-                [H(ancilla) for ancilla in ancilla_qubits],
-                [CX(ancilla_qubits[ancilla_index], self.data_qubits[data_index])
-                 for ancilla_index, data_indices in enumerate(self._stabilizer_indices)
-                 for data_index in data_indices],
-                [H(ancilla) for ancilla in ancilla_qubits],
-            )
-            return self._correct_error(syndrome=syndrome, correction_gate=Z, ancillas=ancilla_qubits)
-
-    def _correct_error(self, syndrome: Circuit, correction_gate: Gate, ancillas: list[LineQubit]) -> Circuit:
-        num_ancilla_qubits = len(ancillas)
-        recovery = Circuit(
-            [correction_gate.controlled(num_controls=3, control_values=int_to_binary_array(num=i + 1, num_elements=num_ancilla_qubits)).on(
-                *ancillas,
-                self.data_qubits[i]
-            ) for i in range(self._num_data_qubits)]
-        )
-        circuit = Circuit(
-            syndrome,
-            recovery,
-            [R(ancilla) for ancilla in ancillas],
-        )
-        return circuit
-
-    @property
-    def _num_ancilla_qubits(self) -> int:
-        return len(self._stabilizer_indices)
+        return ErrorRecoveryByGeneratorMeasurement(
+            check_matrix=self._check_matrix,
+            qubits=self.data_qubits
+        ).get_error_correction_circuit()

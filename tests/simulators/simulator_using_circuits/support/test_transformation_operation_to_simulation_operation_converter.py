@@ -12,7 +12,7 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.sim
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):

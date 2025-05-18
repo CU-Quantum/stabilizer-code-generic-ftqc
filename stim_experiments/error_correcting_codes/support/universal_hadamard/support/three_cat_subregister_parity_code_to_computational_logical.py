@@ -4,6 +4,8 @@ from typing import Generator, Optional
 from cirq import Circuit, OP_TREE, R, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_hadamard.support.encode_to_desired_code import \
     EncodeToDesiredCode
 from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical_context import \
@@ -14,7 +16,7 @@ from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.t
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
+from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_from_first
 
 
 class ThreeCatSubregisterParityCodeToComputationalLogical:
@@ -24,10 +26,6 @@ class ThreeCatSubregisterParityCodeToComputationalLogical:
                  ):
         self._three_cat_subregister_parity_code = three_cat_subregister_parity_code
         self._desired_encoding = desired_encoding
-
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        self._cat_state_creator_type = configuration.cat_state_creator_type
-        self._measurer_type = configuration.measurer_type
 
         self._circuit = Circuit()
         self._context: Optional[ThreeCatSubregisterParityCodeToComputationalLogicalContext] = None
@@ -110,3 +108,11 @@ class ThreeCatSubregisterParityCodeToComputationalLogical:
 
     def _reset_ancilla_qubits(self):
         return [R(qubit) for qubit in self._context.ancilla_qubits]
+
+    @property
+    def _cat_state_creator_type(self) -> type[CatStateCreator]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().cat_state_creator_type
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type

@@ -4,7 +4,7 @@ from cirq import Circuit, H, LineQubit, X, Z, density_matrix_from_state_vector
 from numpy._typing import NDArray
 from numpy.ma import allequal
 
-from stim_experiments.utilities import partial_trace
+from stim_experiments.utilities.utilities import partial_trace
 
 
 class TestBellState:

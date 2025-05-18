@@ -1,7 +1,7 @@
 import numpy as np
 
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR, \
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR, \
     int_to_binary_array, tensor
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 

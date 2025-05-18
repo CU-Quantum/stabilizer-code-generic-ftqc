@@ -9,7 +9,7 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.sim
     LogicalEncodingIndex, SimulationOperation
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.simulation_operation_simulator import \
     SimulationOperationSimulator
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.simulators.simulator_using_circuits.support.simulation_operation_simulator.error_correcting_code_stub import \
     ErrorCorrectingCodeStub
 

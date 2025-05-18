@@ -11,29 +11,23 @@ from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.t
     ThreeCatSubregisterParityCode
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_MINUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
-    KET_ZERO_STATE_VECTOR, \
+from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR, tensor
 from tests.error_correcting_codes.support.universal_hadamard.single_qubit_code import SingleQubitCode
-from tests.utilities import states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
 
 
 class TestUniversalHadamardCodeToComputationalLogical:
 
     @pytest.fixture(autouse=True)
     def _setup(self):
-        self._set_configuration_to_reduce_ancilla_qubits()
         arbitrary_desired_code = SingleQubitCode()
         self._three_cat_subregister_parity_code = ThreeCatSubregisterParityCode(num_qubits_in_cat_state=len(arbitrary_desired_code.data_qubits))
         self._num_data_qubits = len(self._three_cat_subregister_parity_code.data_qubits)
         self._helper = ThreeCatSubregisterParityCodeToComputationalLogical(
             three_cat_subregister_parity_code=self._three_cat_subregister_parity_code, desired_encoding=arbitrary_desired_code)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=self._num_data_qubits)
-
-    def _set_configuration_to_reduce_ancilla_qubits(self):
-        configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
-        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
-        configuration.measurer_type = MeasurerWithSingleQubit
+        set_configuration_to_reduce_ancilla_qubits()
 
     def test_puts_zero_into_plus(self):
         circuit = Circuit(

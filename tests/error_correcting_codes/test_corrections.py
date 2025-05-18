@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy
 import pytest
-from cirq import Circuit, Gate, I, LineQubit, X, Y, Z
+from cirq import Circuit, Gate, LineQubit, X, Y, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
@@ -15,17 +15,17 @@ from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code impor
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
     ExpectedStatesThreeCatSubregisterParity
-from tests.utilities import states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
@@ -95,6 +95,7 @@ class TestCorrections:
         self._parameters: ParametersForCorrectionsTest = request.param[0]
         self._qubit_index: int = request.param[1]
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._parameters.code.data_qubits))
+        set_configuration_to_reduce_ancilla_qubits()
 
     def test_bit_flip_error_is_corrected(self):
         self._error_is_corrected(error_gate=X, qubit_index=self._qubit_index)

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from cirq import density_matrix_from_state_vector
 
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR
+from stim_experiments.utilities.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR
 
 
 class ExpectedStates(ABC):

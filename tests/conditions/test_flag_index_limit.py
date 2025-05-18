@@ -12,7 +12,7 @@ class TestFlagIndexLimit:
         key = MeasurementKey('test_key')
         condition = FlagIndexLimit(key=key, parity_check_index=0, flag_sequence=array([]))
 
-        with pytest.raises(ValueError, match='^Measurement key test_key missing when checking flags$'):
+        with pytest.raises(ValueError, match='^Measurement key "test_key" missing when checking flags$'):
             condition.resolve(classical_data=store)
 
     def test_empty_flag_sequence(self):

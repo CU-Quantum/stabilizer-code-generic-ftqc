@@ -8,7 +8,7 @@ from stim_experiments.custom_dataclasses.state_and_measurements import \
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.support.parity_verifier import \
     ParityVerifier
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
 from tests.utilities import get_cat_state_vector
 
 

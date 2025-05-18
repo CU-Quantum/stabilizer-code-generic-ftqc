@@ -1,7 +1,7 @@
 from cirq import Circuit, I, LineQubit, Simulator, Z, density_matrix_from_state_vector
 
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, tensor
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
+from stim_experiments.utilities.utilities import TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, tensor
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.utilities import get_cat_state_vector
 

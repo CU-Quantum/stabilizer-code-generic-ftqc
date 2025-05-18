@@ -6,6 +6,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical import \
     ThreeCatSubregisterParityCodeToComputationalLogical
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
@@ -18,9 +19,6 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 class UniversalHadamard:
     def __init__(self, code: ErrorCorrectingCode = None):
         self._code = code
-
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        self._measurer_type = configuration.measurer_type
 
     def get_hadamard_circuit(self) -> Circuit:
         measurement_key = MeasurementKey(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
@@ -50,3 +48,8 @@ class UniversalHadamard:
                 ],
                 [R(ancilla) for ancilla in ancilla_qubits]
             )
+
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type

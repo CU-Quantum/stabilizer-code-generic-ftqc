@@ -2,7 +2,8 @@ from cirq import density_matrix_from_state_vector
 from numpy import sqrt
 from numpy._typing import NDArray
 
-from stim_experiments.utilities import TYPE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_DENSITY_MATRIX, \
+    tensor
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 
 

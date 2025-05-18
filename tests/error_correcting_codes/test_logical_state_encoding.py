@@ -10,26 +10,30 @@ from stim_experiments.error_correcting_codes.generic_stabilizer_code.generic_sta
     GenericStabilizerCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
+    CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
     ThreeCatSubregisterParityCode
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, \
-    KET_ZERO_DENSITY_MATRIX, \
-    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
+    KET_ZERO_STATE_VECTOR, \
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.error_correcting_codes.generic_stabilizer_code.expected_states_generic_steane import \
     ExpectedStatesGenericSteane
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_5_qubit, \
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.universal_hadamard_code.expected_states_universal_hadamard import \
     ExpectedStatesThreeCatSubregisterParity
-from tests.utilities import states_are_equal
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits, states_are_equal
 
 
 @dataclass
@@ -127,7 +131,7 @@ PARAMETERS = {
         one=ParametersForStateEncodingTest(
             code=ShorsRepetitionCode(),
             expected_state=ExpectedStatesShor().get_logical_one_density_matrix(),
-            initial_data_state=tensor(KET_ONE_DENSITY_MATRIX, *[KET_ZERO_DENSITY_MATRIX] * 8),
+            initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * 9),
         ),
     ),
 }
@@ -142,6 +146,7 @@ class TestLogicalStateEncoding:
     def _setup(self, request):
         self._parameters: ParametersForStateEncodingTest = request.param
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._parameters.code.data_qubits))
+        set_configuration_to_reduce_ancilla_qubits()
 
     def test_encoding(self):
         circuit = self._parameters.code.encode_logical_qubit()

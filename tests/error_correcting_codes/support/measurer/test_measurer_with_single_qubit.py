@@ -5,8 +5,8 @@ from cirq import Circuit, LineQubit, MeasurementKey, X, Z
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, \
-    KET_PLUS_STATE_VECTOR, tensor
+from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
+    tensor
 
 
 class TestMeasurerWithSingleQubit:

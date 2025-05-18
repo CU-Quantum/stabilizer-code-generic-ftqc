@@ -31,7 +31,7 @@ class FlagIndexLimit(Condition):
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key "{self.key}" missing when checking flags')
         if not len(self.flag_sequence):
-            raise ValueError(f'No flag sequence was given for key {self.key}')
+            raise ValueError(f'No flag sequence was given for key "{self.key}"')
 
         measurements = [x[0] for x in classical_data.records[self.key]]
         if len(measurements) != len(self.flag_sequence[0]):

@@ -1,20 +1,25 @@
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Operation
 
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 class StateEncoderByGeneratorMeasurement:
-    def __init__(self, generators: list[list[Operation]], phase_corrections: list[list[Operation]]):
-        self._generators = generators
+    #TODO test
+    def __init__(self, check_matrix: CheckMatrix, phase_corrections: list[list[Operation]], qubits: list[LineQubit]):
+        self._check_matrix = check_matrix
         self._phase_corrections = phase_corrections
+        self._qubits = qubits
 
         configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
         self._measurer_type = configuration.measurer_type
 
     def encode_state(self) -> Circuit:
-        measurement_keys = [MeasurementKey(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._generators))]
+        measurement_keys = [MeasurementKey(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._check_matrix.matrix))]
+        generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return Circuit(
             [
                 [
@@ -24,6 +29,6 @@ class StateEncoderByGeneratorMeasurement:
                         FrozenCircuit(self._phase_corrections[generator_index]),
                     ).with_classical_controls(measurement_key),
                 ]
-                for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, self._generators))
+                for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, generators))
             ],
         )

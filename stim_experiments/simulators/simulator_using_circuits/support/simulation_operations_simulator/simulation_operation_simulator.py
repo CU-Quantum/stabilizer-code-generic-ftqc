@@ -10,7 +10,7 @@ from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.sim
     SimulationOperation
 from stim_experiments.simulators.simulator_using_circuits.support.simulation_operations_simulator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
-from stim_experiments.utilities import tensor, trace_out_ancillas_in_zero_state
+from stim_experiments.utilities.utilities import tensor, trace_out_ancillas_in_zero_state
 
 
 class SimulationOperationSimulator:

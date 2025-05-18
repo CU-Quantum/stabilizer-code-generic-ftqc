@@ -2,7 +2,7 @@ from cirq import Circuit, LineQubit, Simulator, StateVectorTrialResult
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
-from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, get_ket_cat_state_vector
+from stim_experiments.utilities.utilities import KET_PLUS_STATE_VECTOR, get_ket_cat_state_vector
 from tests.error_correcting_codes.support.cat_state_creator.utilities import circuit_results_in_expected_state
 from tests.utilities import states_are_equal
 

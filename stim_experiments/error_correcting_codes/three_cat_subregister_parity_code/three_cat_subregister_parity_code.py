@@ -1,4 +1,3 @@
-from functools import cached_property
 from typing import Optional
 
 from cirq import Circuit, LineQubit, Operation, X, Z
@@ -7,8 +6,6 @@ from numpy import array
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
-from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
@@ -48,12 +45,13 @@ class ThreeCatSubregisterParityCode(ErrorCorrectingCode):
 
     def encode_logical_qubit(self) -> Circuit:
         phase_corrections = [self._get_phase_correction(generator_index=generator_index)
-                             for generator_index in range(len(self._generator_operations))]
-        return StateEncoderByGeneratorMeasurement(generators=self._generator_operations,
-                                                  phase_corrections=phase_corrections).encode_state()
+                             for generator_index in range(self._num_generators)]
+        return StateEncoderByGeneratorMeasurement(check_matrix=self._check_matrix,
+                                                  phase_corrections=phase_corrections,
+                                                  qubits=self.data_qubits).encode_state()
 
     def _get_phase_correction(self, generator_index: int) -> list[Operation]:
-        is_x_stabilizer = generator_index < len(self._generator_operations) - 2
+        is_x_stabilizer = generator_index < self._num_generators - 2
         if is_x_stabilizer:
             num_checks_per_register = self._num_qubits_in_cat_state - 1
             register_index = generator_index // num_checks_per_register
@@ -61,17 +59,14 @@ class ThreeCatSubregisterParityCode(ErrorCorrectingCode):
             relative_generator_index = generator_index % num_checks_per_register
             return [X(self.data_qubits[qubit_index]) for qubit_index in range(start_index, start_index + relative_generator_index + 1)]
         else:
-            is_last_generator = generator_index == len(self._generator_operations) - 1
+            is_last_generator = generator_index == self._num_generators - 1
             return [Z(self.data_qubits[0 - is_last_generator])]
 
     def get_error_correction_circuit(self) -> Circuit:
-        return ErrorRecoveryByGeneratorMeasurement(generator_operations=self._generator_operations,
-                                                   recoveries=RecoveryFinder(check_matrix=self._check_matrix).find_recoveries(),
-                                                   qubits=self.data_qubits).get_error_correction_circuit()
-
-    @cached_property
-    def _generator_operations(self) -> list[list[Operation]]:
-        return CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self.data_qubits).get_operations()
+        return ErrorRecoveryByGeneratorMeasurement(
+            check_matrix=self._check_matrix,
+            qubits=self.data_qubits,
+        ).get_error_correction_circuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         if operation.gate == LogicalGateLabel.X:
@@ -88,3 +83,7 @@ class ThreeCatSubregisterParityCode(ErrorCorrectingCode):
     def subregisters(self) -> list[list[LineQubit]]:
         return [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
                 for i in range(self.num_cats)]
+
+    @property
+    def _num_generators(self) -> int:
+        return len(self._check_matrix.matrix)

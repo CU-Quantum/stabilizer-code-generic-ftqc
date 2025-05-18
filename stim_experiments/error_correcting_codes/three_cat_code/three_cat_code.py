@@ -7,6 +7,8 @@ from cirq import Circuit, LineQubit, \
 from stim_experiments.conditions.parity_check_reader import ParityCheckReader
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
@@ -18,10 +20,6 @@ class ThreeCatCode(ErrorCorrectingCode):
         super().__init__(num_data_qubits=num_qubits_in_cat_state * self.num_cats,
                          num_logical_qubits=1,
                          qubits=qubits)
-
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        self._cat_state_creator_type = configuration.cat_state_creator_type
-        self._measurer_type = configuration.measurer_type
 
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(
@@ -81,11 +79,11 @@ class ThreeCatCode(ErrorCorrectingCode):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         if operation.gate == LogicalGateLabel.X:
             return Circuit(
-                [X(self.data_qubits[i]) for i in range(self._num_data_qubits)]
+                [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         elif operation.gate == LogicalGateLabel.Z:
             return Circuit(
-                [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
+                [X(self.data_qubits[i]) for i in range(self._num_qubits_in_cat_state)]
             )
         return None
 
@@ -93,3 +91,11 @@ class ThreeCatCode(ErrorCorrectingCode):
     def subregisters(self) -> list[list[LineQubit]]:
         return [self.data_qubits[i * self._num_qubits_in_cat_state:(i + 1) * self._num_qubits_in_cat_state]
                 for i in range(self.num_cats)]
+
+    @property
+    def _cat_state_creator_type(self) -> type[CatStateCreator]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().cat_state_creator_type
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type

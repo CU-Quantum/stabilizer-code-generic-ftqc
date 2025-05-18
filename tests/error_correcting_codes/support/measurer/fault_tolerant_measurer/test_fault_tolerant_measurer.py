@@ -1,12 +1,12 @@
 import numpy.random
-from cirq import Circuit, LineQubit, MeasurementKey, Simulator, Z
+from cirq import LineQubit, MeasurementKey, Simulator, Z
 from numpy.ma.core import allequal, array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities import KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR
+from stim_experiments.utilities.utilities import KET_PLUS_STATE_VECTOR
 
 
 class TestFaultTolerantMeasurer:

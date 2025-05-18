@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from numpy._typing import NDArray
 from numpy.ma.core import allequal
 
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
+from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
 from tests.utilities import states_are_equal
 
 

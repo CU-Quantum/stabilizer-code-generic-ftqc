@@ -6,12 +6,13 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TR
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_hadamard.support.three_cat_subregister_parity_code_to_computational_logical_context import \
     ThreeCatSubregisterParityCodeToComputationalLogicalContext
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.utilities import cx_sequentially_further_qubits_from_first
+from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_from_first
 
 
 class EncodeToDesiredCode:
@@ -25,9 +26,6 @@ class EncodeToDesiredCode:
             desired_encoding.create_new(qubits=code.subregisters[0])
             for code in context.all_universal_hadamard_codes
         ]
-
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        self._measurer_type = configuration.measurer_type
 
     def get_encoding_circuit(self):
         return [
@@ -132,3 +130,7 @@ class EncodeToDesiredCode:
     @cached_property
     def _measurement_keys(self) -> list[MeasurementKey]:
         return [MeasurementKey(f'ENCODE_TO_THREE_DESIRED_{uuid4()}') for _ in range(len(self._three_desired_codes) - 1)]
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type

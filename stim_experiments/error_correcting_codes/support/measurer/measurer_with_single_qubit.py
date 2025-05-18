@@ -1,4 +1,4 @@
-from cirq import Circuit, H, M, R
+from cirq import Circuit, M, R
 
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_single_qubit_hadamard_control import \

@@ -13,9 +13,9 @@ from stim_experiments.simulators.simulator_using_circuits.support.simulation_ope
     CircuitFromOperationCreator
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, \
-    tensor, \
-    trace_out_ancillas_in_zero_state
+from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, \
+    is_state_vector, \
+    tensor, trace_out_ancillas_in_zero_state
 
 
 class LogicalOperationsSimulator:

@@ -5,7 +5,7 @@ from numpy import array
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
-from tests.error_correcting_codes.generic_stabilizer_code.utilities import get_check_matrix_values_steane
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
 
 
 def get_arbitrary_check_matrix_values():
