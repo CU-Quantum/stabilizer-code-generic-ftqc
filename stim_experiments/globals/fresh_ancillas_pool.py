@@ -5,7 +5,6 @@ from cirq import LineQubit
 
 
 class FreshAncillasPool:
-    # TODO test class
     # TODO add async locking
 
     _pool: list[LineQubit] = []
@@ -14,7 +13,7 @@ class FreshAncillasPool:
     @classmethod
     def set_first_ancilla_num(cls, first_ancilla_num: int):
         if first_ancilla_num < 0:
-            raise ValueError("First ancilla number must be non-negative.")  # TODO test this
+            raise ValueError("First ancilla number must be non-negative.")
         cls._pool = []
         cls._next_ancilla_num = first_ancilla_num
 
@@ -30,5 +29,5 @@ class FreshAncillasPool:
 
         yield ancillas
 
-        for ancillas in ancillas:
+        for ancillas in reversed(ancillas):
             self._pool.append(ancillas)
