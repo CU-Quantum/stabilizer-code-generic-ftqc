@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
-from cirq import Circuit, Condition, LineQubit, Operation
-from sympy import Expr
+from cirq import Circuit, LineQubit, Operation
 
 
 class OperationsApplier(ABC):
@@ -13,12 +11,17 @@ class OperationsApplier(ABC):
         self._operations = operations
         self._measurement_qubit = measurement_qubit
 
-    @abstractmethod
     def get_application_circuit(self) -> Circuit:
+        self._validate()
+        if not self._operations:
+            return Circuit()
+        return self._perform_get_application_circuit()
+
+    @abstractmethod
+    def _perform_get_application_circuit(self) -> Circuit:
         pass
 
     def _validate(self) -> None:
-        # TODO test this method
         self._validate_disjoint_qubits()
 
     def _validate_disjoint_qubits(self) -> None:

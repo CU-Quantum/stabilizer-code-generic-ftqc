@@ -12,7 +12,6 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 
 
 class ErrorRecoveryByGeneratorMeasurement:
-    # TODO test
     def __init__(self, check_matrix: CheckMatrix, qubits: list[LineQubit]):
         self._check_matrix = check_matrix
         self._qubits = qubits
