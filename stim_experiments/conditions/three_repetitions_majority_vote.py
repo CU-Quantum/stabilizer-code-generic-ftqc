@@ -8,10 +8,10 @@ from numpy._typing import NDArray
 
 class ThreeRepetitionsMajorityVote(Condition):
     #TODO test
-    def __init__(self, desired_measurement_key: MeasurementKey, number_of_votes: int = 3):
+    def __init__(self, desired_measurement_key: MeasurementKey):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
-        self.number_of_votes = number_of_votes
+        self.number_of_votes = 3
 
     @property
     def keys(self):
