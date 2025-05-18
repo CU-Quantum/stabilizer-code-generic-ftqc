@@ -3,7 +3,6 @@ from typing import Optional
 import numpy.random
 import pytest
 from cirq import Circuit, H, I, X, Z, LineQubit
-from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
@@ -17,7 +16,7 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
-    get_num_qubits_in_state, states_are_equal, tensor
+    states_are_equal, tensor
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
