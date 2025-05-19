@@ -6,6 +6,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
     CodeStabilizerStandardized
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -24,6 +25,7 @@ from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_s
     ExpectedStatesGenericSteane
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
+from tests.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
@@ -46,6 +48,18 @@ class StateParameters:
 
 
 PARAMETERS = {
+    "RepetitionCode": StateParameters(
+        zero=ParametersForStateEncodingTest(
+            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            expected_state=ExpectedStatesRepetition().get_logical_zero_density_matrix(),
+            initial_data_state=tensor(*[KET_ZERO_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
+        ),
+        one=ParametersForStateEncodingTest(
+            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            expected_state=ExpectedStatesRepetition().get_logical_one_density_matrix(),
+            initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
+        ),
+    ),
     "ThreeCatSubregisterParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),

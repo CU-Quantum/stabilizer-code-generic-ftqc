@@ -4,6 +4,7 @@ from typing import Generator, Optional
 from cirq import Circuit, OP_TREE, R, X
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support.encode_to_desired_code import \
@@ -39,7 +40,7 @@ class ThreeCatSubregisterParityCodeToComputationalLogical:
 
                 return Circuit(
                     self._encode_helper_registers(),
-                    self._cx_data_to_helpers(),
+                    self._cx_original_to_helpers(),
                     self._create_cat_states_on_all_subregisters(),
                     self._encode_to_desired_code(),
                     self._reset_ancilla_qubits(),
@@ -53,16 +54,16 @@ class ThreeCatSubregisterParityCodeToComputationalLogical:
             self._encodings_store.get_all_correction_circuits(),
         ]
 
-    def _cx_data_to_helpers(self) -> OP_TREE:
-        self._encodings_store.replace_tracked_encodings_with(encodings=self._context.all_universal_hadamard_codes)  # TODO this may need to be repetition code correction for each subregister
+    def _cx_original_to_helpers(self) -> OP_TREE:
+        self._encodings_store.replace_tracked_encodings_with(encodings=self._context.all_universal_hadamard_codes)
         return [
             [
-                self._cx_data_to_helper(code=code),
+                self._cx_original_to_helper(code=code),
                 self._encodings_store.get_all_correction_circuits(),
             ] for code in self._context.additional_universal_hadamard_codes
         ]
 
-    def _cx_data_to_helper(self, code: ThreeCatSubregisterParityCode) -> OP_TREE:
+    def _cx_original_to_helper(self, code: ThreeCatSubregisterParityCode) -> OP_TREE:
         return [X(target_qubit).controlled_by(control_qubit)
                 for target_qubit, control_qubit in zip(code.data_qubits, self._three_cat_subregister_parity_code.data_qubits)]
 

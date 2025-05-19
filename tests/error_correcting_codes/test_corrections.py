@@ -7,6 +7,7 @@ from cirq import Circuit, Gate, LineQubit, X, Y, Z
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
     CodeStabilizerStandardized
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -20,6 +21,7 @@ from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit imp
 from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from tests.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
@@ -44,6 +46,11 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
+    "RepetitionCode": ParametersForCorrectionsTest(
+        code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+        initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
+        qubit_indices_to_test=list(range(3)),
+    ),
     "ThreeCatSubregisterParityZeroState": ParametersForCorrectionsTest(
         code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
