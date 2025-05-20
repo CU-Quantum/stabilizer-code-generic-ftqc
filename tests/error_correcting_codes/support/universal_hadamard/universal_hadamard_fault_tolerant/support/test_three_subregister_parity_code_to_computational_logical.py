@@ -6,8 +6,8 @@ from numpy import sqrt
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support.hadamard_computational_logical_three_subregister_parity_code import \
     HadamardComputationalLogicalThreeSubregisterParityCode
-from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
-    ThreeCatSubregisterParityCode
+from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
+    ThreeSubregisterParityCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, states_are_equal
 from tests.error_correcting_codes.three_subregister_parity_code.expected_states_three_subregister_parity import \
@@ -20,7 +20,7 @@ class TestThreeSubregisterParityCodeToComputationalLogical:
     def _setup(self, request):
         numpy.random.seed(request.param)
         self._arbitrary_num_qubits = 1
-        self._three_cat_subregister_parity_code = ThreeCatSubregisterParityCode(num_qubits_in_cat_state=self._arbitrary_num_qubits)
+        self._three_cat_subregister_parity_code = ThreeSubregisterParityCode(num_qubits_in_cat_state=self._arbitrary_num_qubits)
         self._num_data_qubits = len(self._three_cat_subregister_parity_code.data_qubits)
         self._helper = HadamardComputationalLogicalThreeSubregisterParityCode(
             three_cat_subregister_parity_code=self._three_cat_subregister_parity_code)

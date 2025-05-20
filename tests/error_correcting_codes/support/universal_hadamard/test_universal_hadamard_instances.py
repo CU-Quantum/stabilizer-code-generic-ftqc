@@ -20,12 +20,15 @@ from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestUniversalHadamard:
+    @pytest.fixture(autouse=True, params=range(2))
+    def _seed(self, request):
+        np.random.seed(request.param)
+
     @pytest.fixture(autouse=True, params=[
         pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
         pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
-    def _setup(self, request):
-        np.random.seed(0)
+    def _setup(self, request, _seed):
         self._universal_hadamard_type: type[UniversalHadamard] = request.param
 
     def test_random_alpha_beta(self):

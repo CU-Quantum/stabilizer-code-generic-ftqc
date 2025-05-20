@@ -12,8 +12,8 @@ from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_s
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.three_cat_subregister_parity_code import \
-    ThreeCatSubregisterParityCode
+from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
+    ThreeSubregisterParityCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, \
@@ -62,12 +62,12 @@ PARAMETERS = {
     ),
     "ThreeCatSubregisterParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
+            code=ThreeSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
             expected_state=ExpectedStatesThreeSubregisterParity().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeSubregisterParity().num_qubits * ThreeCatCode.num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
+            code=ThreeSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
             expected_state=ExpectedStatesThreeSubregisterParity().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesThreeSubregisterParity().num_qubits * ThreeCatCode.num_cats),
         ),
