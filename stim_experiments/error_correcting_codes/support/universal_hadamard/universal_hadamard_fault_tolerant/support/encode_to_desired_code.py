@@ -19,7 +19,7 @@ class EncodeToDesiredCode:
     def __init__(self, context: HadamardComputationalLogicalThreeSubregisterParityCodeContext):
         self._context = context
 
-    def get_encoding_circuit(self):
+    def get_encoding_circuit(self) -> OP_TREE:
         return [
             self._encode_into_three_of_desired_codes(),
             self._measure_out_additional_codes()
@@ -32,11 +32,19 @@ class EncodeToDesiredCode:
         ]
 
     def _encode_into_desired_codes(self) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=self._context.all_universal_hadamard_codes) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=self._context.all_subregister_pairity_codes) as encodings_store:
+            encodings = [desired_code.encode_logical_qubit() for desired_code in self._context.all_subregister_pairity_codes]
+            encoding_measurement_symbols = [sympy.symbols(' '.join([key.name for key in encoding.measurement_keys])) for encoding in encodings]
             return [
                 [
-                    desired_code.encode_logical_qubit()
-                    for desired_code in self._context.all_universal_hadamard_codes
+                    [
+                        encoding,
+                        CircuitOperation(
+                            self._context.all_subregister_pairity_codes[i].get_operation_circuit(
+                                LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).freeze()
+                        ).with_classical_controls(sympy.Mod(sympy.Add(*encoding_measurement_symbols[i]), 2))
+                    ]
+                    for i, encoding in enumerate(encodings)
                 ],
                 encodings_store.get_all_correction_circuits()
             ]
@@ -50,12 +58,12 @@ class EncodeToDesiredCode:
         logical_x_operations, logical_z_operations = (
             [
                 list(code.get_operation_circuit(LogicalOperation(gate=gate, qubit_index=0)).all_operations())
-                for code in self._context.all_universal_hadamard_codes
+                for code in self._context.all_subregister_pairity_codes
             ]
             for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
         )
 
-        with ActiveEncodingsStore(additional_tracked_encodings=self._context.all_universal_hadamard_codes) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=self._context.all_subregister_pairity_codes) as encodings_store:
             return [
                 [
                     self._measurer_type(operations=logical_x_operations[i] + logical_x_operations[i + 1],
@@ -70,7 +78,7 @@ class EncodeToDesiredCode:
             ]
 
     def _measure_out_additional_codes(self) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=[self._context.all_universal_hadamard_codes[0]]) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=[self._context.all_subregister_pairity_codes[0]]) as encodings_store:
             return [
                 self._get_measurement_operations(),
                 self._get_recovery_operations(),
@@ -78,12 +86,12 @@ class EncodeToDesiredCode:
             ]
 
     def _get_measurement_operations(self) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=[self._context.all_universal_hadamard_codes[1]]) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=[self._context.all_subregister_pairity_codes[1]]) as encodings_store:
             operations_per_code = [
                 list(code.get_operation_circuit(
                     LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
                 ).all_operations())
-                for code in self._context.all_universal_hadamard_codes[1:]
+                for code in self._context.all_subregister_pairity_codes[1:]
             ]
             measurements = [
                 self._measurer_type(
@@ -100,7 +108,7 @@ class EncodeToDesiredCode:
         logical_operation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
         return CircuitOperation(
             FrozenCircuit(
-                list(self._context.all_universal_hadamard_codes[0].get_operation_circuit(logical_operation).all_operations())),
+                list(self._context.all_subregister_pairity_codes[0].get_operation_circuit(logical_operation).all_operations())),
         ).with_classical_controls(xor_condition)
 
     @cached_property
@@ -109,7 +117,7 @@ class EncodeToDesiredCode:
 
     @cached_property
     def _measurement_keys(self) -> list[MeasurementKey]:
-        return [MeasurementKey(f'ENCODE_TO_THREE_DESIRED_{uuid4()}') for _ in range(len(self._context.all_universal_hadamard_codes) - 1)]
+        return [MeasurementKey(f'ENCODE_TO_THREE_DESIRED_{uuid4()}') for _ in range(len(self._context.all_subregister_pairity_codes) - 1)]
 
     @property
     def _measurer_type(self) -> type[Measurer]:

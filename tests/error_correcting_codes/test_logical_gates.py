@@ -26,8 +26,8 @@ from tests.error_correcting_codes.repetition_code.expected_states_repetition imp
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.universal_hadamard_code.expected_states_three_cat_subregister_parity import \
-    ExpectedStatesThreeCatSubregisterParity
+from tests.error_correcting_codes.three_subregister_parity_code.expected_states_three_subregister_parity import \
+    ExpectedStatesThreeSubregisterParity
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 from stim_experiments.utilities.utilities import states_are_equal
 
@@ -44,8 +44,8 @@ PARAMETERS = {
         expected_states=ExpectedStatesRepetition(),
     ),
     "ThreeCatSubregisterParityCode": ParametersForLogicalGatesTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
-        expected_states=ExpectedStatesThreeCatSubregisterParity(),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
+        expected_states=ExpectedStatesThreeSubregisterParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
         code=CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit()),

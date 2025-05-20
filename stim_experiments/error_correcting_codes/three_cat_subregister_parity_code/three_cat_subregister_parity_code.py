@@ -37,11 +37,6 @@ class ThreeCatSubregisterParityCode(StabilizerCode):
         self._check_matrix = CheckMatrix(matrix=array(z_stabilizers + x_stabilizers))
         super().__init__(check_matrix=self._check_matrix, qubits=qubits)
 
-    def _qubit_has_x_stabilizer_in_generator(self, cat_index: int, parity_check_index: int, qubit_index: int) -> int:
-        low_index = cat_index * self._num_qubits_in_cat_state + parity_check_index
-        high_index = low_index + 1
-        return int(low_index <= qubit_index <= high_index)
-
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
         is_z_stabilizer = generator_index < self._num_generators - 2
         if is_z_stabilizer:

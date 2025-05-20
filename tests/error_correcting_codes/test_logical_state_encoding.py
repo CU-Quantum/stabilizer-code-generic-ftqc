@@ -29,8 +29,8 @@ from tests.error_correcting_codes.repetition_code.expected_states_repetition imp
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.universal_hadamard_code.expected_states_three_cat_subregister_parity import \
-    ExpectedStatesThreeCatSubregisterParity
+from tests.error_correcting_codes.three_subregister_parity_code.expected_states_three_subregister_parity import \
+    ExpectedStatesThreeSubregisterParity
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
@@ -62,14 +62,14 @@ PARAMETERS = {
     ),
     "ThreeCatSubregisterParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
-            expected_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeCatSubregisterParity().num_qubits * ThreeCatCode.num_cats),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
+            expected_state=ExpectedStatesThreeSubregisterParity().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesThreeSubregisterParity().num_qubits * ThreeCatCode.num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
-            expected_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesThreeCatSubregisterParity().num_qubits * ThreeCatCode.num_cats),
+            code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
+            expected_state=ExpectedStatesThreeSubregisterParity().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesThreeSubregisterParity().num_qubits * ThreeCatCode.num_cats),
         ),
     ),
     "ThreeCatCode": StateParameters(
@@ -159,9 +159,9 @@ class TestLogicalStateEncoding:
         set_configuration_to_reduce_ancilla_qubits()
 
     def test_encoding(self):
-        circuit = self._parameters.code.encode_logical_qubit()
+        encoding = self._parameters.code.encode_logical_qubit()
         utilities = get_error_correcting_code_utilities(state=self._parameters.initial_data_state)
-        data_state = utilities.get_state_after_circuit(circuit=circuit,
+        data_state = utilities.get_state_after_circuit(circuit=encoding.circuit,
                                                        num_data_qubits=len(self._parameters.code.data_qubits),
                                                        initial_data_state=self._parameters.initial_data_state).state
         assert states_are_equal(data_state, self._parameters.expected_state)

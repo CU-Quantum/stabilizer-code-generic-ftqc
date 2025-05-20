@@ -8,7 +8,7 @@ from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 
 
-class ExpectedStatesThreeCatSubregisterParity(ExpectedStates):
+class ExpectedStatesThreeSubregisterParity(ExpectedStates):
     num_qubits = 4
 
     def __init__(self, num_qubits: Optional[int] = None):

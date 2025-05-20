@@ -5,6 +5,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 
 
 class ErrorCorrectingCode(ABC):
@@ -28,7 +29,7 @@ class ErrorCorrectingCode(ABC):
 
     # TODO have these abstract methods return Operations or OP_TREE instead of Circuit
     @abstractmethod
-    def encode_logical_qubit(self) -> Circuit:
+    def encode_logical_qubit(self) -> StateEncoding:
         pass
 
     @abstractmethod

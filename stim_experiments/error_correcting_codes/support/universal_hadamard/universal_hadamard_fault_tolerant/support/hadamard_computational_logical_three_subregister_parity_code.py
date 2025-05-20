@@ -44,7 +44,7 @@ class HadamardComputationalLogicalThreeSubregisterParityCode:
             ]
 
     def _cx_original_to_helpers(self, context: HadamardComputationalLogicalThreeSubregisterParityCodeContext) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=context.all_universal_hadamard_codes) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=context.all_subregister_pairity_codes) as encodings_store:
             return [
                 [
                     self._cx_original_to_helper(code=code),
@@ -63,7 +63,7 @@ class HadamardComputationalLogicalThreeSubregisterParityCode:
                     [
                         cx_sequentially_further_qubits_from_first(qubits=subregister),
                         self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit(),
-                    ] for code in context.all_universal_hadamard_codes for subregister in code.subregisters
+                    ] for code in context.all_subregister_pairity_codes for subregister in code.subregisters
                 ],
                 encodings_store.get_all_correction_circuits(),
             ]
@@ -92,7 +92,7 @@ class HadamardComputationalLogicalThreeSubregisterParityCode:
             yield HadamardComputationalLogicalThreeSubregisterParityCodeContext(
                 ancilla_qubits=ancilla_qubits,
                 additional_universal_hadamard_codes=additional_universal_hadamard_codes,
-                all_universal_hadamard_codes=[self._three_cat_subregister_parity_code] + additional_universal_hadamard_codes,
+                all_subregister_pairity_codes=[self._three_cat_subregister_parity_code] + additional_universal_hadamard_codes,
                 helper_3cat=helper_3cat,
             )
 

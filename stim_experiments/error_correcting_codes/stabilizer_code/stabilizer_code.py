@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from cirq import Circuit, LineQubit, Operation, X, Z
+from cirq import Circuit, LineQubit, MeasurementKey, Operation, X, Z
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
@@ -27,7 +28,7 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         pass
 
-    def encode_logical_qubit(self) -> Circuit:
+    def encode_logical_qubit(self) -> StateEncoding:
         phase_corrections = [
             self._get_anticommuter_for_generator(generator_index=generator_index)
             for generator_index in range(len(self._check_matrix.matrix))

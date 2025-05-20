@@ -6,6 +6,7 @@ from cirq import Circuit, LineQubit, \
 
 from stim_experiments.conditions.parity_check_reader import ParityCheckReader
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
@@ -21,13 +22,15 @@ class ThreeCatCode(ErrorCorrectingCode):
                          num_logical_qubits=1,
                          qubits=qubits)
 
-    def encode_logical_qubit(self) -> Circuit:
-        return Circuit(
-            [
-                self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
-                for subregister in self.subregisters
-            ],
-            self.get_error_correction_circuit()
+    def encode_logical_qubit(self) -> StateEncoding:
+        return StateEncoding(
+                Circuit(
+                [
+                    self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
+                    for subregister in self.subregisters
+                ],
+                self.get_error_correction_circuit()
+            )
         )
 
     def get_error_correction_circuit(self) -> Circuit:

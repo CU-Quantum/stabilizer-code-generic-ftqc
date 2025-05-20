@@ -11,5 +11,5 @@ from stim_experiments.error_correcting_codes.three_cat_subregister_parity_code.t
 class HadamardComputationalLogicalThreeSubregisterParityCodeContext:
     ancilla_qubits: list[LineQubit]
     additional_universal_hadamard_codes: list[ThreeCatSubregisterParityCode]
-    all_universal_hadamard_codes: list[ThreeCatSubregisterParityCode]
+    all_subregister_pairity_codes: list[ThreeCatSubregisterParityCode]
     helper_3cat: ThreeCatCode
