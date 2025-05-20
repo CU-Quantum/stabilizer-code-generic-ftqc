@@ -33,9 +33,9 @@ QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS = list(
     range(0,
-          ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats,
-          ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits + 2,
-          )) + [ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits * ThreeCatSubregisterParityCode.num_cats - 1]
+          ExpectedStatesThreeCatSubregisterParity().num_qubits * ThreeCatSubregisterParityCode.num_cats,
+          ExpectedStatesThreeCatSubregisterParity().num_qubits + 2,
+          )) + [ExpectedStatesThreeCatSubregisterParity().num_qubits * ThreeCatSubregisterParityCode.num_cats - 1]
 
 
 @dataclass
@@ -52,12 +52,12 @@ PARAMETERS = {
         qubit_indices_to_test=list(range(3)),
     ),
     "ThreeCatSubregisterParityZeroState": ParametersForCorrectionsTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
     "ThreeCatSubregisterParityOneState": ParametersForCorrectionsTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
         initial_state=ExpectedStatesThreeCatSubregisterParity().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),

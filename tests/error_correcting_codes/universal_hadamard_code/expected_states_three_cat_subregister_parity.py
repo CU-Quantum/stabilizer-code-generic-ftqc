@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
@@ -7,7 +9,11 @@ from tests.error_correcting_codes.expected_states.expected_states import Expecte
 
 
 class ExpectedStatesThreeCatSubregisterParity(ExpectedStates):
-    arbitrary_num_qubits = 4
+    num_qubits = 4
+
+    def __init__(self, num_qubits: Optional[int] = None):
+        if num_qubits:
+            self.num_qubits = num_qubits
 
     def get_logical_zero_state_vector(self) -> TYPE_STATE_VECTOR:
         cat_values_with_even_weight = [cat_values for cat_values in self._all_cat_values if not sum(cat_values) % 2]
@@ -19,7 +25,7 @@ class ExpectedStatesThreeCatSubregisterParity(ExpectedStates):
 
     def _get_logical_state_vector(self, cat_values: list[list[int]]) -> TYPE_STATE_VECTOR:
         basis_states_by_value = [
-            [tensor(*[KET_ONE_STATE_VECTOR if cat_value else KET_ZERO_STATE_VECTOR] * self.arbitrary_num_qubits)
+            [tensor(*[KET_ONE_STATE_VECTOR if cat_value else KET_ZERO_STATE_VECTOR] * self.num_qubits)
              for cat_value in cat_values]
             for cat_values in cat_values
         ]

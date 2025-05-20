@@ -33,7 +33,7 @@ class TestUniversalHadamard:
         universal_hadamard = self._universal_hadamard_type(code=code, qubit_index=0)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
-        initial_state = self._random_complex_unit_vector()
+        initial_state = self._random_complex_unit_vector(num_qubits=1)
         utilities = get_error_correcting_code_utilities(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
@@ -53,8 +53,7 @@ class TestUniversalHadamard:
         universal_hadamard = self._universal_hadamard_type(code=code, qubit_index=1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
-        [alpha, beta] = self._random_complex_unit_vector()
-        initial_state = alpha * tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR) + beta * tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR)
+        initial_state = self._random_complex_unit_vector(num_qubits=2)
         utilities = get_error_correcting_code_utilities(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
@@ -65,12 +64,15 @@ class TestUniversalHadamard:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_state,
         ).state
-        expected_state = alpha * tensor(KET_ZERO_STATE_VECTOR, KET_PLUS_STATE_VECTOR) + beta * tensor(KET_ONE_STATE_VECTOR, KET_MINUS_STATE_VECTOR)
+        expected_state = (initial_state[0] * tensor(KET_ZERO_STATE_VECTOR, KET_PLUS_STATE_VECTOR)
+                          + initial_state[1] * tensor(KET_ZERO_STATE_VECTOR, KET_MINUS_STATE_VECTOR)
+                          + initial_state[2] * tensor(KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR)
+                          + initial_state[3] * tensor(KET_ONE_STATE_VECTOR, KET_MINUS_STATE_VECTOR))
         assert states_are_equal(simulated_state, expected_state)
 
     @staticmethod
-    def _random_complex_unit_vector() -> np.ndarray:
-        dimension = 2
+    def _random_complex_unit_vector(num_qubits: int) -> np.ndarray:
+        dimension = 2 ** num_qubits
         random_complex_vector = np.random.randn(dimension) + 1j * np.random.randn(dimension)
         unit_complex_vector = random_complex_vector / np.linalg.norm(random_complex_vector)
         return unit_complex_vector

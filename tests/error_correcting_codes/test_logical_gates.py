@@ -44,7 +44,7 @@ PARAMETERS = {
         expected_states=ExpectedStatesRepetition(),
     ),
     "ThreeCatSubregisterParityCode": ParametersForLogicalGatesTest(
-        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().arbitrary_num_qubits),
+        code=ThreeCatSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeCatSubregisterParity().num_qubits),
         expected_states=ExpectedStatesThreeCatSubregisterParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
