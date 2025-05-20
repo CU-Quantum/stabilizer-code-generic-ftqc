@@ -5,6 +5,7 @@ import sympy
 from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.support.hadamard_computational_logical_three_subregister_parity_code_context import \
@@ -34,20 +35,23 @@ class EncodeToDesiredCode:
     def _encode_into_desired_codes(self) -> OP_TREE:
         with ActiveEncodingsStore(additional_tracked_encodings=self._context.all_subregister_pairity_codes) as encodings_store:
             encodings = [desired_code.encode_logical_qubit() for desired_code in self._context.all_subregister_pairity_codes]
-            encoding_measurement_symbols = [sympy.symbols(' '.join([key.name for key in encoding.measurement_keys])) for encoding in encodings]
             return [
-                [
-                    [
-                        encoding,
-                        CircuitOperation(
-                            self._context.all_subregister_pairity_codes[i].get_operation_circuit(
-                                LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).freeze()
-                        ).with_classical_controls(sympy.Mod(sympy.Add(*encoding_measurement_symbols[i]), 2))
-                    ]
-                    for i, encoding in enumerate(encodings)
-                ],
+                [encoding for i, encoding in enumerate(encodings)],
+                encodings_store.get_all_correction_circuits(),
+                self._fix_relative_phases(encodings=encodings),
                 encodings_store.get_all_correction_circuits()
             ]
+
+    def _fix_relative_phases(self, encodings: list[StateEncoding]) -> OP_TREE:
+        encoding_measurement_symbols = [sympy.symbols(' '.join([key.name for key in encoding.measurement_keys]))
+                                        for encoding in encodings]
+        return [
+            CircuitOperation(
+                self._context.all_subregister_pairity_codes[i].get_operation_circuit(
+                    LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)).freeze()
+            ).with_classical_controls(sympy.Mod(sympy.Add(*encoding_measurement_symbols[i]), 2))
+            for i, encoding in enumerate(encodings)
+        ]
 
     def _correct_phase_errors(self) -> OP_TREE:
         symptoms = [
