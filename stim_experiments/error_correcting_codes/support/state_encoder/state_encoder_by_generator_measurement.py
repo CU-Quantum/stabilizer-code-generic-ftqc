@@ -14,7 +14,8 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
     def __init__(self,
                  check_matrix: CheckMatrix,
                  phase_corrections: list[list[Operation]],
-                 qubits: list[LineQubit]):
+                 qubits: list[LineQubit],
+                 ):
         self._check_matrix = check_matrix
         self._phase_corrections = phase_corrections
         self._qubits = qubits

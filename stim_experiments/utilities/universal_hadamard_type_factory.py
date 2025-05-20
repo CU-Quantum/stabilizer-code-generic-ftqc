@@ -1,6 +1,6 @@
 from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.universal_hadamard_fault_tolerant import \
+from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant import \
     UniversalHadamardFaultTolerant
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla

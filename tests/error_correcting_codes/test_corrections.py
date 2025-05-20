@@ -15,6 +15,8 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
     ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
+    UniversalHadamardHelperCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
@@ -27,6 +29,8 @@ from tests.error_correcting_codes.steane_code.expected_states_steane import Expe
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.three_subregister_parity_code.expected_states_three_subregister_parity import \
     ExpectedStatesThreeSubregisterParity
+from tests.error_correcting_codes.universal_hadamard_helper_code.expected_states_universal_hadamard_helper import \
+    ExpectedStatesUniversalHadamardHelper
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
@@ -46,6 +50,11 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
+    "UniversalHadamardHelperCode": ParametersForCorrectionsTest(
+        code=UniversalHadamardHelperCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamardHelper().num_qubits),
+        initial_state=ExpectedStatesUniversalHadamardHelper().get_logical_zero_state_vector(),
+        qubit_indices_to_test=list(range(ExpectedStatesUniversalHadamardHelper().num_qubits, ExpectedStatesUniversalHadamardHelper().num_qubits * 3)),
+    ),
     "RepetitionCode": ParametersForCorrectionsTest(
         code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
