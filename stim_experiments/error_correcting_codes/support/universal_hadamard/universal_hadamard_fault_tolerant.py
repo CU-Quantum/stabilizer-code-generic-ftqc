@@ -131,29 +131,30 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
 
     @contextmanager
     def _use_fresh_ancilla_qubits(self) -> Generator[UniversalHadamardFaultTolerantContext, None, None]:
-        num_qubits_in_desired_encoding = len(self._code.data_qubits)
-        num_qubits_per_subregister_parity_code = num_qubits_in_desired_encoding * ThreeSubregisterParityCode.num_cats
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_per_subregister_parity_code) as ancilla_qubits:
+        logical_x, logical_z = (
+            list(self._code.get_operation_circuit(
+                operation=LogicalOperation(gate=gate, qubit_index=self._qubit_index)
+            ).all_operations())
+            for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
+        )
+        num_qubits_for_logical_operations = max(len(logical_x), len(logical_z))
+        num_qubits_for_subregister_parity_code = num_qubits_for_logical_operations * ThreeSubregisterParityCode.num_cats
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
+            three_cat_code = ThreeCatCode(num_qubits_in_cat_state=num_qubits_for_logical_operations, qubits=ancilla_qubits)
             three_subregister_parity_code = ThreeSubregisterParityCode(
-                num_qubits_in_cat_state=num_qubits_in_desired_encoding,
-                qubits=ancilla_qubits[:num_qubits_per_subregister_parity_code],
+                num_qubits_in_cat_state=num_qubits_for_logical_operations,
+                qubits=ancilla_qubits,
             )
             universal_hadamard_helper_code = UniversalHadamardHelperCode(
-                num_qubits_in_cat_state=len(three_subregister_parity_code.subregisters[0]),
-                qubits=three_subregister_parity_code.data_qubits
-            )
-            logical_x, logical_z = (
-                list(self._code.get_operation_circuit(
-                    operation=LogicalOperation(gate=gate, qubit_index=self._qubit_index)
-                ).all_operations())
-                for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
+                num_qubits_in_cat_state=num_qubits_for_logical_operations,
+                qubits=ancilla_qubits
             )
             yield UniversalHadamardFaultTolerantContext(
                 ancilla_qubits=ancilla_qubits,
                 data_code_logical_x=logical_x,
                 data_code_logical_z=logical_z,
                 three_subregister_parity_code=three_subregister_parity_code,
-                three_cat=ThreeCatCode(num_qubits_in_cat_state=num_qubits_in_desired_encoding, qubits=three_subregister_parity_code.data_qubits),
+                three_cat=three_cat_code,
                 universal_hadamard_helper_code=universal_hadamard_helper_code
             )
 

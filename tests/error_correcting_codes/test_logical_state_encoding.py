@@ -7,8 +7,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
-from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
-    CodeStabilizerStandardized
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
+    StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
@@ -21,9 +21,9 @@ from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE
     KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
-from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_5_qubit import \
+from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_steane import \
+from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_steane import \
     ExpectedStatesGenericSteane
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
@@ -102,24 +102,24 @@ PARAMETERS = {
     ),
     "GenericStabilizerCodeFiveQubit": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit()),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
             expected_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 5),
         ),
         one=ParametersForStateEncodingTest(
-            code=CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit()),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
             expected_state=ExpectedStatesGenericFiveQubit().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 4, KET_ONE_STATE_VECTOR),
         ),
     ),
     "GenericStabilizerCodeStaeneCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=CodeStabilizerStandardized(generators=get_check_matrix_values_steane()),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_steane()),
             expected_state=ExpectedStatesGenericSteane().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 7),
         ),
         one=ParametersForStateEncodingTest(
-            code=CodeStabilizerStandardized(generators=get_check_matrix_values_steane()),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_steane()),
             expected_state=ExpectedStatesGenericSteane().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 6, KET_ONE_STATE_VECTOR),
         ),

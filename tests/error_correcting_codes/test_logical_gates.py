@@ -9,8 +9,8 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
-from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
-    CodeStabilizerStandardized
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
+    StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
@@ -21,7 +21,7 @@ from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.univ
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
-from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_5_qubit import \
+from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
@@ -56,7 +56,7 @@ PARAMETERS = {
         expected_states=ExpectedStatesThreeSubregisterParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
-        code=CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit()),
+        code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         expected_states=ExpectedStatesGenericFiveQubit()
     ),
     "ThreeCatCode": ParametersForLogicalGatesTest(

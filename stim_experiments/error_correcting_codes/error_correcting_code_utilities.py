@@ -7,6 +7,7 @@ from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseMode
 
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, TYPE_DENSITY_MATRIX, \
     TYPE_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, tensor, \
@@ -52,6 +53,10 @@ class ErrorCorrectingCodeUtilities(ABC):
         all_qubits = list(circuit.all_qubits())
         return max(all_qubits).x if all_qubits else -1
 
+    @property
+    def _seed(self) -> int:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().seed
+
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
@@ -64,7 +69,9 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
-        simulator = DensityMatrixSimulator(noise=noise_model)
+        simulator = DensityMatrixSimulator(noise=noise_model, seed=self._seed)
+        num_qubits = get_num_qubits_in_state(state=initial_state) if initial_state is not None else len(qubits)
+        initial_state = tensor(initial_state, *[KET_ZERO] * (len(qubits) - num_qubits))
         simulation = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
@@ -83,7 +90,7 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
-        simulator = Simulator(noise=noise_model)
+        simulator = Simulator(noise=noise_model, seed=self._seed)
         simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,

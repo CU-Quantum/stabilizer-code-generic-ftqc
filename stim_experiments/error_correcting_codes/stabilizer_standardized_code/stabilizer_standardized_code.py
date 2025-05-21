@@ -14,7 +14,7 @@ from stim_experiments.error_correcting_codes.support.check_matrix_to_gates impor
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 
 
-class CodeStabilizerStandardized(StabilizerCode):
+class StabilizerStandardizedCode(StabilizerCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
                  qubits: Optional[list[LineQubit]] = None):

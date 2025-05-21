@@ -3,8 +3,8 @@ from numpy import sqrt
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.stabilizer_code_standardized.code_stabilizer_standardized import \
-    CodeStabilizerStandardized
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
+    StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -12,13 +12,13 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
     get_check_matrix_values_5_qubit, get_check_matrix_values_8_qubit
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
-from tests.error_correcting_codes.code_stabilizer_standardized.expected_states_standardized_5_qubit import \
+from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 
 
 class TestUniversalHadamardSingleAncilla:
     def test_logical_z_has_logical_x_effect_after_logical_h(self):
-        code = CodeStabilizerStandardized(generators=get_check_matrix_values_5_qubit())
+        code = StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=0).get_hadamard_circuit()
@@ -40,7 +40,7 @@ class TestUniversalHadamardSingleAncilla:
         assert states_are_equal(state, expected_state)
 
     def test_logical_h_on_one_out_of_multiple_encoded_qubits(self):
-        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
+        code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
         circuit = Circuit(
@@ -64,7 +64,7 @@ class TestUniversalHadamardSingleAncilla:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_two_logical_h_on_one_out_of_multiple_encoded_qubits_is_identity(self):
-        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
+        code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
         circuit = Circuit(
@@ -88,7 +88,7 @@ class TestUniversalHadamardSingleAncilla:
         assert states_are_equal(state_and_measurements.state, expected_state)
 
     def test_logical_hzh_on_one_out_of_multiple_encoded_qubits_is_logical_x(self):
-        code = CodeStabilizerStandardized(generators=get_check_matrix_values_4_qubit())
+        code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
@@ -116,7 +116,7 @@ class TestUniversalHadamardSingleAncilla:
         assert states_are_equal(simulated_state, expected_state)
 
     def test_multiqubit_encoding_corrects_errors_in_hadamard_basis(self):
-        code = CodeStabilizerStandardized(generators=get_check_matrix_values_8_qubit())
+        code = StabilizerStandardizedCode(generators=get_check_matrix_values_8_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))

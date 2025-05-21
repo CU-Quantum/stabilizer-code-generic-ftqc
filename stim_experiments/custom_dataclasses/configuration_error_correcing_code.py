@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
@@ -14,3 +15,4 @@ class ConfigurationErrorCorrectingCode:
     measurer_type: type[Measurer] = FaultTolerantMeasurer
     cat_state_creator_type: type[CatStateCreator] = CatStateCreatorFlagPattern
     universal_hadamard_type: UniversalHadamardType = UniversalHadamardType.FAULT_TOLERANT
+    seed: Optional[int] = None
