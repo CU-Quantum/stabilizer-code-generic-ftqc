@@ -2,12 +2,11 @@ import random
 
 import numpy as np
 import pytest
-from cirq import Circuit, X
+from cirq import Circuit
 from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -18,26 +17,21 @@ from stim_experiments.error_correcting_codes.support.universal_hadamard.universa
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_5_qubit
-from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
-    KET_ZERO_STATE_VECTOR, \
-    int_to_binary_array, states_are_equal, tensor
-from tests.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant.double_qubit_double_logical_code import \
-    DoubleQubitDoubleLogicalCode
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
+from stim_experiments.utilities.utilities import int_to_binary_array, states_are_equal
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestUniversalHadamard:
     @pytest.fixture(autouse=True, params=range(5))
     def _seed(self, request):
-        seed = 1
+        seed = request.param
         random.seed(seed)
         np.random.seed(seed)
         ConfigurationErrorCorrectingCodeManager().get_configuration().seed = seed
 
     @pytest.fixture(autouse=True, params=[
-        # pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
+        pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
         pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def _setup(self, request, _seed):

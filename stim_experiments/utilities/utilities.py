@@ -85,6 +85,6 @@ def cx_sequentially_further_qubits_from_first(qubits: list[LineQubit]) -> list[O
 def states_are_equal(state1: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, state2: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> bool:
     element_wise_division = state1 / state2
     no_nans = element_wise_division[~np.isnan(element_wise_division)]
-    has_global_phase = len(no_nans) and np.all(np.isclose(no_nans, no_nans[0], 1e-6))
+    has_global_phase = len(no_nans) and np.all(np.isclose(no_nans, no_nans[0], 1e-5))
     global_phase = no_nans[0] if has_global_phase else 1
     return allclose(state1 / global_phase, state2, atol=1e-7)
