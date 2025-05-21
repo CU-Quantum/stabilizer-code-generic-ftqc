@@ -20,7 +20,7 @@ from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestUniversalHadamard:
-    @pytest.fixture(autouse=True, params=range(2))
+    @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
         np.random.seed(request.param)
 
