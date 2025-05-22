@@ -13,7 +13,6 @@ from stim_experiments.utilities.universal_hadamard_type_factory import Universal
 
 
 class CircuitFromOperationCreator:
-    # test class
     def __init__(self, operation: SimulationOperation, num_state_qubits: int):
         self._operation = operation
         self._num_state_qubits = num_state_qubits
