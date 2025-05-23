@@ -1,12 +1,12 @@
 from functools import cached_property
 
-from cirq import Circuit, H, LineQubit, MeasurementKey
+from cirq import Circuit, MeasurementKey
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import \
     SimulationOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.utilities.universal_hadamard_type_factory import UniversalHadamardTypeFactory

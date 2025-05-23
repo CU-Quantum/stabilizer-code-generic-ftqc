@@ -6,7 +6,7 @@ from cirq import Circuit, CircuitOperation, H, M, MeasurementKey, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 

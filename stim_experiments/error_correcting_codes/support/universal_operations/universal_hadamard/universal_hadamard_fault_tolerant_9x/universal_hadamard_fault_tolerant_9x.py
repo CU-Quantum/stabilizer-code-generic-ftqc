@@ -15,7 +15,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
     ThreeSubregisterParityCode

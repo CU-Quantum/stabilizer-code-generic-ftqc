@@ -8,10 +8,12 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
-from stim_experiments.error_correcting_codes.support.universal_controlled_operation.universal_controlled_operation_single_ancilla import \
-    ControlledOperationSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_fault_tolerant import \
+    UniversalControlledOperationFaultTolerant
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_single_ancilla import \
+    UniversalControlledOperationSingleAncilla
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import states_are_equal, tensor
@@ -27,7 +29,8 @@ class TestUniversalControlledOperationInstances:
         ConfigurationErrorCorrectingCodeManager().get_configuration().seed = seed
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
-        pytest.param(ControlledOperationSingleAncilla, id='ControlledOperationSingleAncilla'),
+        # pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
+        pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
     ])
     def test_cx_single_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
         qubits = LineQubit.range(2)

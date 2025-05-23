@@ -5,13 +5,13 @@ from cirq import Circuit, CircuitOperation, H, M, MeasurementKey, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class ControlledOperationSingleAncilla(UniversalControlledOperation):
+class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         logical_z_control = self._control.encoding.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z,
                                                                                           qubit_index=self._control.qubit_index_relative))

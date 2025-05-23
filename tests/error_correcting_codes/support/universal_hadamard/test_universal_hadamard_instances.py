@@ -5,24 +5,22 @@ import pytest
 from cirq import Circuit
 from numpy import array
 
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard import UniversalHadamard
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant_3x import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard import \
     UniversalHadamardFaultTolerant3x
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_fault_tolerant_9x.universal_hadamard_fault_tolerant_9x import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_9x import \
     UniversalHadamardFaultTolerant9x
-from stim_experiments.error_correcting_codes.support.universal_hadamard.universal_hadamard_single_ancilla import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard import \
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, \
-    int_to_binary_array, \
     states_are_equal, tensor
 from tests.error_correcting_codes.support.universal_hadamard.double_qubit_double_logical_code import \
     DoubleQubitDoubleLogicalCode
