@@ -6,9 +6,13 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.custom_dataclasses.simulation_operation import \
     SimulationOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+    UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
+from stim_experiments.utilities.universal_controlled_operation_type_factory import \
+    UniversalControlledOperationTypeFactory
 from stim_experiments.utilities.universal_hadamard_type_factory import UniversalHadamardTypeFactory
 
 
@@ -26,31 +30,9 @@ class CircuitFromOperationCreator:
             raise ValueError('Was given a SimulationOperation with no encoding.')
 
     def _get_controlled_circuit(self) -> Circuit:
-        pass # TODO create universal controlled gate
-        # target_operations = list(self._logical_operation_on_target.all_operations())
-        # control_operations = list(self._logical_z_on_control.all_operations())
-        # num_target_operations = len(target_operations)
-        #
-        # controls_needed = num_target_operations
-        # controls_missing = controls_needed - len(self._encoding_ancilla_qubits)
-        # control_measurements = self._encoding_ancilla_qubits + LineQubit.range(self._num_state_qubits, self._num_state_qubits + controls_missing)
-        # control_ancillas = LineQubit.range(control_measurements[-1].x + 1, control_measurements[-1].x + len(control_operations))
-        # control_propagator = [
-        #     OperationsApplierUsingCatState(
-        #         operations=control_operations,
-        #         initial_control_qubit=control_measurements[i],
-        #         ancillas=control_ancillas,
-        #         measurement_qubit_preparer=Circuit(H(control_measurements[i])),
-        #     ).get_application_circuit()
-        #     for i in range(controls_needed)
-        # ]
-        # target_controlled_by_ancilla = [target_operation.controlled_by(control_measurement)
-        #                                 for target_operation, control_measurement in zip(target_operations, control_measurements)]
-        # return Circuit(
-        #     control_propagator,
-        #     target_controlled_by_ancilla,
-        #     control_propagator,
-        # )
+        return self._universal_controlled_operation_type(control=self._operation.control_encoding,
+                                                         target=self._operation.target_encoding
+                                                         ).get_controlled_operation_circuit()
 
     def _get_measurement_circuit(self) -> Circuit:
         measurer = self._measurer_type(
@@ -81,6 +63,10 @@ class CircuitFromOperationCreator:
     @property
     def _measurer_type(self) -> type[Measurer]:
         return self._configuration.measurer_type
+
+    @property
+    def _universal_controlled_operation_type(self) -> type[UniversalControlledOperation]:
+        return UniversalControlledOperationTypeFactory(self._configuration.universal_controlled_operation_type).get_universal_controlled_operation_type()
 
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
