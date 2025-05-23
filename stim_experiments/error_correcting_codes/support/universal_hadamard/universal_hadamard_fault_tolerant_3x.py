@@ -24,7 +24,6 @@ from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.univ
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_from_first
 
 
 class UniversalHadamardFaultTolerant3x(UniversalHadamard):
@@ -33,7 +32,6 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
             return Circuit(
                 self._encode_three_cat(context=context),
                 self._cxz_helpers_to_data(context=context),
-                self._ensure_subregister_parity_in_plus(context=context),
 
                 self._measure_out_helper(context=context),
                 self._reset_ancilla_qubits(context=context),
@@ -52,6 +50,7 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
         with ActiveEncodingsStore(additional_tracked_encodings=repetition_codes) as encodings_store:
             return [
                 self._c_operations_helpers_to_data(operations=context.data_code_logical_x, encodings_store=encodings_store,  context=context),
+                self._ensure_subregister_parity_in_plus(context=context),
                 self._c_operations_helpers_to_data(operations=context.data_code_logical_z, encodings_store=encodings_store, context=context),
             ]
 
@@ -69,7 +68,6 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
 
     def _ensure_subregister_parity_in_plus(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
         measurement_key = MeasurementKey(f'PREPARE_SUBREGISTER_PARITY_CODE_{uuid4().hex}')
-        measurement_symbol = sympy.symbols(measurement_key.name)
         subregister_parity_x, subregister_parity_z = (
             list(context.three_subregister_parity_code.get_operation_circuit(
                 operation=LogicalOperation(gate=gate, qubit_index=0)
@@ -79,12 +77,12 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
         with ActiveEncodingsStore(additional_tracked_encodings=[context.three_subregister_parity_code]) as encodings_store:
             return [
                 self._measurer_type(
-                    operations=subregister_parity_x + subregister_parity_z + context.data_code_logical_x + context.data_code_logical_z,
+                    operations=subregister_parity_x + context.data_code_logical_x,
                     measurement_key=measurement_key
                 ).get_measurement_circuit(),
                 CircuitOperation(
                     FrozenCircuit(subregister_parity_z)
-                ).with_classical_controls(sympy.Eq(measurement_symbol, 0)),
+                ).with_classical_controls(measurement_key),
                 encodings_store.get_all_correction_circuits(),
             ]
 
