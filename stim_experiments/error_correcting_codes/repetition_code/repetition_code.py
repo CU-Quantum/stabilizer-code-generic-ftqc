@@ -1,6 +1,6 @@
 from typing import Optional
 
-from cirq import Circuit, LineQubit, MeasurementKey, Operation, X, Z
+from cirq import Circuit, I, LineQubit, MeasurementKey, Operation, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
@@ -17,7 +17,7 @@ from stim_experiments.utilities.repetition_z_stabilizers_generator import Repeti
 class RepetitionCode(ErrorCorrectingCode):
     def __init__(self, num_qubits: int, qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = None
-        if num_qubits >= 3:
+        if num_qubits >= 2:
             z_stabilizers = [
                 [0] * num_qubits + z_stabilizer
                 for z_stabilizer in RepetitionZStabilizersGenerator(num_qubits=num_qubits).get_stabilizers()
@@ -30,7 +30,7 @@ class RepetitionCode(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> StateEncoding:
         if self._check_matrix is None:
             return StateEncoding(
-                circuit=Circuit()
+                circuit=self._empty_circuit,
             )
         phase_corrections = [
             self._get_anticommuter_for_generator(generator_index=generator_index)
@@ -47,7 +47,7 @@ class RepetitionCode(ErrorCorrectingCode):
 
     def get_error_correction_circuit(self) -> Circuit:
         if self._check_matrix is None:
-            return Circuit()
+            return self._empty_circuit
         return ErrorRecoveryByGeneratorMeasurement(
             check_matrix=self._check_matrix,
             qubits=self.data_qubits
@@ -59,3 +59,7 @@ class RepetitionCode(ErrorCorrectingCode):
         if operation.gate == LogicalGateLabel.X:
             return Circuit(X(qubit) for qubit in self.data_qubits)
         return None
+
+    @property
+    def _empty_circuit(self) -> Circuit:
+        return Circuit(I(qubit) for qubit in self.data_qubits)

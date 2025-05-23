@@ -3,7 +3,7 @@ class RepetitionZStabilizersGenerator:
         self._num_qubits = num_qubits
 
     def get_stabilizers(self) -> list[list[int]]:
-        num_parity_checks_per_register = self._num_qubits - 1 if self._num_qubits > 2 else 0
+        num_parity_checks_per_register = self._num_qubits - 1
         return [
             [self._qubit_has_x_stabilizer_in_generator(parity_check_index=parity_check_index,
                                                        qubit_index=qubit_index)

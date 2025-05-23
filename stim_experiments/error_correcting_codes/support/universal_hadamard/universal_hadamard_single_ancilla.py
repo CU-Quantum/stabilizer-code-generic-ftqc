@@ -1,4 +1,5 @@
 from functools import cached_property
+from uuid import uuid4
 
 import sympy
 from cirq import Circuit, CircuitOperation, H, M, MeasurementKey, R
@@ -40,7 +41,7 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
 
     @cached_property
     def _measurement_key(self) -> MeasurementKey:
-        return MeasurementKey(f"UNIVERSAL_HADAMARD_SINGLE_ANCILLA_{self._qubit_index}")
+        return MeasurementKey(f"UNIVERSAL_HADAMARD_SINGLE_ANCILLA_{uuid4().hex}")
 
     @property
     def _measurer_type(self) -> type[Measurer]:
