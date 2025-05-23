@@ -35,7 +35,6 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
                 self._cxz_helpers_to_data(context=context),
                 self._ensure_subregister_parity_in_plus(context=context),
 
-                self._encode_universal_hadamard_helper(context=context),
                 self._measure_out_helper(context=context),
                 self._reset_ancilla_qubits(context=context),
             )
@@ -89,21 +88,10 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
                 encodings_store.get_all_correction_circuits(),
             ]
 
-    def _encode_universal_hadamard_helper(self, context: UniversalHadamardFaultTolerant3xContext):
-        subregister_to_cat = context.three_subregister_parity_code.subregisters[0]
-        with ActiveEncodingsStore(additional_tracked_encodings=[context.universal_hadamard_helper_code]) as encodings_store:
-            return [
-                [
-                    cx_sequentially_further_qubits_from_first(qubits=subregister_to_cat),
-                    self._cat_state_creator_type(qubit_register=subregister_to_cat).get_cat_state_circuit(),
-                ],
-                encodings_store.get_all_correction_circuits(),
-            ]
-
     def _measure_out_helper(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
         measurement_key = MeasurementKey(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
         measurement_key_symbol = sympy.symbols(measurement_key.name)
-        logical_z = list(context.universal_hadamard_helper_code.get_operation_circuit(
+        logical_z = list(context.three_cat.get_operation_circuit(
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
         ).all_operations())
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
