@@ -3,6 +3,7 @@ from typing import Generator
 from uuid import uuid4
 
 from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R
+from sympy import Eq, symbols
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -12,8 +13,8 @@ from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gat
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
-    ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
+    CatParityCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -32,7 +33,7 @@ class UniversalOperationsUtilities:
 
     def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> OP_TREE:
         repetition_codes = [RepetitionCode(num_qubits=len(subregister), qubits=subregister)
-                            for subregister in context.three_cat.subregisters]
+                            for subregister in context.cat_parity_code.subregisters]
         with ActiveEncodingsStore(additional_tracked_encodings=repetition_codes) as encodings_store:
             return [
                 [
@@ -42,23 +43,22 @@ class UniversalOperationsUtilities:
                 for subregister in context.three_cat.subregisters
             ]
 
-    def ensure_cat_parity_code_in_plus(self, data_logical_x: list[Operation], context: UniversalOperationsContext) -> OP_TREE:
+    def ensure_cat_parity_code_in_plus(self, observable: list[Operation], context: UniversalOperationsContext, trigger_value: int = 1) -> OP_TREE:
         measurement_key = MeasurementKey(f'ENSURE_CAT_PARITY_PLUS_STATE_{uuid4().hex}')
-        cat_parity_x, cat_parity_z = (
-            list(context.three_subregister_parity_code.get_operation_circuit(
-                operation=LogicalOperation(gate=gate, qubit_index=0)
-            ).all_operations())
-            for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
-        )
-        with ActiveEncodingsStore(additional_tracked_encodings=[context.three_subregister_parity_code]) as encodings_store:
+        measurement_symbol = symbols(measurement_key.name)
+        cat_parity_z = list(context.cat_parity_code.get_operation_circuit(
+            operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
+        ).all_operations())
+        with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
             return [
                 self._measurer_type(
-                    operations=cat_parity_x + data_logical_x,
+                    operations=observable,
                     measurement_key=measurement_key
                 ).get_measurement_circuit(),
+                encodings_store.get_all_correction_circuits(),
                 CircuitOperation(
                     FrozenCircuit(cat_parity_z)
-                ).with_classical_controls(measurement_key),
+                ).with_classical_controls(Eq(measurement_symbol, trigger_value)),
                 encodings_store.get_all_correction_circuits(),
             ]
 
@@ -77,13 +77,13 @@ class UniversalOperationsUtilities:
         num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * ThreeCatCode.num_cats
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
             three_cat_code = ThreeCatCode(num_qubits_in_cat_state=self._num_qubits_for_logical_operations, qubits=ancilla_qubits)
-            three_subregister_parity_code = ThreeSubregisterParityCode(
+            three_subregister_parity_code = CatParityCode(
                 num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
                 qubits=ancilla_qubits,
             )
             yield UniversalOperationsContext(
                 ancilla_qubits=ancilla_qubits,
-                three_subregister_parity_code=three_subregister_parity_code,
+                cat_parity_code=three_subregister_parity_code,
                 three_cat=three_cat_code,
             )
 

@@ -6,6 +6,7 @@ from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
+from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
@@ -26,7 +27,10 @@ class TestUniversalControlledOperationInstances:
         seed = request.param
         random.seed(seed)
         np.random.seed(seed)
-        ConfigurationErrorCorrectingCodeManager().get_configuration().seed = seed
+
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        configuration.seed = seed
+        configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
         # pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),

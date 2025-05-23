@@ -10,11 +10,11 @@ from stim_experiments.error_correcting_codes.repetition_code.repetition_code imp
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_3x import \
     UniversalHadamardFaultTolerant3x
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_9x import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_9x.universal_hadamard_fault_tolerant_9x import \
     UniversalHadamardFaultTolerant9x
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -74,7 +74,7 @@ class TestUniversalHadamard:
         initial_state = encoded_initial_state.initial_state
         initial_coefficients = encoded_initial_state.initial_coefficients
         computational_basis_states = encoded_initial_state.computational_basis_states
-        utilities = get_error_correcting_code_utilities(state=initial_state.initial_state)
+        utilities = get_error_correcting_code_utilities(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(

@@ -13,8 +13,8 @@ from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
-    ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
+    CatParityCode
 from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
     UniversalHadamardHelperCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -27,8 +27,8 @@ from tests.error_correcting_codes.repetition_code.expected_states_repetition imp
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
-from tests.error_correcting_codes.three_subregister_parity_code.expected_states_three_subregister_parity import \
-    ExpectedStatesThreeSubregisterParity
+from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
+    ExpectedStatesCatParity
 from tests.error_correcting_codes.universal_hadamard_helper_code.expected_states_universal_hadamard_helper import \
     ExpectedStatesUniversalHadamardHelper
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
@@ -37,9 +37,9 @@ QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS = list(
     range(0,
-          ExpectedStatesThreeSubregisterParity().num_qubits * ThreeSubregisterParityCode.num_cats,
-          ExpectedStatesThreeSubregisterParity().num_qubits + 2,
-          )) + [ExpectedStatesThreeSubregisterParity().num_qubits * ThreeSubregisterParityCode.num_cats - 1]
+          ExpectedStatesCatParity().num_qubits * CatParityCode.num_cats,
+          ExpectedStatesCatParity().num_qubits + 2,
+          )) + [ExpectedStatesCatParity().num_qubits * CatParityCode.num_cats - 1]
 
 
 @dataclass
@@ -60,14 +60,14 @@ PARAMETERS = {
         initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(3)),
     ),
-    "ThreeCatSubregisterParityZeroState": ParametersForCorrectionsTest(
-        code=ThreeSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
-        initial_state=ExpectedStatesThreeSubregisterParity().get_logical_zero_state_vector(),
+    "CatParityCodeZeroState": ParametersForCorrectionsTest(
+        code=CatParityCode(num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits),
+        initial_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
-    "ThreeCatSubregisterParityOneState": ParametersForCorrectionsTest(
-        code=ThreeSubregisterParityCode(num_qubits_in_cat_state=ExpectedStatesThreeSubregisterParity().num_qubits),
-        initial_state=ExpectedStatesThreeSubregisterParity().get_logical_one_state_vector(),
+    "CatParityCodeOneState": ParametersForCorrectionsTest(
+        code=CatParityCode(num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits),
+        initial_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
     ),
     "ThreeCatCode": ParametersForCorrectionsTest(

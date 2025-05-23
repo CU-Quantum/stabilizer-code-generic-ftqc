@@ -17,8 +17,8 @@ from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gat
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
-    ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
+    CatParityCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -146,10 +146,10 @@ class UniversalHadamardFaultTolerant9x(UniversalHadamard):
     def _use_fresh_ancilla_qubits(self) -> Generator[UniversalHadamardFaultTolerant9xContext, None, None]:
         num_subregister_parity_codes = 3
         num_qubits_in_desired_encoding = len(self._code.data_qubits)
-        num_qubits_per_subregister_parity_code = num_qubits_in_desired_encoding * ThreeSubregisterParityCode.num_cats
+        num_qubits_per_subregister_parity_code = num_qubits_in_desired_encoding * CatParityCode.num_cats
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_subregister_parity_codes * num_qubits_per_subregister_parity_code) as ancilla_qubits:
             three_subregister_parity_codes = [
-                ThreeSubregisterParityCode(
+                CatParityCode(
                     num_qubits_in_cat_state=num_qubits_in_desired_encoding,
                     qubits=ancilla_qubits[code_index * num_qubits_per_subregister_parity_code:(code_index + 1) * num_qubits_per_subregister_parity_code],
                 )
@@ -164,7 +164,7 @@ class UniversalHadamardFaultTolerant9x(UniversalHadamard):
             yield UniversalHadamardFaultTolerant9xContext(
                 ancilla_qubits=ancilla_qubits,
                 three_subregister_parity_codes_small=three_subregister_parity_codes,
-                three_subregister_parity_code_large=ThreeSubregisterParityCode(num_qubits_in_cat_state=len(ancilla_qubits) // num_subregister_parity_codes, qubits=ancilla_qubits),
+                three_subregister_parity_code_large=CatParityCode(num_qubits_in_cat_state=len(ancilla_qubits) // num_subregister_parity_codes, qubits=ancilla_qubits),
                 three_cat_small=ThreeCatCode(num_qubits_in_cat_state=num_qubits_in_desired_encoding, qubits=three_subregister_parity_codes[0].data_qubits),
                 three_cat_large=ThreeCatCode(num_qubits_in_cat_state=len(ancilla_qubits) // num_subregister_parity_codes, qubits=ancilla_qubits),
                 data_code_logical_x=logical_x,

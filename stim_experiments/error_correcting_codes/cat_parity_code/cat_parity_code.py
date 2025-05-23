@@ -12,7 +12,7 @@ from stim_experiments.utilities.repetition_z_stabilizers_multicat_generator impo
     RepetitionZStabilizersMulticatGenerator
 
 
-class ThreeSubregisterParityCode(StabilizerCode):
+class CatParityCode(StabilizerCode):
     num_cats = ThreeCatCode.num_cats
 
     def __init__(self, num_qubits_in_cat_state: int, qubits: Optional[list[LineQubit]] = None):

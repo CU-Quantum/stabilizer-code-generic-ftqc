@@ -21,8 +21,8 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
-    ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
+    CatParityCode
 from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
     UniversalHadamardHelperCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
@@ -35,7 +35,8 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
                 self._encode_three_cat(context=context),
-                self._cxz_helpers_to_data(context=context),
+                self._czx_helpers_to_data(context=context),
+                self._ensure_subregister_parity_in_plus(context=context),
                 self._measure_out_helper(context=context),
                 self._reset_ancilla_qubits(context=context),
             )
@@ -43,23 +44,26 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
     def _encode_three_cat(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
         return self._universal_operations_utilities.encode_three_cat(context=context)
 
-    def _cxz_helpers_to_data(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
+    def _czx_helpers_to_data(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
         return [
             self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.data_code_logical_x,
+                operations=operations,
                 context=context
-            ),
-            self._ensure_subregister_parity_in_plus(context=context),
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.data_code_logical_z,
-                context=context
-            ),
+            )
+            for operations in (context.data_code_logical_x, context.data_code_logical_z)
         ]
 
     def _ensure_subregister_parity_in_plus(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
+        cat_parity_x, cat_parity_z = (
+            list(context.cat_parity_code.get_operation_circuit(
+                operation=LogicalOperation(gate=gate, qubit_index=0)
+            ).all_operations())
+            for gate in (LogicalGateLabel.X, LogicalGateLabel.Z)
+        )
         return self._universal_operations_utilities.ensure_cat_parity_code_in_plus(
-            data_logical_x=context.data_code_logical_x,
-            context=context
+            observable=cat_parity_x + cat_parity_z + context.data_code_logical_x + context.data_code_logical_z,
+            context=context,
+            trigger_value=0,
         )
 
     def _measure_out_helper(self, context: UniversalHadamardFaultTolerant3xContext) -> OP_TREE:
@@ -69,6 +73,7 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
             return [
                 FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
                     self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
+                    encodings_store.get_all_correction_circuits(),
                     CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
                     CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
                 ),
@@ -102,5 +107,5 @@ class UniversalHadamardFaultTolerant3x(UniversalHadamard):
 
     def _get_data_logical_operations(self, gate_label: LogicalGateLabel) -> list[Operation]:
         return list(self._code.get_operation_circuit(
-            operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=self._qubit_index)
+            operation=LogicalOperation(gate=gate_label, qubit_index=self._qubit_index)
         ).all_operations())

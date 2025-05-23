@@ -10,8 +10,8 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_9x.support import \
     HadamardComputationalLogicalThreeSubregisterParityCodeContext
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.three_subregister_parity_code.three_subregister_parity_code import \
-    ThreeSubregisterParityCode
+from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
+    CatParityCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -19,7 +19,7 @@ from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_
 
 
 class HadamardComputationalLogicalThreeSubregisterParityCode:
-    def __init__(self, three_cat_subregister_parity_code: ThreeSubregisterParityCode, ):
+    def __init__(self, three_cat_subregister_parity_code: CatParityCode, ):
         self._three_cat_subregister_parity_code = three_cat_subregister_parity_code
         self._circuit = Circuit()
 
@@ -50,7 +50,7 @@ class HadamardComputationalLogicalThreeSubregisterParityCode:
                 ] for code in context.additional_universal_hadamard_codes
             ]
 
-    def _cx_original_to_helper(self, code: ThreeSubregisterParityCode) -> OP_TREE:
+    def _cx_original_to_helper(self, code: CatParityCode) -> OP_TREE:
         return [X(target_qubit).controlled_by(control_qubit)
                 for target_qubit, control_qubit in zip(code.data_qubits, self._three_cat_subregister_parity_code.data_qubits)]
 
