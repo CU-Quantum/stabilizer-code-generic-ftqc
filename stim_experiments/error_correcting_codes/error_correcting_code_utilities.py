@@ -43,9 +43,6 @@ class ErrorCorrectingCodeUtilities(ABC):
 
         simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
-        # from cirq import dirac_notation
-        # ss = dirac_notation(simulation.state)
-        # ds = dirac_notation(data_state)
 
         return StateAndMeasurements(
             state=data_state,

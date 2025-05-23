@@ -33,7 +33,7 @@ class TestUniversalControlledOperationInstances:
         configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
-        # pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
+        pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
         pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
     ])
     def test_cx_single_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
