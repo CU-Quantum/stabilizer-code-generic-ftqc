@@ -71,3 +71,6 @@ class TestUniversalControlledOperationInstances:
                          notted_target)
         )
         assert states_are_equal(simulated_state, expected_state)
+
+    # TODO Nick test multiqubit encodings
+    # TODO Nick test CX between qubits in same multiqubit encoding

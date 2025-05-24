@@ -17,9 +17,8 @@ from stim_experiments.utilities.universal_hadamard_type_factory import Universal
 
 
 class CircuitFromOperationCreator:
-    def __init__(self, operation: SimulationOperation, num_state_qubits: int):
+    def __init__(self, operation: SimulationOperation):
         self._operation = operation
-        self._num_state_qubits = num_state_qubits
 
     def create_circuit(self) -> Circuit:
         if self._operation.target_encoding:
@@ -35,30 +34,30 @@ class CircuitFromOperationCreator:
                                                          ).get_controlled_operation_circuit()
 
     def _get_measurement_circuit(self) -> Circuit:
+        control_operation = LogicalOperation(
+            gate=LogicalGateLabel.Z,
+            qubit_index=self._operation.control_encoding.qubit_index_relative
+        )
+        logical_z_on_control = self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
         measurer = self._measurer_type(
-            operations=list(self._logical_z_on_control.all_operations()),
+            operations=list(logical_z_on_control.all_operations()),
             measurement_key=MeasurementKey(str(self._operation.control_encoding.qubit_index_logical)),
         )
         return measurer.get_measurement_circuit()
 
     @cached_property
-    def _logical_z_on_control(self) -> Circuit:
-        control_operation = LogicalOperation(
-            gate=LogicalGateLabel.Z,
-            qubit_index=self._operation.control_encoding.qubit_index_relative
-        )
-        return self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
-
-    @cached_property
     def _logical_operation_on_target(self) -> Circuit:
-        operations = self._operation.target_encoding.encoding.get_operation_circuit(operation=self._operation.target_encoding.operation)
-        if operations is None and self._operation.target_encoding.operation.gate == LogicalGateLabel.H:
-            target_index = self._operation.target_encoding.operation.qubit_index
-            return self._universal_hadamard_type(  # TODO test this
-                code=self._operation.target_encoding.encoding,
-                qubit_index=target_index
-            ).get_hadamard_circuit()
-        return operations
+        try:
+            return self._operation.target_encoding.encoding.get_operation_circuit(operation=self._operation.target_encoding.operation)
+        except NotImplementedError as e:
+            if self._operation.target_encoding.operation.gate == LogicalGateLabel.H:
+                target_index = self._operation.target_encoding.operation.qubit_index
+                return self._universal_hadamard_type(
+                    code=self._operation.target_encoding.encoding,
+                    qubit_index=target_index
+                ).get_hadamard_circuit()
+            else:
+                raise e
 
     @property
     def _measurer_type(self) -> type[Measurer]:

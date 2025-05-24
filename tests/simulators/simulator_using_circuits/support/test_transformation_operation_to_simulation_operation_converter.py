@@ -12,7 +12,7 @@ from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
+from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
 class ErrorCorrectingCodeStub(ErrorCorrectingCode):
@@ -35,14 +35,6 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
         if operation.gate == TransformationGate.Z:
             return Circuit(Z(self.data_qubits[0]))
         return None
-
-    @property
-    def implemented_operations(self) -> List[LogicalGateLabel]:
-        return [
-            LogicalGateLabel.H,
-            LogicalGateLabel.X,
-            LogicalGateLabel.Z,
-        ]
 
 
 class TestTransformationOperationToSimulationOperationConverter:
