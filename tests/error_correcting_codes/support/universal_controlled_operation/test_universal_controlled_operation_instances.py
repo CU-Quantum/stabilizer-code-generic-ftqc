@@ -18,18 +18,15 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import states_are_equal, tensor
-from tests.utilities import get_random_encoded_initial_state
+from tests.utilities import get_random_encoded_initial_state, set_seed
 
 
 class TestUniversalControlledOperationInstances:
     @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
-        seed = request.param
-        random.seed(seed)
-        np.random.seed(seed)
+        set_seed(seed=request.param)
 
         configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.seed = seed
         configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [

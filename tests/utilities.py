@@ -1,3 +1,4 @@
+import random
 from dataclasses import dataclass
 
 import numpy as np
@@ -14,6 +15,13 @@ from stim_experiments.error_correcting_codes.support.measurer.measurer_with_sing
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR, \
     int_to_binary_array, tensor
+
+
+def set_seed(seed: int):
+    configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+    configuration.seed = seed
+    random.seed(seed)
+    np.random.seed(seed)
 
 
 def get_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:

@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 
 import numpy.random
@@ -14,10 +15,12 @@ from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
+from tests.utilities import set_seed
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
@@ -51,23 +54,24 @@ class TestLogicalOperationsSimulator:
         assert result == Circuit()
 
     def test_entanglement(self):
-        arbitrary_seed = 0
-        numpy.random.seed(arbitrary_seed)
         configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
         configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
         configuration.universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
 
         num_trials = 5
         results: list[StateAndMeasurements] = []
+        qubits = LineQubit.range(2)
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         for trial in range(num_trials):
+            set_seed(seed=trial)
             encodings = [
-                LogicalBitsEncodingStub(num_logical_bits=1),
-                LogicalBitsEncodingStub(num_logical_bits=1, qubits=LineQubit.range(1, 2))
+                LogicalBitsEncodingStub(num_logical_bits=1, qubits=qubits[:1]),
+                LogicalBitsEncodingStub(num_logical_bits=1, qubits=qubits[1:])
             ]
             operations = [
                 TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
                 TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
-                TransformationOperation(TransformationGate.M, target_qubit_index=1)
+                TransformationOperation(gate=TransformationGate.M, target_qubit_index=1)
             ]
             simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
             circuit = simulator.get_simulation_circuit()

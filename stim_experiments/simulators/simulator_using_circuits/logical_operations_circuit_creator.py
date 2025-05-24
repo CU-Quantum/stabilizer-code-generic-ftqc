@@ -28,9 +28,7 @@ class LogicalOperationsCircuitCreator:
             for operation in self._operations
         ]
         circuit_pieces = [
-            CircuitFromOperationCreator(operation=simulation_operation,
-                                        num_state_qubits=len(self.data_qubits),
-                                        ).create_circuit()
+            CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
             for simulation_operation in simulation_operations
         ]
         return Circuit(
