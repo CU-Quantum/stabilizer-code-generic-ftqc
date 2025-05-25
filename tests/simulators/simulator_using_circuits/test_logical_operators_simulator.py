@@ -1,48 +1,36 @@
-from typing import List, Optional
+import random
+from typing import Optional
 
 import numpy.random
 import pytest
-from cirq import Circuit, H, X, Z, kron, LineQubit
-from numpy import array
+from cirq import Circuit, H, I, X, Z, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_enums.universal_controlled_operation_type import UniversalControlledOperationType
+from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.logical_encodings_with_shared_ancillas import \
-    LogicalEncodingsWithSharedAncillas
-from stim_experiments.simulators.simulator_using_circuits.logical_encodings_with_shared_ancillas_creator import \
-    LogicalEncodingsWithSharedAncillasCreatorMultipleCodes, LogicalEncodingsWithSharedAncillasCreatorSingleCode
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_simulator import LogicalOperationsSimulator
-from stim_experiments.utilities import KET_ONE_STATE_VECTOR, \
-    KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
-from tests.utilities import states_are_equal
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
+    states_are_equal, tensor
+from tests.utilities import set_seed
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
-    def __init__(self,
-                 num_logical_bits: int,
-                 num_ancilla_bits: int = 0,
-                 initial_logical_qubit_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                 qubit_start_index: int = 0,
-                 provided_ancilla_qubits: Optional[List[LineQubit]] = None, ):
-        if initial_logical_qubit_state is None:
-            initial_logical_qubit_state = tensor(*[KET_ZERO_STATE_VECTOR] * num_logical_bits)
+    def __init__(self, num_logical_bits: int, qubits: Optional[list[LineQubit]] = None):
         super().__init__(num_data_qubits=num_logical_bits,
-                         num_ancilla_qubits=num_ancilla_bits,
                          num_logical_qubits=num_logical_bits,
-                         initial_logical_qubit_state=initial_logical_qubit_state,
-                         qubit_start_index=qubit_start_index,
-                         provided_ancilla_qubits=provided_ancilla_qubits)
+                         qubits=qubits)
 
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
-        if self._num_ancilla_qubits:
-            ancillas_state = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_ancilla_qubits)
-            return tensor(self._initial_logical_qubit_state, ancillas_state)
-        else:
-            return self._initial_logical_qubit_state
+        return Circuit([I(qubit) for qubit in self.data_qubits])
 
     def get_error_correction_circuit(self) -> Circuit:
         pass
@@ -57,78 +45,57 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
             gates = [H(self.data_qubits[operation.qubit_index])]
         return Circuit(gates)
 
-    @property
-    def _implemented_operations(self) -> List[LogicalGateLabel]:
-        return [
-            LogicalGateLabel.X,
-            LogicalGateLabel.Z,
-            LogicalGateLabel.H,
-        ]
-
 
 class TestLogicalOperationsSimulator:
     def test_trivial(self):
-        encodings = LogicalEncodingsWithSharedAncillas(
-            encodings=[],
-            ancillas=[]
-        )
-        simulator = LogicalOperationsSimulator(encodings=encodings, operations=[])
-        result = simulator.simulate()
-        assert result == StateAndMeasurements(
-            state=array([]),
-            measurements={},
-        )
-
-    def test_shared_ancilla_qubits(self):
-        two_encodings_with_two_shared_ancillas = LogicalEncodingsWithSharedAncillasCreatorSingleCode(
-            error_correcting_code=LogicalBitsEncodingStub(num_logical_bits=1, num_ancilla_bits=2),
-            num_logical_qubits_needed=2
-        ).create_encodings()
-        simulator = LogicalOperationsSimulator(
-            encodings=two_encodings_with_two_shared_ancillas,
-            operations=[],
-        )
-        result = simulator.simulate()
-
-        expected_states_data = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
-        only_two_ancilla = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
-        expected_state = tensor(expected_states_data, only_two_ancilla)
-        assert result == StateAndMeasurements(
-            state=expected_state,
-            measurements={},
-        )
+        encodings = []
+        simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=[])
+        result = simulator.get_simulation_circuit()
+        assert result == Circuit()
 
     def test_entanglement(self):
-        arbitrary_seed = 0
-        numpy.random.seed(arbitrary_seed)
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
+        configuration.universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
+
         num_trials = 5
         results: list[StateAndMeasurements] = []
+        qubits = LineQubit.range(2)
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         for trial in range(num_trials):
-            code = LogicalBitsEncodingStub(num_logical_bits=1)
-            encodings = LogicalEncodingsWithSharedAncillasCreatorSingleCode(code, num_logical_qubits_needed=2).create_encodings()
+            set_seed(seed=trial)
+            encodings = [
+                LogicalBitsEncodingStub(num_logical_bits=1, qubits=qubits[:1]),
+                LogicalBitsEncodingStub(num_logical_bits=1, qubits=qubits[1:])
+            ]
             operations = [
                 TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
                 TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
-                TransformationOperation(TransformationGate.M, target_qubit_index=1)
+                TransformationOperation(gate=TransformationGate.M, target_qubit_index=1)
             ]
-            simulator = LogicalOperationsSimulator(encodings=encodings, operations=operations)
-            result = simulator.simulate()
+            simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
+            circuit = simulator.get_simulation_circuit()
+
+            utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+            result = utilities.get_state_after_circuit(
+                circuit=circuit,
+                num_data_qubits=len(simulator.data_qubits),
+            )
             results.append(result)
-        observables = [result.measurements[1][0] for result in results]
+        observables = [result.measurements['1'][0] for result in results]
         assert any(observables) and not all(observables)
         assert all(states_are_equal(result.state, tensor(*[KET_ONE_STATE_VECTOR if observable else KET_ZERO_STATE_VECTOR] * 2))
                    for observable, result in zip(observables, results))
 
     def test_not_enough_logical_qubits_error(self):
-        codes = [LogicalBitsEncodingStub(num_logical_bits=1)]
-        encodings = LogicalEncodingsWithSharedAncillasCreatorMultipleCodes(codes).create_encodings()
+        encodings = [LogicalBitsEncodingStub(num_logical_bits=1)]
 
         operations = [
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=1),
         ]
 
-        simulator = LogicalOperationsSimulator(encodings=encodings, operations=operations)
+        simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 
         with pytest.raises(ValueError, match="Not enough logical qubits available. "
                                              "Operations need at least 2 logical qubits, but 1 was/were provided."):
-            simulator.simulate()
+            simulator.get_simulation_circuit()

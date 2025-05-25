@@ -1,14 +1,17 @@
 from abc import ABC, abstractmethod
-from typing import List, Mapping
+from typing import Optional
 
-from cirq import Circuit, DensityMatrixSimulator, DensityMatrixTrialResult, KET_ZERO, LineQubit, Simulator, \
+from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseModel, \
+    Simulator, \
     StateVectorTrialResult
-from numpy._typing import NDArray
 
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, TYPE_DENSITY_MATRIX, TYPE_STATE_VECTOR, \
-    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, is_state_vector
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, TYPE_DENSITY_MATRIX, \
+    TYPE_STATE_VECTOR, \
+    TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, get_num_qubits_in_state, is_state_vector, tensor, \
+    trace_out_ancillas_in_zero_state
 
 
 class ErrorCorrectingCodeUtilities(ABC):
@@ -18,47 +21,80 @@ class ErrorCorrectingCodeUtilities(ABC):
         pass
 
     @abstractmethod
-    def get_state_after_circuit(self,
-                                circuit: Circuit,
-                                qubit_order: List[LineQubit],
-                                initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
-                                ) -> StateAndMeasurements:
+    def _get_simulation_result(self,
+                               circuit: Circuit,
+                               qubits: list[LineQubit],
+                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NoiseModel] = None,
+                               ) -> StateAndMeasurements:
         pass
 
-    @staticmethod
-    def _cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements: Mapping[str, NDArray[int]]) -> dict[int, list[int]]:
-        return {int(key.strip('q()')): value.tolist() for key, value in measurements.items() if len(value) > 0}
+    def get_state_after_circuit(self,
+                                circuit: Circuit,
+                                num_data_qubits: int,
+                                initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                                noise_model: Optional[NoiseModel] = None,
+                                ) -> StateAndMeasurements:
+        if initial_data_state is None:
+            initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
+        qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
+        num_ancillas = len(qubits) - num_data_qubits
+        initial_state = tensor(initial_data_state, *[self.zero_state] * num_ancillas)
+
+        simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
+        data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
+
+        return StateAndMeasurements(
+            state=data_state,
+            measurements=dict(simulation.measurements),
+        )
+
+    def get_max_qubit_index(self, circuit: Circuit) -> int:
+        all_qubits = list(circuit.all_qubits())
+        return max(all_qubits).x if all_qubits else -1
+
+    @property
+    def _seed(self) -> int:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().seed
 
 
 class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     @property
-    def zero_state(self) -> TYPE_DENSITY_MATRIX:
+    def zero_state(self) ->  TYPE_DENSITY_MATRIX:
         return KET_ZERO_DENSITY_MATRIX
 
-    def get_state_after_circuit(self,
-                                circuit: Circuit,
-                                qubit_order: List[LineQubit],
-                                initial_state: TYPE_DENSITY_MATRIX
-                                ) -> StateAndMeasurements:
-        simulator = DensityMatrixSimulator()
-        simulation: DensityMatrixTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
+    def _get_simulation_result(self,
+                               circuit: Circuit,
+                               qubits: list[LineQubit],
+                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NoiseModel] = None,
+                               ) -> StateAndMeasurements:
+        simulator = DensityMatrixSimulator(noise=noise_model, seed=self._seed)
+        num_qubits = get_num_qubits_in_state(state=initial_state) if initial_state is not None else len(qubits)
+        initial_state = tensor(initial_state, *[KET_ZERO] * (len(qubits) - num_qubits))
+        simulation = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_density_matrix,
-            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
+            measurements=dict(simulation.measurements),
         )
 
 
 class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     @property
     def zero_state(self) -> TYPE_STATE_VECTOR:
-        return KET_ZERO.state_vector()
+        return KET_ZERO_STATE_VECTOR
 
-    def get_state_after_circuit(self, circuit: Circuit, qubit_order: List[LineQubit], initial_state: TYPE_STATE_VECTOR) -> StateAndMeasurements:
-        simulator = Simulator()
-        simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubit_order, initial_state=initial_state)
+    def _get_simulation_result(self,
+                               circuit: Circuit,
+                               qubits: list[LineQubit],
+                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NoiseModel] = None,
+                               ) -> StateAndMeasurements:
+        simulator = Simulator(noise=noise_model, seed=self._seed)
+        simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,
-            measurements=self._cirq_measurements_to_dict_with_qubit_indices_as_keys(measurements=simulation.measurements),
+            measurements=dict(simulation.measurements),
         )
 
 

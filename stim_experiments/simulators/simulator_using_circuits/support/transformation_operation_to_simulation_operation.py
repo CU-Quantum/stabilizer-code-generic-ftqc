@@ -4,9 +4,9 @@ from typing import List
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.transformation_operation import \
+from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from stim_experiments.simulators.simulator_using_circuits.custom_dataclasses.simulation_operation import \
+from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
 
 
@@ -30,7 +30,7 @@ class TransformationOperationToSimulationOperationConverter:
             target_encoding=TargetEncoding(
                 operation=LogicalOperation(
                     gate=logical_gate_label,
-                    qubit_index=self._target_encoding.qubit_index,
+                    qubit_index=self._target_encoding.qubit_index_relative,
                 ),
                 encoding=self._target_encoding.encoding,
             ),
@@ -59,13 +59,14 @@ class TransformationOperationToSimulationOperationConverter:
 
     def _get_encoding(self, qubit_index: int) -> LogicalEncodingIndex:
         current_index = 0
-        found_encoding = self._encodings[-1]
-        for encoding in self._encodings:
+        found_encoding_index = -1
+        for i, encoding in enumerate(self._encodings):
             if current_index <= qubit_index < current_index + encoding.num_logical_qubits:
-                found_encoding = encoding
+                found_encoding_index = i
                 break
             current_index += encoding.num_logical_qubits
         return LogicalEncodingIndex(
-            encoding=found_encoding,
-            qubit_index=qubit_index - current_index,
+            encoding=self._encodings[found_encoding_index],
+            qubit_index_relative=qubit_index - current_index,
+            qubit_index_logical=found_encoding_index,
         )

@@ -1,0 +1,54 @@
+In addition to Abdullah's answer, I'd like to offer an idea, though it's also neither transversal nor fault-tolerant.
+
+The computational basis states take
+
+$\bar{H} |\bar{0}\rangle = \frac{1}{\sqrt{2}} (|\bar{0}\rangle + |\bar{1}\rangle)$
+
+$\bar{H} |\bar{1}\rangle = \frac{1}{\sqrt{2}} (|\bar{0}\rangle - |\bar{1}\rangle)$
+
+$\bar{H} \frac{1}{\sqrt{2}} (|\bar{0}\rangle + |\bar{1}\rangle) = |\bar{0}\rangle$
+
+$\bar{H} \frac{1}{\sqrt{2}} (|\bar{0}\rangle - |\bar{1}\rangle) = |\bar{1}\rangle,$
+
+where $|\bar{0}\rangle$ and $|\bar{1}\rangle$ are the logical $|0\rangle$ and $|1\rangle$ states, respectively. Consider the register with target logical qubit in state $|\bar{\psi}\rangle = \alpha |\bar{0}\rangle + \beta |\bar{1}\rangle$ plus an ancilla in state in $|0\rangle$. In general, we want
+
+$\bar{H} |\bar{\psi}\rangle \otimes |0\rangle = \frac{1}{\sqrt{2}}\begin{bmatrix}1 & 1 \\ 1 & -1\end{bmatrix} \bar{\begin{bmatrix}\alpha \\ \beta\end{bmatrix}} \otimes |0\rangle = \frac{1}{\sqrt{2}}((\alpha + \beta)|\bar{0}\rangle + (\alpha - \beta)|\bar{1}\rangle)\otimes |0\rangle.$
+
+We can perform controlled logical operations where the single-bit ancilla acts as the control. Consider the following sequence of gates, where $C\bar{X}_{2,1}$ performs $\bar{X}|\bar{\psi}\rangle$ controlled by the ancilla qubit, $C\bar{Z}_{2,1}$ acts similarly, $H_2$ performs the single-qubit H gate on the ancilla, and $X_2$ performs the single-qubit X gate on the ancilla.
+
+$H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 C\bar{Z}_{2,1} C\bar{X}_{2,1} H_2 |\bar{\psi} 0\rangle$
+
+$= H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 C\bar{Z}_{2,1} C\bar{X}_{2,1} |\bar{\psi} + \rangle$
+
+$= H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 C\bar{Z}_{2,1} C\bar{X}_{2,1} ((\alpha |\bar{0}\rangle + \beta |\bar{1}\rangle) |+\rangle)$
+
+$= \frac{1}{\sqrt{2}} H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 C\bar{Z}_{2,1} C\bar{X}_{2,1} (\alpha |\bar{0}0\rangle + \beta |\bar{1}0\rangle + \alpha |\bar{0}1\rangle + \beta |\bar{1}1\rangle)$
+
+$= \frac{1}{\sqrt{2}} H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 C\bar{Z}_{2,1} (\alpha |\bar{0}0\rangle + \beta |\bar{1}0\rangle + \alpha |\bar{1}1\rangle + \beta |\bar{0}1\rangle)$
+
+$= \frac{1}{\sqrt{2}} H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} H_2 (\alpha |\bar{0}0\rangle + \beta |\bar{1}0\rangle - \alpha |\bar{1}1\rangle + \beta |\bar{0}1\rangle)$
+
+$= \frac{1}{\sqrt{2}} H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} (\alpha |\bar{0}+\rangle + \beta |\bar{1}+\rangle - \alpha |\bar{1}-\rangle + \beta |\bar{0}-\rangle)$
+
+$= \frac{1}{2} H_2 C\bar{Z}_{2,1} X_2 C\bar{X}_{2,1} (\alpha (|\bar{0}0\rangle + |\bar{0}1\rangle) + \beta(|\bar{1}0\rangle + |\bar{1}1\rangle) - \alpha (|\bar{1}0\rangle - |\bar{1}1\rangle) + \beta (|\bar{0}0\rangle - |\bar{0}1\rangle))$
+
+You could stop here and measure the ancilla, then apply $\bar{X}$ if the result is 1 and $\bar{Z}$ if it is 0. With no measurements, it would continue as follows.
+
+$= \frac{1}{2} H_2 C\bar{Z}_{2,1} X_2 (\alpha (|\bar{0}0\rangle + |\bar{1}1\rangle) + \beta(|\bar{1}0\rangle + |\bar{0}1\rangle) - \alpha (|\bar{1}0\rangle - |\bar{0}1\rangle) + \beta (|\bar{0}0\rangle - |\bar{1}1\rangle))$
+
+$= \frac{1}{2} H_2 C\bar{Z}_{2,1} (\alpha (|\bar{0}1\rangle + |\bar{1}0\rangle) + \beta(|\bar{1}1\rangle + |\bar{0}0\rangle) - \alpha (|\bar{1}1\rangle - |\bar{0}0\rangle) + \beta (|\bar{0}1\rangle - |\bar{1}0\rangle))$
+
+$= \frac{1}{2} H_2 (\alpha (|\bar{0}1\rangle + |\bar{1}0\rangle) + \beta(|\bar{0}0\rangle - |\bar{1}1\rangle) + \alpha (|\bar{0}0\rangle + |\bar{1}1\rangle) + \beta (|\bar{0}1\rangle - |\bar{1}0\rangle))$
+
+$= \frac{1}{\sqrt{2}} H_2 (\alpha|\bar{0}+\rangle + \alpha|\bar{1}+\rangle + \beta|\bar{0}+\rangle - \beta|\bar{1}+\rangle)$
+
+$= \frac{1}{\sqrt{2}} (\alpha|\bar{0}\rangle + \alpha|\bar{1}\rangle + \beta|\bar{0}\rangle - \beta|\bar{1}\rangle) \otimes |0\rangle$
+
+$= \frac{1}{\sqrt{2}} ((\alpha + \beta)|\bar{0}\rangle + (\alpha - \beta)|\bar{1}\rangle) \otimes |0\rangle.$
+
+This sequence of gates, therefore, can use the predetermined logical X and Z gates for a given qubit to perform a Hadamard transformation using an additional ancilla qubit. It is not transversal, but it is consistent and general, working for any stabilizer code.
+
+I am not sure if these gates can be condensed, so let me know if you find a more optimal way! I'm also not sure yet how the stabilizers might change, but I will update if/when I find out.
+
+EDIT: I believe there is no need to change the stabilizers. They act on the linear combination of states $|\bar{0}\rangle$ and $|\bar{1}\rangle$ independently, and so should be able to correct regardless of $\alpha$ or $\beta$.
+

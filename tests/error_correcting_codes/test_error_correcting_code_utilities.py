@@ -1,10 +1,11 @@
 import pytest
 from cirq import Circuit, LineQubit, M, X
+from numpy import array
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.generic_stabilizer_code.custom_dataclasses.state_and_measurements import \
+from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
-from stim_experiments.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
+from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
@@ -16,7 +17,8 @@ class TestErrorCorrectingCodeUtilities:
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
 
-        qubit = LineQubit(1)
+        num_qubits = 1
+        qubit = LineQubit(num_qubits)
         circuit = Circuit(
             M(qubit),
             X(qubit),
@@ -25,11 +27,11 @@ class TestErrorCorrectingCodeUtilities:
         )
 
         result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         qubit_order=[qubit],
-                                                                         initial_state=initial_state)
+                                                                         num_data_qubits=num_qubits,
+                                                                         initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
-            measurements={1: [1]}
+            measurements={'q(1)': array([1])}
         )
 
     @pytest.mark.parametrize('initial_state', [
@@ -48,9 +50,9 @@ class TestErrorCorrectingCodeUtilities:
         )
 
         result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         qubit_order=qubits,
-                                                                         initial_state=initial_state)
+                                                                         num_data_qubits=len(qubits),
+                                                                         initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
-            measurements={0: [0], 1: [1]}
+            measurements={'q(0)': array([0]), 'q(1)': [1]}
         )
