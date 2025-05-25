@@ -104,10 +104,10 @@ class TestUniversalControlledOperationInstances:
             num_data_qubits=len(qubits),
             initial_data_state=initial_state,
         ).state
-        target_permutation = [[2 * (i // 2) + 1 - i % 2] for i in range(4)]
+        target_permutation = [1, 0, 3, 2]
         notted_target = sum(encoded_initial_states_target.initial_coefficients[i] * encoded_initial_states_target.computational_basis_states[permutation]
                             for i, permutation in enumerate(target_permutation))
-        expected_state = sum(
+        expected_state = (
             encoded_initial_states_control.initial_coefficients[0]
                 * tensor(encoded_initial_states_control.computational_basis_states[0],
                          encoded_initial_states_target.initial_state)
@@ -121,7 +121,7 @@ class TestUniversalControlledOperationInstances:
                          encoded_initial_states_target.initial_state)
             +
             encoded_initial_states_control.initial_coefficients[3]
-                * tensor(encoded_initial_states_control.computational_basis_states[2],
+                * tensor(encoded_initial_states_control.computational_basis_states[3],
                          notted_target)
         )
         assert states_are_equal(simulated_state, expected_state)
