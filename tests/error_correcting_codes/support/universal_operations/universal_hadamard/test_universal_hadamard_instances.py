@@ -22,7 +22,7 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
-from tests.error_correcting_codes.support.universal_hadamard.double_qubit_double_logical_code import \
+from tests.error_correcting_codes.support.universal_operations.universal_hadamard.double_qubit_double_logical_code import \
     DoubleQubitDoubleLogicalCode
 from tests.utilities import get_random_encoded_initial_state, random_complex_unit_vector, \
     set_configuration_to_reduce_ancilla_qubits

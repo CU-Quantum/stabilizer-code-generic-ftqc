@@ -126,5 +126,40 @@ class TestUniversalControlledOperationInstances:
         )
         assert states_are_equal(simulated_state, expected_state)
 
-    # TODO Nick test CX between qubits in same multiqubit encoding
-    # TODO Nick test inactive control qubit
+    @pytest.mark.parametrize('universal_controlled_operation_type', [
+        pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
+        pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
+    ])
+    def test_same_multi_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
+        qubits = LineQubit.range(4)
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
+        code = StabilizerStandardizedCode(
+            generators=get_check_matrix_values_4_qubit(),
+            qubits=qubits,
+        )
+        encoding_control = LogicalEncodingIndex(encoding=code, qubit_index_relative=0)
+        encoding_target = TargetEncoding(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=1),
+                                         encoding=code)
+        universal_controlled_operation = universal_controlled_operation_type(control=encoding_control, target=encoding_target)
+
+        encoded_initial_states = get_random_encoded_initial_state(code=code)
+        utilities = get_error_correcting_code_utilities(state=encoded_initial_states.initial_state)
+
+        simulated_state = utilities.get_state_after_circuit(
+            circuit=Circuit(
+                code.encode_logical_qubit(),
+                universal_controlled_operation.get_controlled_operation_circuit(),
+            ),
+            num_data_qubits=len(qubits),
+            initial_data_state=encoded_initial_states.initial_state,
+        ).state
+        expected_state = (
+                encoded_initial_states.initial_coefficients[0] * encoded_initial_states.computational_basis_states[0]
+                +
+                encoded_initial_states.initial_coefficients[1] * encoded_initial_states.computational_basis_states[1]
+                +
+                encoded_initial_states.initial_coefficients[2] * encoded_initial_states.computational_basis_states[3]
+                +
+                encoded_initial_states.initial_coefficients[3] * encoded_initial_states.computational_basis_states[2]
+        )
+        assert states_are_equal(simulated_state, expected_state)
