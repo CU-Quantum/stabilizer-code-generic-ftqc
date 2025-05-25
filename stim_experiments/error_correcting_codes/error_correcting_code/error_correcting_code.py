@@ -27,7 +27,6 @@ class ErrorCorrectingCode(ABC):
         self._num_logical_qubits = num_logical_qubits
         self._qubits = qubits
 
-    # TODO Nick have these abstract methods return Operations or OP_TREE instead of Circuit
     @abstractmethod
     def encode_logical_qubit(self) -> StateEncoding:
         pass
