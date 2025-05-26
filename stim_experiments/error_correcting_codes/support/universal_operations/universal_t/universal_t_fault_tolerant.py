@@ -1,13 +1,16 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Generator
 
-from cirq import Circuit, OP_TREE
+from cirq import Circuit, LineQubit, OP_TREE, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import TargetEncoding
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
+    UniversalOperationsUtilities
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
 from stim_experiments.error_correcting_codes.tetrahedral_code.tetrahedral_code import TetrahedralCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
@@ -19,6 +22,7 @@ from stim_experiments.utilities.universal_controlled_operation_type_factory impo
 
 @dataclass
 class UniversalTFaultTolerantContext:
+    ancilla_qubits: list[LineQubit]
     tetrahedral: TetrahedralCode
 
 
@@ -30,6 +34,7 @@ class UniversalTFaultTolerant(UniversalT):
                 self._cx_code_to_tetrahedral(context=context),
                 self._perform_t_on_tetrahedral(context=context),
                 self._cx_code_to_tetrahedral(context=context),
+                self._reset_ancilla_qubits(context=context),
             )
 
     def _encode_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:
@@ -55,11 +60,15 @@ class UniversalTFaultTolerant(UniversalT):
                 encodings_store.get_all_correction_circuits(),
             ]
 
+    def _reset_ancilla_qubits(self, context: UniversalTFaultTolerantContext) -> OP_TREE:
+        return [R(qubit) for qubit in context.ancilla_qubits]
+
     @contextmanager
     def _use_fresh_ancilla_qubits(self) -> Generator[UniversalTFaultTolerantContext, None, None]:
         tetrahedral_code = TetrahedralCode()
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(tetrahedral_code.data_qubits)) as ancilla_qubits:
             yield UniversalTFaultTolerantContext(
+                ancilla_qubits=ancilla_qubits,
                 tetrahedral=tetrahedral_code.create_new(qubits=ancilla_qubits),
             )
 
