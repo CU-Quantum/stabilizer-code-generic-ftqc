@@ -1,0 +1,85 @@
+from cmath import exp, pi
+
+from cirq import Circuit, rz
+
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
+    states_are_equal
+from tests.error_correcting_codes.support.universal_operations.universal_t.test_universal_t_instances import T_ROTATION
+from tests.simulators.simulator_using_circuits.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
+    ErrorCorrectingCodeStubWithXAndZ
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+
+
+class TestHadamardDefault:
+    def test_universal_t_used_when_encoding_does_not_implement_t(self):
+        set_configuration_to_reduce_ancilla_qubits()
+
+        encoding = ErrorCorrectingCodeStubNoT()
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(encoding.data_qubits))
+        operation = SimulationOperation(
+            target_encoding=TargetEncoding(
+                operation=LogicalOperation(
+                    gate=LogicalGateLabel.T,
+                    qubit_index=0,
+                ),
+                encoding=encoding,
+            )
+        )
+
+        utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+        circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
+        simulated_state = utilities.get_state_after_circuit(
+            circuit=circuit,
+            num_data_qubits=len(encoding.data_qubits),
+            initial_data_state=KET_PLUS_STATE_VECTOR,
+        ).state
+        assert states_are_equal(simulated_state, KET_ZERO_STATE_VECTOR + T_ROTATION * KET_ONE_STATE_VECTOR)
+
+    def test_native_t_used_when_encoding_does_implement_t(self):
+        encoding = ErrorCorrectingCodeStubWithBadT()
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(encoding.data_qubits))
+        operation = SimulationOperation(
+            target_encoding=TargetEncoding(
+                operation=LogicalOperation(
+                    gate=LogicalGateLabel.T,
+                    qubit_index=0,
+                ),
+                encoding=encoding,
+            )
+        )
+
+        utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+        circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
+        simulated_state = utilities.get_state_after_circuit(
+            circuit=circuit,
+            num_data_qubits=len(encoding.data_qubits),
+        ).state
+        assert states_are_equal(simulated_state, [exp(1j * pi * ErrorCorrectingCodeStubWithBadT.t_radians), 0])
+
+
+class ErrorCorrectingCodeStubNoT(ErrorCorrectingCodeStubWithXAndZ):
+    pass
+
+
+class ErrorCorrectingCodeStubWithBadT(ErrorCorrectingCodeStubNoT):
+    t_radians = .3
+
+    def encode_logical_qubit(self):
+        pass
+
+    def get_error_correction_circuit(self) -> Circuit:
+        pass
+
+    def _perform_get_operation_circuit(self, operation: LogicalOperation):
+        result = super()._perform_get_operation_circuit(operation)
+        if result is not None:
+            return result
+        elif operation.gate == LogicalGateLabel.T:
+            return Circuit(rz(rads=self.t_radians)(self.data_qubits[operation.qubit_index]))
+        return None
