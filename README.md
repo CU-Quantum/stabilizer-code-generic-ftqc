@@ -58,8 +58,7 @@ from cirq import LineQubit
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesStateVector
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
 # Create qubits for two logical qubits
@@ -87,7 +86,7 @@ simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=oper
 circuit = simulator.get_simulation_circuit()
 
 # Simulate the circuit
-utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+utilities = ErrorCorrectingCodeUtilitiesStateVector()
 result = utilities.get_state_after_circuit(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
@@ -204,8 +203,7 @@ You can then use your custom code with the simulator:
 ```python
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesStateVector
 
 # Create qubits for two logical qubits (3 physical qubits per logical qubit)
 qubits = LineQubit.range(6)
@@ -226,7 +224,7 @@ operations = [
 # Create the simulator and run the simulation
 simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 circuit = simulator.get_simulation_circuit()
-utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+utilities = ErrorCorrectingCodeUtilitiesStateVector()
 result = utilities.get_state_after_circuit(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
