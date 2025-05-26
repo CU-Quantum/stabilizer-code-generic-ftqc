@@ -4,6 +4,7 @@ from enum import Enum, auto
 
 class LogicalGateLabel(Enum):
     H = auto()
+    T = auto()
     X = auto()
     Z = auto()
 

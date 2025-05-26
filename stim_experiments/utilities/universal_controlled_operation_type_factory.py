@@ -16,4 +16,4 @@ class UniversalControlledOperationTypeFactory:
             return UniversalControlledOperationFaultTolerant
         elif self._controlled_operation_type == UniversalControlledOperationType.SINGLE_ANCILLA:
             return UniversalControlledOperationSingleAncilla
-        raise ValueError(f"Unknown universal hadamard type: {self._controlled_operation_type}")
+        raise ValueError(f"Unknown universal controlled operation type: {self._controlled_operation_type}")

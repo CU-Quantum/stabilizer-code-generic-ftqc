@@ -7,6 +7,9 @@ from numpy import array, sqrt
 from numpy._typing import NDArray
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_enums.universal_controlled_operation_type import UniversalControlledOperationType
+from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
+from stim_experiments.custom_enums.universal_t_type import UniversalTType
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
@@ -28,10 +31,13 @@ def get_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:
     return (1 / sqrt(2)) * (tensor(*[KET_ZERO_STATE_VECTOR] * num_qubits) + tensor(*[KET_ONE_STATE_VECTOR] * num_qubits))
 
 
-def set_configuration_to_reduce_ancilla_qubits():
+def set_configuration_to_reduce_ancilla_qubits() -> None:
     configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
     configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
     configuration.measurer_type = MeasurerWithSingleQubit
+    configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
+    configuration.universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
+    configuration.universal_t_type = UniversalTType.SINGLE_ANCILLA
 
 
 def random_complex_unit_vector(num_qubits: int) -> np.ndarray:

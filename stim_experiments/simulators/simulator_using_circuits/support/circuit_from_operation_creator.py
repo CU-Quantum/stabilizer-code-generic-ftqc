@@ -4,16 +4,18 @@ from cirq import Circuit, MeasurementKey
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import \
-    SimulationOperation
+    LogicalEncodingIndex, SimulationOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.utilities.universal_controlled_operation_type_factory import \
     UniversalControlledOperationTypeFactory
 from stim_experiments.utilities.universal_hadamard_type_factory import UniversalHadamardTypeFactory
+from stim_experiments.utilities.universal_t_type_factory import UniversalTTypeFactory
 
 
 class CircuitFromOperationCreator:
@@ -50,14 +52,17 @@ class CircuitFromOperationCreator:
         try:
             return self._operation.target_encoding.encoding.get_operation_circuit(operation=self._operation.target_encoding.operation)
         except NotImplementedError as e:
-            if self._operation.target_encoding.operation.gate == LogicalGateLabel.H:
+            if self._operation.target_encoding:
                 target_index = self._operation.target_encoding.operation.qubit_index
-                return self._universal_hadamard_type(
-                    code=self._operation.target_encoding.encoding,
-                    qubit_index=target_index
-                ).get_hadamard_circuit()
-            else:
-                raise e
+                code = LogicalEncodingIndex(
+                    encoding=self._operation.target_encoding.encoding,
+                    qubit_index_relative=target_index
+                )
+                if self._operation.target_encoding.operation.gate == LogicalGateLabel.H:
+                    return self._universal_hadamard_type(code=code).get_hadamard_circuit()
+                elif self._operation.target_encoding.operation.gate == LogicalGateLabel.T:
+                    return self._universal_t_type(code=code).get_t_circuit()
+            raise e
 
     @property
     def _measurer_type(self) -> type[Measurer]:
@@ -70,6 +75,10 @@ class CircuitFromOperationCreator:
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
         return UniversalHadamardTypeFactory(self._configuration.universal_hadamard_type).get_universal_hadamard_type()
+
+    @property
+    def _universal_t_type(self) -> type[UniversalT]:
+        return UniversalTTypeFactory(self._configuration.universal_t_type).get_universal_t_type()
 
     @property
     def _configuration(self) -> ConfigurationErrorCorrectingCode:

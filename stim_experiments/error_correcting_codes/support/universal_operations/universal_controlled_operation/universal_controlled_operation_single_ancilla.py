@@ -36,8 +36,3 @@ class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
     @cached_property
     def _measurement_key(self) -> MeasurementKey:
         return MeasurementKey(f"UNIVERSAL_CONTROLLED_OPERATION_SINGLE_ANCILLA_{uuid4().hex}")
-
-    @property
-    def _measurer_type(self) -> type[Measurer]:
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        return configuration.measurer_type
