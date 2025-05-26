@@ -2,6 +2,7 @@ from cirq import Circuit, LineQubit, X
 from numpy import sqrt
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -21,7 +22,7 @@ class TestUniversalHadamardSingleAncilla:
         code = StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
-        hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=0).get_hadamard_circuit()
+        hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=0)).get_hadamard_circuit()
         circuit = Circuit(
             code.encode_logical_qubit(),
             hadamard_circuit,
@@ -42,7 +43,7 @@ class TestUniversalHadamardSingleAncilla:
     def test_logical_h_on_one_out_of_multiple_encoded_qubits(self):
         code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
-        hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
+        hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
         circuit = Circuit(
             code.encode_logical_qubit(),
             hadamard_circuit,
@@ -66,7 +67,7 @@ class TestUniversalHadamardSingleAncilla:
     def test_two_logical_h_on_one_out_of_multiple_encoded_qubits_is_identity(self):
         code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
-        hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
+        hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
         circuit = Circuit(
             code.encode_logical_qubit(),
             hadamard_circuit,
@@ -94,7 +95,7 @@ class TestUniversalHadamardSingleAncilla:
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
         utilities = get_error_correcting_code_utilities(state=initial_data_state)
 
-        hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
+        hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
                 code.encode_logical_qubit(),
@@ -123,7 +124,7 @@ class TestUniversalHadamardSingleAncilla:
         utilities = get_error_correcting_code_utilities(state=initial_data_state)
 
         arbitrary_error = X(LineQubit(0))
-        hadamard_circuit = UniversalHadamardSingleAncilla(code=code, qubit_index=1).get_hadamard_circuit()
+        hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
                 code.encode_logical_qubit(),
