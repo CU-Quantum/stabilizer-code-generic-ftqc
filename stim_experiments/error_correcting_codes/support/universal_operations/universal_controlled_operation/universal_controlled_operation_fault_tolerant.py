@@ -7,6 +7,7 @@ from uuid import uuid4
 from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.custom_dataclasses.universal_controlled_operation_fault_tolerant_context import \
     UniversalControlledOperationFaultTolerantContext
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
@@ -27,7 +28,7 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
                 self._encode_three_cat(context=context),
                 self._cz_helpers_to_control(context=context),
                 self._ensure_subregister_parity_in_plus(context=context),
-                self._universal_hadamard_type(code=context.three_cat, qubit_index=0).get_hadamard_circuit(),
+                self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.three_cat, qubit_index_relative=0)).get_hadamard_circuit(),
                 self._c_helpers_to_target(context=context),
                 self._measure_out_helper(context=context),
                 self._reset_ancilla_qubits(context=context),
@@ -91,7 +92,7 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
         control_logical_z = list(self._control.encoding.get_operation_circuit(
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._control.qubit_index_relative)
         ).all_operations())
-        target_logical_operations = self._target.encoding.get_operation_circuit(self._target.operation)
+        target_logical_operations = list(self._target.encoding.get_operation_circuit(self._target.operation).all_operations())
 
         num_qubits_for_logical_operations = max(len(control_logical_z), len(target_logical_operations))
         return UniversalOperationsUtilities(num_qubits_for_logical_operations=num_qubits_for_logical_operations)

@@ -20,7 +20,7 @@ from stim_experiments.simulators.simulator_using_circuits.logical_operations_cir
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
-from tests.utilities import set_seed
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 class LogicalBitsEncodingStub(ErrorCorrectingCode):
@@ -54,9 +54,7 @@ class TestLogicalOperationsSimulator:
         assert result == Circuit()
 
     def test_entanglement(self):
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
-        configuration.universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
+        set_configuration_to_reduce_ancilla_qubits()
 
         num_trials = 5
         results: list[StateAndMeasurements] = []

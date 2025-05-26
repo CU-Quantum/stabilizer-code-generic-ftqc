@@ -16,6 +16,7 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import CircuitFromOperationCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class ErrorCorrectingCodeStubNoHadamard(ErrorCorrectingCode):
@@ -58,7 +59,7 @@ class ErrorCorrectingCodeStubWithBadHadamard(ErrorCorrectingCodeStubNoHadamard):
 
 class TestCircuitFromOperationCreator:
     def test_universal_hadamard_used_when_encoding_does_not_implement_hadamard(self):
-        ConfigurationErrorCorrectingCodeManager().get_configuration().universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
+        set_configuration_to_reduce_ancilla_qubits()
 
         encoding = ErrorCorrectingCodeStubNoHadamard()
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(encoding.data_qubits))

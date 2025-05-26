@@ -21,16 +21,15 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, binary_array_to_int, states_are_equal, tensor
-from tests.utilities import RandomEncodedInitialState, get_random_encoded_initial_state, set_seed
+from tests.utilities import RandomEncodedInitialState, get_random_encoded_initial_state, \
+    set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 class TestUniversalControlledOperationInstances:
     @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
         set_seed(seed=request.param)
-
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
+        set_configuration_to_reduce_ancilla_qubits()
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
         pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),

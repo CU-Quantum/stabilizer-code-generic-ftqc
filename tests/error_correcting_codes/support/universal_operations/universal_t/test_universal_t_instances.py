@@ -9,6 +9,8 @@ from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import \
     UniversalT
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_fault_tolerant import \
+    UniversalTFaultTolerant
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import \
     UniversalTSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -26,13 +28,14 @@ class TestUniversalTInstances:
         set_seed(seed=request.param)
 
     @pytest.mark.parametrize('universal_t_type', [
-        # pytest.param(UniversalTFaultTolerant, id='UniversalTFaultTolerant'),
+        pytest.param(UniversalTFaultTolerant, id='UniversalTFaultTolerant'),
         pytest.param(UniversalTSingleAncilla, id='UniversalTSingleAncilla'),
     ])
     def test_random_alpha_beta(self, universal_t_type: type[UniversalT]):
+        set_configuration_to_reduce_ancilla_qubits()
         code = RepetitionCode(num_qubits=1)
-        universal_t = universal_t_type(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=0))
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
+        universal_t = universal_t_type(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=0))
 
         encoded_initial_state = get_random_encoded_initial_state(code=code)
         initial_state = encoded_initial_state.initial_state
@@ -53,7 +56,7 @@ class TestUniversalTInstances:
         assert states_are_equal(simulated_state, expected_state)
 
     @pytest.mark.parametrize('universal_t_type', [
-        # pytest.param(UniversalTFaultTolerant, id='UniversalTFaultTolerant'),
+        pytest.param(UniversalTFaultTolerant, id='UniversalTFaultTolerant'),
         pytest.param(UniversalTSingleAncilla, id='UniversalTSingleAncilla'),
     ])
     def test_multiple_qubit_encoding_t_one_qubit(self, universal_t_type: type[UniversalT]):

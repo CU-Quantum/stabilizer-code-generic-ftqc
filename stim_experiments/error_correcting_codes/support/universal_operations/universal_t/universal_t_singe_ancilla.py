@@ -10,7 +10,7 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 class UniversalTSingleAncilla(UniversalT):
     def get_t_circuit(self) -> Circuit:
-        logical_z_control = self._code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._qubit_index))
+        logical_z_control = self._encoding.encoding.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._encoding.qubit_index_relative))
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             ancilla_qubit = ancilla_qubits[0]
             cz_ancilla_to_control = CircuitOperation(logical_z_control.freeze()).controlled_by(ancilla_qubit)
