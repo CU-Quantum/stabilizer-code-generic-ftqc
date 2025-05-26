@@ -192,6 +192,10 @@ class MyCustomCode(ErrorCorrectingCode):
             # If the code has an efficient Hadamard operation, you can include it in here. 
             # Otherwise, the simulator will use the universal hadamard type set in the configuration.
             return None
+        elif operation.gate == LogicalGateLabel.T:
+            # If the code has an efficient T operation, you can include it in here. 
+            # Otherwise, the simulator will use the universal T type set in the configuration.
+            return None
         return None  # Other operations not implemented.
 ```
 

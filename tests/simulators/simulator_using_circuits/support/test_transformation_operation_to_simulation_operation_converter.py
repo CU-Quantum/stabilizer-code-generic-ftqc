@@ -2,7 +2,7 @@ from enum import Enum, auto
 from typing import List, Optional
 
 import pytest
-from cirq import Circuit, H, LineQubit, X, Z
+from cirq import Circuit, H, LineQubit, T, X, Z
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -28,6 +28,8 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
         pass
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
+        if operation.gate == TransformationGate.T:
+            return Circuit(T(self.data_qubits[0]))
         if operation.gate == TransformationGate.H:
             return Circuit(H(self.data_qubits[0]))
         if operation.gate == TransformationGate.X:
@@ -39,6 +41,7 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
 
 class TestTransformationOperationToSimulationOperationConverter:
     @pytest.mark.parametrize(['transformation_gate', 'logical_gate_label'], [
+        (TransformationGate.T, LogicalGateLabel.T),
         (TransformationGate.X, LogicalGateLabel.X),
         (TransformationGate.Z, LogicalGateLabel.Z),
         (TransformationGate.H, LogicalGateLabel.H),

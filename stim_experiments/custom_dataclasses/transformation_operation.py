@@ -8,6 +8,7 @@ class TransformationGate(Enum):
     CZ = auto()
     H = auto()
     M = auto()
+    T = auto()
     X = auto()
     Z = auto()
 

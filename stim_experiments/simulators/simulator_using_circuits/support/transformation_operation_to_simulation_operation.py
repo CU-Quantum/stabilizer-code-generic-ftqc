@@ -45,15 +45,17 @@ class TransformationOperationToSimulationOperationConverter:
         return replace(operation, control_encoding=encoding_control)
 
     def _get_logical_gate_label(self) -> LogicalGateLabel:
-        if self._transformation_operation.gate == TransformationGate.X:
+        if self._transformation_operation.gate == TransformationGate.CX:
             return LogicalGateLabel.X
-        elif self._transformation_operation.gate == TransformationGate.Z:
+        elif self._transformation_operation.gate == TransformationGate.CZ:
             return LogicalGateLabel.Z
         elif self._transformation_operation.gate == TransformationGate.H:
             return LogicalGateLabel.H
-        elif self._transformation_operation.gate == TransformationGate.CX:
+        elif self._transformation_operation.gate == TransformationGate.T:
+            return LogicalGateLabel.T
+        elif self._transformation_operation.gate == TransformationGate.X:
             return LogicalGateLabel.X
-        elif self._transformation_operation.gate == TransformationGate.CZ:
+        elif self._transformation_operation.gate == TransformationGate.Z:
             return LogicalGateLabel.Z
         raise ValueError(f"Unimplemented transformation gate {self._transformation_operation.gate.name}.")
 
