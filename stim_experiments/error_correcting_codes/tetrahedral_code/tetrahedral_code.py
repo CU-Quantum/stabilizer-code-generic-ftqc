@@ -1,9 +1,9 @@
 from typing import Optional
 
-from cirq import Circuit, LineQubit, Operation, X, Z
+from cirq import Circuit, LineQubit, Operation, T, X, Z, inverse
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_tetrahedral
 
@@ -32,4 +32,16 @@ class TetrahedralCode(StabilizerCode):
         ][generator_index]
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
-        pass
+        if operation.gate == LogicalGateLabel.X:
+            return Circuit(
+                [X(qubit) for qubit in self.data_qubits[:7]]
+            )
+        elif operation.gate == LogicalGateLabel.Z:
+            return Circuit(
+                [Z(qubit) for qubit in self.data_qubits[:3]]
+            )
+        elif operation.gate == LogicalGateLabel.T:
+            return Circuit(
+                [inverse(T(qubit)) for qubit in self.data_qubits]
+            )
+        return None
