@@ -1,3 +1,5 @@
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+
 # Stim Experiments
 
 A Python package for quantum error correction experiments using Cirq and Stim.
@@ -124,7 +126,8 @@ Available configuration options:
 2. `cat_state_creator_type`: Type of cat state creator to use (default: `CatStateCreatorFlagPattern`)
 3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardType.FAULT_TOLERANT`)
 4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationType.FAULT_TOLERANT`)
-5. `seed`: Optional seed for random number generation (default: `None`)
+5. `universal_t_type`: Type of universal T implementation (default: `UniversalTType.FAULT_TOLERANT`)
+6. `seed`: Optional seed for random number generation (default: `None`)
 
 
 ## Creating Your Own Error Correcting Code
@@ -132,11 +135,12 @@ Available configuration options:
 You can create your own error correcting code by extending the `ErrorCorrectingCode` abstract base class and implementing the required methods:
 
 ```python
-from cirq import Circuit, LineQubit, X, Z
+from cirq import Circuit, LineQubit, R, X, Z
 from typing import Optional
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
 class MyCustomCode(ErrorCorrectingCode):
@@ -162,8 +166,13 @@ class MyCustomCode(ErrorCorrectingCode):
         # Implement error correction for your code
         # For a 3-qubit repetition code, we would use majority voting
         circuit = Circuit()
-        # Add error correction operations
-        return circuit
+        # FreshAncillasPool allows you to pull fresh or unused ancilla qubits. 
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancilla_quibts:
+            # Add error correction operations
+            Circuit.append(...)
+            # You must ensure the ancilla qubits return to the |0> state before exiting the FreshAncillasPool context.
+            Circuit.append(R(ancilla for ancilla in ancilla_quibts))
+            return circuit
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         # Implement logical operations for your code
