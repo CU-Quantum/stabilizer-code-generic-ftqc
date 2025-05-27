@@ -9,15 +9,11 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.custom_dataclasses.simulation_operation import TargetEncoding
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
-    UniversalOperationsUtilities
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
 from stim_experiments.error_correcting_codes.tetrahedral_code.tetrahedral_code import TetrahedralCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities.universal_controlled_operation_type_factory import \
-    UniversalControlledOperationTypeFactory
 
 
 @dataclass
@@ -74,5 +70,4 @@ class UniversalTFaultTolerant(UniversalT):
 
     @property
     def _universal_controlled_operation_type(self) -> type[UniversalControlledOperation]:
-        controlled_operation_type = ConfigurationErrorCorrectingCodeManager().get_configuration().universal_controlled_operation_type
-        return UniversalControlledOperationTypeFactory(controlled_operation_type=controlled_operation_type).get_universal_controlled_operation_type()
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().universal_controlled_operation_type

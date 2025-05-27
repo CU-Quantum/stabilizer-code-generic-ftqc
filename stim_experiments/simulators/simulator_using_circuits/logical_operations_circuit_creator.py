@@ -27,13 +27,9 @@ class LogicalOperationsCircuitCreator:
             ).get_simulation_operation()
             for operation in self._operations
         ]
-        circuit_pieces = [
+        return Circuit(
             CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
             for simulation_operation in simulation_operations
-        ]
-        return Circuit(
-            [I(qubit) for qubit in self.data_qubits],
-            circuit_pieces
         )
 
     def _ensure_enough_logical_qubits(self) -> None:

@@ -12,10 +12,6 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
-from stim_experiments.utilities.universal_controlled_operation_type_factory import \
-    UniversalControlledOperationTypeFactory
-from stim_experiments.utilities.universal_hadamard_type_factory import UniversalHadamardTypeFactory
-from stim_experiments.utilities.universal_t_type_factory import UniversalTTypeFactory
 
 
 class CircuitFromOperationCreator:
@@ -70,15 +66,15 @@ class CircuitFromOperationCreator:
 
     @property
     def _universal_controlled_operation_type(self) -> type[UniversalControlledOperation]:
-        return UniversalControlledOperationTypeFactory(self._configuration.universal_controlled_operation_type).get_universal_controlled_operation_type()
+        return self._configuration.universal_controlled_operation_type
 
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
-        return UniversalHadamardTypeFactory(self._configuration.universal_hadamard_type).get_universal_hadamard_type()
+        return self._configuration.universal_hadamard_type
 
     @property
     def _universal_t_type(self) -> type[UniversalT]:
-        return UniversalTTypeFactory(self._configuration.universal_t_type).get_universal_t_type()
+        return self._configuration.universal_t_type
 
     @property
     def _configuration(self) -> ConfigurationErrorCorrectingCode:

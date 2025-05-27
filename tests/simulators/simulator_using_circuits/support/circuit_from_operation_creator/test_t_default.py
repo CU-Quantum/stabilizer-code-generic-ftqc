@@ -1,6 +1,7 @@
-from cmath import exp, pi
+from cmath import exp, pi, sqrt
 
 from cirq import Circuit, rz
+from numpy import array
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding
@@ -16,7 +17,7 @@ from tests.simulators.simulator_using_circuits.support.circuit_from_operation_cr
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
-class TestHadamardDefault:
+class TestTDefault:
     def test_universal_t_used_when_encoding_does_not_implement_t(self):
         set_configuration_to_reduce_ancilla_qubits()
 
@@ -54,13 +55,16 @@ class TestHadamardDefault:
             )
         )
 
-        utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+        initial_state = KET_PLUS_STATE_VECTOR
+        utilities = get_error_correcting_code_utilities(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
         simulated_state = utilities.get_state_after_circuit(
             circuit=circuit,
             num_data_qubits=len(encoding.data_qubits),
+            initial_data_state=initial_state,
         ).state
-        assert states_are_equal(simulated_state, [exp(1j * pi * ErrorCorrectingCodeStubWithBadT.t_radians), 0])
+        expected_state = (1 / sqrt(2)) * array([1, exp(1j * ErrorCorrectingCodeStubWithBadT.t_radians)])
+        assert states_are_equal(simulated_state, expected_state)
 
 
 class ErrorCorrectingCodeStubNoT(ErrorCorrectingCodeStubWithXAndZ):

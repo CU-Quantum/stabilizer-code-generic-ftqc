@@ -3,20 +3,22 @@ from cirq import LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding, LogicalEncodingIndex
-from stim_experiments.custom_enums.universal_controlled_operation_type import UniversalControlledOperationType
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import CircuitFromOperationCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
 from tests.simulators.simulator_using_circuits.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestCircuitFromOperationCreator:
+    @pytest.fixture(autouse=True)
+    def _setup(self):
+        set_configuration_to_reduce_ancilla_qubits()
+
     def test_create_circuit_with_controlled_operation(self):
-        ConfigurationErrorCorrectingCodeManager().get_configuration().universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
         qubits = LineQubit.range(2)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
 

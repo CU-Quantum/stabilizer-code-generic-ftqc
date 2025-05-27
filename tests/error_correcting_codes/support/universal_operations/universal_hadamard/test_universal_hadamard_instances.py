@@ -11,8 +11,8 @@ from stim_experiments.error_correcting_codes.repetition_code.repetition_code imp
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_3x import \
-    UniversalHadamardFaultTolerant3x
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant import \
+    UniversalHadamardFaultTolerant
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant_9x.universal_hadamard_fault_tolerant_9x import \
     UniversalHadamardFaultTolerant9x
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
@@ -33,10 +33,11 @@ class TestUniversalHadamard:
     @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
         set_seed(seed=request.param)
+        set_configuration_to_reduce_ancilla_qubits()
 
     @pytest.mark.parametrize('universal_hadamard_type', [
         pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
-        pytest.param(UniversalHadamardFaultTolerant3x, id='UniversalHadamardFaultTolerant3x'),
+        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant3x'),
         pytest.param(UniversalHadamardFaultTolerant9x, id='UniversalHadamardFaultTolerant9x'),
     ])
     def test_random_alpha_beta(self, universal_hadamard_type: type[UniversalHadamard]):
@@ -60,10 +61,9 @@ class TestUniversalHadamard:
 
     @pytest.mark.parametrize('universal_hadamard_type', [
         pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
-        pytest.param(UniversalHadamardFaultTolerant3x, id='UniversalHadamardFaultTolerant3x'),
+        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant3x'),
     ])
     def test_multiple_qubit_encoding_hadamard_one_qubit(self, universal_hadamard_type: type[UniversalHadamard]):
-        set_configuration_to_reduce_ancilla_qubits()
         code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
         universal_hadamard = universal_hadamard_type(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1))
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
@@ -92,7 +92,6 @@ class TestUniversalHadamard:
         assert states_are_equal(simulated_state, expected_state)
 
     def test_multiple_qubit_encoding_hadamard_one_qubit_9x(self):
-        set_configuration_to_reduce_ancilla_qubits()
         code = DoubleQubitDoubleLogicalCode()
         universal_hadamard = UniversalHadamardFaultTolerant9x(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1))
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
