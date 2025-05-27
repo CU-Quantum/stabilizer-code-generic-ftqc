@@ -6,7 +6,6 @@ from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
-from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
@@ -17,12 +16,10 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalControlledOperationFaultTolerant
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_single_ancilla import \
     UniversalControlledOperationSingleAncilla
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
-from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, binary_array_to_int, states_are_equal, tensor
-from tests.utilities import RandomEncodedInitialState, get_random_encoded_initial_state, \
-    set_configuration_to_reduce_ancilla_qubits, set_seed
+from stim_experiments.utilities.utilities import states_are_equal, tensor
+from tests.utilities import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 class TestUniversalControlledOperationInstances:

@@ -30,7 +30,7 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class UniversalHadamardFaultTolerant3x(UniversalHadamard):
+class UniversalHadamardFaultTolerant(UniversalHadamard):
     def get_hadamard_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(

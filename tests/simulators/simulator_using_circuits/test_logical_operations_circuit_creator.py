@@ -6,15 +6,12 @@ import pytest
 from cirq import Circuit, H, I, X, Z, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.custom_enums.universal_controlled_operation_type import UniversalControlledOperationType
-from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
@@ -46,7 +43,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
         return Circuit(gates)
 
 
-class TestLogicalOperationsSimulator:
+class TestLogicalOperationsCircuitCreator:
     def test_trivial(self):
         encodings = []
         simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=[])

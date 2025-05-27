@@ -18,7 +18,6 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalOperationsUtilities
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.utilities.universal_hadamard_type_factory import UniversalHadamardTypeFactory
 
 
 class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
@@ -104,5 +103,4 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
 
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
-        universal_hadamard_type = ConfigurationErrorCorrectingCodeManager().get_configuration().universal_hadamard_type
-        return UniversalHadamardTypeFactory(hadamard_type=universal_hadamard_type).get_universal_hadamard_type()
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().universal_hadamard_type

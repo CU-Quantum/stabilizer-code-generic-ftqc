@@ -1,3 +1,7 @@
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import UniversalControlledOperation
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import UniversalHadamardSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 # Stim Experiments
@@ -103,19 +107,21 @@ The project provides a configuration system that allows you to customize various
 
 ```python
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.custom_enums.universal_hadamard_type import UniversalHadamardType
-from stim_experiments.custom_enums.universal_controlled_operation_type import UniversalControlledOperationType
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import UniversalHadamardSingleAncilla
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_single_ancilla import UniversalControlledOperationSingleAncilla
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import UniversalTSingleAncilla
 
 # Get the configuration
 configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
 
 # Modify configuration settings
-configuration.universal_hadamard_type = UniversalHadamardType.SINGLE_ANCILLA
-configuration.universal_controlled_operation_type = UniversalControlledOperationType.SINGLE_ANCILLA
 configuration.measurer_type = MeasurerWithSingleQubit
 configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
+configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
+configuration.universal_t_type = UniversalTSingleAncilla
 configuration.seed = 42  # Set a random seed for reproducibility
 ```
 
@@ -123,9 +129,9 @@ Available configuration options:
 
 1. `measurer_type`: Type of measurer to use (default: `FaultTolerantMeasurer`)
 2. `cat_state_creator_type`: Type of cat state creator to use (default: `CatStateCreatorFlagPattern`)
-3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardType.FAULT_TOLERANT`)
-4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationType.FAULT_TOLERANT`)
-5. `universal_t_type`: Type of universal T implementation (default: `UniversalTType.FAULT_TOLERANT`)
+3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultToleratn`)
+4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultToleratn`)
+5. `universal_t_type`: Type of universal T implementation (default: `UniversalTFaultToleratn`)
 6. `seed`: Optional seed for random number generation (default: `None`)
 
 
@@ -230,6 +236,62 @@ result = utilities.get_state_after_circuit(
     num_data_qubits=len(simulator.data_qubits),
 )
 ```
+
+## Creating Your Own Controlled Operations
+
+You can specify your own method for controlled operations.
+As a default, the simulator will use a universal, fault-tolerant method (UniversalControlledOperationFaultTolerant).
+This may be inefficient depending on the encodings used.
+For example, if you are only using the Steane Code, you may specify a transversal CX implementation.
+
+```python
+from cirq import Circuit, X
+
+from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import UniversalControlledOperation
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_fault_tolerant import UniversalControlledOperationFaultTolerant
+
+class MyCustomControlledOperation(UniversalControlledOperation):
+    def get_controlled_operation_circuit(self) -> Circuit:
+        # Check both encodings are compatible
+        is_steane_to_steane = len(self._control.encoding.data_qubits) == 7 and len(self._target.encoding.data_qubits) == 7
+        # Check is CX operation
+        is_cx_operation = self._target.operation.gate == LogicalGateLabel.X
+        if is_steane_to_steane and is_cx_operation:
+            # Return transversal CX implementation
+            return Circuit(
+                X(target_qubit).controlled_by(controt_qubit)
+                for controt_qubit, target_qubit in zip(self._control.encoding.data_qubits, self._target.encoding.data_qubits)
+            )
+        else:
+            # Default to fault-tolerant version
+            return UniversalControlledOperationFaultTolerant(control=self._control, target=self._target).get_controlled_operation_circuit()
+```
+
+You can then set this in the configuration before simulating:
+
+```python
+from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
+from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+
+# Set your custom controller operation 
+configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
+configuration.universal_controlled_operation_type = MyCustomControlledOperation
+
+# Create qubits for two logical qubits (7 physical qubits per logical qubit)
+qubits = LineQubit.range(14)
+
+# Create encodings using your custom code
+standardized_steane = StabilizerStandardizedCode(generators=get_check_matrix_values_steane())
+encodings = [
+    standardized_steane.create_new(qubits=qubits[:7]),
+    standardized_steane.create_new(qubits=qubits[7:]),
+]
+
+...
+```
+
 
 ## License
 
