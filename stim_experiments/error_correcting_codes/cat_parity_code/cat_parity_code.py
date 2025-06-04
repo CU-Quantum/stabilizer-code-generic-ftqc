@@ -1,13 +1,20 @@
 from typing import Optional
+from uuid import uuid4
 
-from cirq import Circuit, LineQubit, Operation, X, Z
+from cirq import Circuit, LineQubit, MeasurementKey, Operation, X, Z
 from numpy import array
 
+from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries import \
+    ErrorRecoveryByStabilizers
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.utilities.repetition_z_stabilizers_generator import RepetitionZStabilizersGenerator
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.repetition_z_stabilizers_multicat_generator import \
     RepetitionZStabilizersMulticatGenerator
 
@@ -51,6 +58,25 @@ class CatParityCode(StabilizerCode):
                 [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self.num_cats)],
             )
         return None
+
+    def get_modified_x_stabilizers_error_correction_circuit(self,
+                                                            subregister_control_index: int,
+                                                            target_operations: list[Operation]) -> Circuit:
+        x_matrix = CheckMatrix(matrix=self._check_matrix.matrix[-2:])
+        x_stabilizers_modified = CheckMatrixToOperations(check_matrix=x_matrix, qubits=self.data_qubits).get_operations()
+        if subregister_control_index < 2:
+            x_stabilizers_modified[subregister_control_index] += target_operations
+        recoveries = [
+            RecoveryOperations(
+                operation=Z(subregister[0]),
+                symptom=[int(i < 2), int(i > 0)]
+            )
+            for i, subregister in enumerate(self.subregisters)
+        ]
+        return ErrorRecoveryByStabilizers(
+            stabilizers=x_stabilizers_modified,
+            recoveries=recoveries,
+        ).get_error_correction_circuit()
 
     @property
     def subregisters(self) -> list[list[LineQubit]]:

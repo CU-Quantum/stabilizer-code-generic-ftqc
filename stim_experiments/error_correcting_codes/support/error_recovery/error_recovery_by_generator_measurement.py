@@ -1,11 +1,10 @@
-from uuid import uuid4
+from cirq import Circuit, LineQubit
 
-from cirq import Circuit, LineQubit, MeasurementKey
-
-from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries import \
+    ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -17,26 +16,11 @@ class ErrorRecoveryByGeneratorMeasurement:
         self._qubits = qubits
 
     def get_error_correction_circuit(self) -> Circuit:
-        measurement_key = MeasurementKey(f'ERROR_CORRECTION_{uuid4()}')
         generator_operations = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
-
-        syndrome_operations = [
-            self._measurer_type(
-                operations=operations,
-                measurement_key=measurement_key,
-                ).get_measurement_circuit()
-            for operations in generator_operations
-        ]
-
-        recovery_operations = [
-            recovery.operation.with_classical_controls(RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
-            for recovery in self._recoveries
-        ]
-
-        return Circuit(
-            syndrome_operations,
-            recovery_operations,
-        )
+        return ErrorRecoveryByStabilizers(
+            stabilizers=generator_operations,
+            recoveries=self._recoveries,
+        ).get_error_correction_circuit()
 
     @property
     def _recoveries(self) -> list[RecoveryOperations]:

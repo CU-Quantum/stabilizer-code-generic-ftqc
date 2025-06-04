@@ -63,45 +63,16 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
             operations=context.target_operations,
             context=context
         )
-
-        num_qubits_per_cat_state = len(context.cat_parity_code.subregisters[0])
-        z_matrix = CheckMatrix(matrix=array(
+        return [
             [
-                [1] * 2 * num_qubits_per_cat_state + [0] * (num_qubits_per_cat_state + len(context.cat_parity_code.data_qubits)),
-                [0] * num_qubits_per_cat_state + [1] * 2 * num_qubits_per_cat_state + [0] * len(context.cat_parity_code.data_qubits)
-            ]
-        ))
-
-        for i, subregister_operation in enumerate(subregister_operations):
-            measurement_key = MeasurementKey(f'MODIFIED_Z_STABILIZERS_{i}_{uuid4()}')
-            z_stabilizers_modified = CheckMatrixToOperations(check_matrix=z_matrix,
-                                                             qubits=context.cat_parity_code.data_qubits).get_operations()
-            if i < 2:
-                z_stabilizers_modified[i] += context.target_operations
-
-            syndrome_operations = [
-                self._measurer_type(
-                    operations=operations,
-                    measurement_key=measurement_key,
-                ).get_measurement_circuit()
-                for operations in z_stabilizers_modified
-            ]
-            recoveries = [
-                RecoveryOperations(
-                    operation=Z(subregister[0]),
-                    symptom=[int(i < 2), int(i > 0)]
+                subregister_operation,
+                context.cat_parity_code.get_modified_x_stabilizers_error_correction_circuit(
+                    subregister_control_index=i,
+                    target_operations=context.target_operations,
                 )
-                for i, subregister in enumerate(context.cat_parity_code.subregisters)
             ]
-            recovery_operations = [
-                recovery.operation.with_classical_controls(
-                    RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
-                for recovery in recoveries
-            ]
-
-            subregister_operations[i] += [syndrome_operations, recovery_operations]
-
-        return subregister_operations
+            for i, subregister_operation in enumerate(subregister_operations)
+        ]
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKey(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
