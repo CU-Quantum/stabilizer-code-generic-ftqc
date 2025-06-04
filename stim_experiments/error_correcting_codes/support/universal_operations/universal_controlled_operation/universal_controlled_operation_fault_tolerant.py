@@ -4,12 +4,19 @@ from functools import cached_property
 from typing import Generator
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, Z
+from numpy import array
 
+from stim_experiments.conditions.recovery_condition import RecoveryCondition
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.custom_dataclasses.universal_controlled_operation_fault_tolerant_context import \
     UniversalControlledOperationFaultTolerantContext
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import \
@@ -37,12 +44,10 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
         return self._universal_operations_utilities.encode_three_cat(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return [
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.data_code_logical_z,
-                context=context
-            ),
-        ]
+        return self._universal_operations_utilities.c_operations_helpers_to_data(
+            operations=context.data_code_logical_z,
+            context=context
+        )
 
     def _ensure_subregister_parity_in_plus(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         cat_parity_x = list(context.cat_parity_code.get_operation_circuit(
@@ -54,11 +59,19 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
         )
 
     def _c_helpers_to_target(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
+        subregister_operations = self._universal_operations_utilities.c_operations_helpers_to_data(
+            operations=context.target_operations,
+            context=context
+        )
         return [
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.target_operations,
-                context=context
-            ),
+            [
+                subregister_operation,
+                context.cat_parity_code.get_modified_x_stabilizers_error_correction_circuit(
+                    subregister_control_index=i,
+                    target_operations=context.target_operations,
+                )
+            ]
+            for i, subregister_operation in enumerate(subregister_operations)
         ]
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
@@ -103,4 +116,12 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
 
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().universal_hadamard_type
+        return self._configuration.universal_hadamard_type
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return self._configuration.measurer_type
+
+    @property
+    def _configuration(self) -> ConfigurationErrorCorrectingCode:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration()

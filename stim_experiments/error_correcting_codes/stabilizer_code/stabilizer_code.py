@@ -44,5 +44,3 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
             check_matrix=self._check_matrix,
             qubits=self.data_qubits
         ).get_error_correction_circuit()
-
-
