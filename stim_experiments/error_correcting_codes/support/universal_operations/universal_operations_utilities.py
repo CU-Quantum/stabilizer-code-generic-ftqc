@@ -31,7 +31,7 @@ class UniversalOperationsUtilities:
                 encodings_store.get_all_correction_circuits()
             ]
 
-    def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> OP_TREE:
+    def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
         repetition_codes = [RepetitionCode(num_qubits=len(subregister), qubits=subregister)
                             for subregister in context.cat_parity_code.subregisters]
         with ActiveEncodingsStore(additional_tracked_encodings=repetition_codes) as encodings_store:
@@ -77,13 +77,13 @@ class UniversalOperationsUtilities:
         num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * ThreeCatCode.num_cats
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
             three_cat_code = ThreeCatCode(num_qubits_in_cat_state=self._num_qubits_for_logical_operations, qubits=ancilla_qubits)
-            three_subregister_parity_code = CatParityCode(
+            cat_parity_code = CatParityCode(
                 num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
                 qubits=ancilla_qubits,
             )
             yield UniversalOperationsContext(
                 ancilla_qubits=ancilla_qubits,
-                cat_parity_code=three_subregister_parity_code,
+                cat_parity_code=cat_parity_code,
                 three_cat=three_cat_code,
             )
 

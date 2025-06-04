@@ -4,12 +4,19 @@ from functools import cached_property
 from typing import Generator
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, Z
+from numpy import array
 
+from stim_experiments.conditions.recovery_condition import RecoveryCondition
+from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.custom_dataclasses.universal_controlled_operation_fault_tolerant_context import \
     UniversalControlledOperationFaultTolerantContext
+from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
+from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import \
@@ -37,12 +44,10 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
         return self._universal_operations_utilities.encode_three_cat(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return [
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.data_code_logical_z,
-                context=context
-            ),
-        ]
+        return self._universal_operations_utilities.c_operations_helpers_to_data(
+            operations=context.data_code_logical_z,
+            context=context
+        )
 
     def _ensure_subregister_parity_in_plus(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         cat_parity_x = list(context.cat_parity_code.get_operation_circuit(
@@ -54,12 +59,49 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
         )
 
     def _c_helpers_to_target(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return [
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=context.target_operations,
-                context=context
-            ),
-        ]
+        subregister_operations = self._universal_operations_utilities.c_operations_helpers_to_data(
+            operations=context.target_operations,
+            context=context
+        )
+
+        num_qubits_per_cat_state = len(context.cat_parity_code.subregisters[0])
+        z_matrix = CheckMatrix(matrix=array(
+            [
+                [1] * 2 * num_qubits_per_cat_state + [0] * (num_qubits_per_cat_state + len(context.cat_parity_code.data_qubits)),
+                [0] * num_qubits_per_cat_state + [1] * 2 * num_qubits_per_cat_state + [0] * len(context.cat_parity_code.data_qubits)
+            ]
+        ))
+
+        for i, subregister_operation in enumerate(subregister_operations):
+            measurement_key = MeasurementKey(f'MODIFIED_Z_STABILIZERS_{i}_{uuid4()}')
+            z_stabilizers_modified = CheckMatrixToOperations(check_matrix=z_matrix,
+                                                             qubits=context.cat_parity_code.data_qubits).get_operations()
+            if i < 2:
+                z_stabilizers_modified[i] += context.target_operations
+
+            syndrome_operations = [
+                self._measurer_type(
+                    operations=operations,
+                    measurement_key=measurement_key,
+                ).get_measurement_circuit()
+                for operations in z_stabilizers_modified
+            ]
+            recoveries = [
+                RecoveryOperations(
+                    operation=Z(subregister[0]),
+                    symptom=[int(i < 2), int(i > 0)]
+                )
+                for i, subregister in enumerate(context.cat_parity_code.subregisters)
+            ]
+            recovery_operations = [
+                recovery.operation.with_classical_controls(
+                    RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
+                for recovery in recoveries
+            ]
+
+            subregister_operations[i] += [syndrome_operations, recovery_operations]
+
+        return subregister_operations
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKey(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
@@ -103,4 +145,12 @@ class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
 
     @property
     def _universal_hadamard_type(self) -> type[UniversalHadamard]:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().universal_hadamard_type
+        return self._configuration.universal_hadamard_type
+
+    @property
+    def _measurer_type(self) -> type[Measurer]:
+        return self._configuration.measurer_type
+
+    @property
+    def _configuration(self) -> ConfigurationErrorCorrectingCode:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration()
