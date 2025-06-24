@@ -3,21 +3,55 @@ class MultipleCatCodeGenerators:
         self._num_cats = num_cats
         self._num_qubits_per_cat = num_qubits_per_cat
 
-    def get_z_generators(self):
+    def get_z_generators(self) -> list[list[int]]:
         return [self.get_z_generator(i) for i in range(self._num_cats * (self._num_qubits_per_cat - 1))]
 
-    def get_z_generator(self, i):
+    def get_x_generators(self) -> list[list[int]]:
+        return [self.get_x_generator(i) for i in range(self._num_cats - 1)]
+
+    def get_z_generator(self, i) -> list[int]:
         row = [0] * self._num_cats * self._num_qubits_per_cat * 2
         num_x_stabilizers = self._num_cats * self._num_qubits_per_cat
         cat_num = i // (self._num_qubits_per_cat - 1)
-        qubit_index = cat_num * self._num_qubits_per_cat + i % (self._num_qubits_per_cat - 1)
+        cat_index = cat_num * self._num_qubits_per_cat
+        qubit_index = cat_index + i % (self._num_qubits_per_cat - 1)
         base_index = num_x_stabilizers + qubit_index
         row[base_index] = 1
         row[base_index + 1] = 1
         return row
 
+    def get_x_generator(self, i) -> list[int]:
+        row = [0] * self._num_cats * self._num_qubits_per_cat * 2
+        index_low = i * self._num_qubits_per_cat
+        index_high = index_low + 2 * self._num_qubits_per_cat
+        row[index_low:index_high] = [1] * (index_high - index_low)
+        return row
+
 
 class TestMultipleCatCodeGenerators:
+    def test_x_generators_shor_code(self):
+        generators = MultipleCatCodeGenerators(3, 3).get_x_generators()
+        assert generators == [
+            [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+
+    def test_x_generators_3_4(self):
+        generators = MultipleCatCodeGenerators(3, 4).get_x_generators()
+        assert generators == [
+            [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+
+    def test_x_generators_5_5(self):
+        generators = MultipleCatCodeGenerators(5, 5).get_x_generators()
+        assert generators == [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        ]
+
     def test_z_generators_shor_code(self):
         generators = MultipleCatCodeGenerators(3, 3).get_z_generators()
         assert generators == [
