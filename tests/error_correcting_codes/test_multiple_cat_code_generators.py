@@ -4,7 +4,7 @@ class MultipleCatCodeGenerators:
         self._num_qubits_per_cat = num_qubits_per_cat
 
     def get_z_generators(self):
-        return [self.get_z_generator(i) for i in range(self._num_cats * self._num_qubits_per_cat - 3)]
+        return [self.get_z_generator(i) for i in range(self._num_cats * (self._num_qubits_per_cat - 1))]
 
     def get_z_generator(self, i):
         row = [0] * self._num_cats * self._num_qubits_per_cat * 2
