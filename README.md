@@ -137,10 +137,11 @@ Available configuration options:
 
 1. `measurer_type`: Type of measurer to use (default: `FaultTolerantMeasurer`)
 2. `cat_state_creator_type`: Type of cat state creator to use (default: `CatStateCreatorFlagPattern`)
-3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultToleratn`)
-4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultToleratn`)
+3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultTolerant`)
+4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultTolerant`)
 5. `universal_t_type`: Type of universal T implementation (default: `UniversalTFaultToleratn`)
-6. `seed`: Optional seed for random number generation (default: `None`)
+6. `num_cat_states`: Number of cat states to use for the Multiple Cat Code and Cat Parity Code  (default: `3`)
+7. `seed`: Optional seed for random number generation (default: `None`)
 
 
 ## Creating Your Own Error Correcting Code

@@ -21,7 +21,6 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
-# TODO put num cats for configuration in readme
 class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
