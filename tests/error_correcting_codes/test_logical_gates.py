@@ -13,25 +13,21 @@ from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
-from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
-    UniversalHadamardHelperCode
+from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
+from tests.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
 from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
-from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.error_correcting_codes.universal_hadamard_helper_code.expected_states_universal_hadamard_helper import \
-    ExpectedStatesUniversalHadamardHelper
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 from stim_experiments.utilities.utilities import states_are_equal
 
@@ -43,25 +39,23 @@ class ParametersForLogicalGatesTest:
 
 
 PARAMETERS = {
-    "UniversalHadamardHelperCode": ParametersForLogicalGatesTest(
-        code=UniversalHadamardHelperCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamardHelper().num_qubits),
-        expected_states=ExpectedStatesUniversalHadamardHelper(),
+    "MultipleCatCode":ParametersForLogicalGatesTest(
+        code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
+                             num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+        expected_states=ExpectedStatesMultipleCat(),
     ),
     "RepetitionCode": ParametersForLogicalGatesTest(
         code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         expected_states=ExpectedStatesRepetition(),
     ),
     "CatParityCode": ParametersForLogicalGatesTest(
-        code=CatParityCode(num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits),
+        code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats,
+                           num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
         expected_states=ExpectedStatesCatParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         expected_states=ExpectedStatesGenericFiveQubit()
-    ),
-    "ThreeCatCode": ParametersForLogicalGatesTest(
-        code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
-        expected_states=ExpectedStatesThreeCat(),
     ),
     "FiveQubitCode": ParametersForLogicalGatesTest(
         code=FiveQubitCode(),

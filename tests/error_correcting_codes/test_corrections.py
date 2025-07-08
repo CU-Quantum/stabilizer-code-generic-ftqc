@@ -12,34 +12,30 @@ from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
-from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
-    UniversalHadamardHelperCode
+from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
+from tests.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
 from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
-from tests.error_correcting_codes.three_cat_code.expected_states_three_cat import ExpectedStatesThreeCat
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.error_correcting_codes.universal_hadamard_helper_code.expected_states_universal_hadamard_helper import \
-    ExpectedStatesUniversalHadamardHelper
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
-QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS = list(
+QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS = list(
     range(0,
-          ExpectedStatesCatParity().num_qubits * CatParityCode.num_cats,
-          ExpectedStatesCatParity().num_qubits + 2,
-          )) + [ExpectedStatesCatParity().num_qubits * CatParityCode.num_cats - 1]
+          ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().arbitrary_num_cats,
+          ExpectedStatesCatParity().num_qubits_per_cat + 1,
+          )) + [ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().arbitrary_num_cats - 1]
 
 
 @dataclass
@@ -50,10 +46,11 @@ class ParametersForCorrectionsTest:
 
 
 PARAMETERS = {
-    "UniversalHadamardHelperCode": ParametersForCorrectionsTest(
-        code=UniversalHadamardHelperCode(num_qubits_in_cat_state=ExpectedStatesUniversalHadamardHelper().num_qubits),
-        initial_state=ExpectedStatesUniversalHadamardHelper().get_logical_zero_state_vector(),
-        qubit_indices_to_test=list(range(ExpectedStatesUniversalHadamardHelper().num_qubits, ExpectedStatesUniversalHadamardHelper().num_qubits * 3)),
+    "MultipleCatCode": ParametersForCorrectionsTest(
+        code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
+                             num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+        initial_state=ExpectedStatesMultipleCat().get_logical_zero_state_vector(),
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
     ),
     "RepetitionCode": ParametersForCorrectionsTest(
         code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
@@ -61,21 +58,16 @@ PARAMETERS = {
         qubit_indices_to_test=list(range(3)),
     ),
     "CatParityCodeZeroState": ParametersForCorrectionsTest(
-        code=CatParityCode(num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits),
+        code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats,
+                           num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
         initial_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
     ),
     "CatParityCodeOneState": ParametersForCorrectionsTest(
-        code=CatParityCode(num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits),
+        code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats,
+                           num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
         initial_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_UNIVERSAL_HADAMARD_BLOCKS
-    ),
-    "ThreeCatCode": ParametersForCorrectionsTest(
-        code=ThreeCatCode(num_qubits_in_cat_state=ExpectedStatesThreeCat().arbitrary_num_qubits),
-        initial_state=ExpectedStatesThreeCat().get_logical_zero_state_vector(),
-        qubit_indices_to_test=list(range(0,
-                                         ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats,
-                                         ExpectedStatesThreeCat().arbitrary_num_qubits + 2)) + [ExpectedStatesThreeCat().arbitrary_num_qubits * ThreeCatCode.num_cats - 1],
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
