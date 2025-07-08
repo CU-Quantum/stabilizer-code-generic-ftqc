@@ -5,19 +5,14 @@ from typing import Generator
 from uuid import uuid4
 
 from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, Z
-from numpy import array
 
-from stim_experiments.conditions.recovery_condition import RecoveryCondition
-from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.custom_dataclasses.universal_controlled_operation_fault_tolerant_context import \
     UniversalControlledOperationFaultTolerantContext
-from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import \
     UniversalHadamard
@@ -26,35 +21,25 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
-
-class UniversalControlledOperationFaultTolerant(UniversalControlledOperation):
+# TODO put num cats for configuration in readme
+class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
                 self._encode_three_cat(context=context),
                 self._cz_helpers_to_control(context=context),
-                self._ensure_subregister_parity_in_plus(context=context),
-                self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.three_cat, qubit_index_relative=0)).get_hadamard_circuit(),
+                self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.multiple_cat_code, qubit_index_relative=0)).get_hadamard_circuit(),
                 self._c_helpers_to_target(context=context),
                 self._measure_out_helper(context=context),
                 self._reset_ancilla_qubits(context=context),
             )
 
     def _encode_three_cat(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return self._universal_operations_utilities.encode_three_cat(context=context)
+        return self._universal_operations_utilities.encode_multiple_cat(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         return self._universal_operations_utilities.c_operations_helpers_to_data(
             operations=context.data_code_logical_z,
-            context=context
-        )
-
-    def _ensure_subregister_parity_in_plus(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        cat_parity_x = list(context.cat_parity_code.get_operation_circuit(
-            operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
-        ).all_operations())
-        return self._universal_operations_utilities.ensure_cat_parity_code_in_plus(
-            observable=cat_parity_x + context.data_code_logical_z,
             context=context
         )
 

@@ -6,6 +6,6 @@ from stim_experiments.custom_dataclasses.universal_operations_context import Uni
 
 
 @dataclass
-class UniversalHadamardFaultTolerant3xContext(UniversalOperationsContext):
+class UniversalHadamardFaultTolerantContext(UniversalOperationsContext):
     data_code_logical_x: list[Operation]
     data_code_logical_z: list[Operation]

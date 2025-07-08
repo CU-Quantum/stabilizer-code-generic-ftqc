@@ -1,9 +1,7 @@
 from contextlib import contextmanager
 from typing import Generator
-from uuid import uuid4
 
-from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R
-from sympy import Eq, symbols
+from cirq import MeasurementKey, OP_TREE, Operation, R
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -24,7 +22,7 @@ class UniversalOperationsUtilities:
     def __init__(self, num_qubits_for_logical_operations: int):
         self._num_qubits_for_logical_operations = num_qubits_for_logical_operations
 
-    def encode_three_cat(self, context: UniversalOperationsContext) -> OP_TREE:
+    def encode_multiple_cat(self, context: UniversalOperationsContext) -> OP_TREE:
         with ActiveEncodingsStore(additional_tracked_encodings=[context.multiple_cat_code]) as encodings_store:
             return [
                 context.multiple_cat_code.encode_logical_qubit(),
@@ -41,25 +39,6 @@ class UniversalOperationsUtilities:
                     encodings_store.get_all_correction_circuits(),
                 ]
                 for subregister in context.multiple_cat_code.subregisters
-            ]
-
-    def ensure_cat_parity_code_in_plus(self, observable: list[Operation], context: UniversalOperationsContext, trigger_value: int = 1) -> OP_TREE:
-        measurement_key = MeasurementKey(f'ENSURE_CAT_PARITY_PLUS_STATE_{uuid4().hex}')
-        measurement_symbol = symbols(measurement_key.name)
-        cat_parity_z = list(context.cat_parity_code.get_operation_circuit(
-            operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
-        ).all_operations())
-        with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
-            return [
-                self._measurer_type(
-                    operations=observable,
-                    measurement_key=measurement_key
-                ).get_measurement_circuit(),
-                encodings_store.get_all_correction_circuits(),
-                CircuitOperation(
-                    FrozenCircuit(cat_parity_z)
-                ).with_classical_controls(Eq(measurement_symbol, trigger_value)),
-                encodings_store.get_all_correction_circuits(),
             ]
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:

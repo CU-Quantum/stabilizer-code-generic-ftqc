@@ -8,7 +8,7 @@ from stim_experiments.custom_dataclasses.simulation_operation import LogicalEnco
     TargetEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     ErrorCorrectingCodeUtilitiesStateVector, get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool

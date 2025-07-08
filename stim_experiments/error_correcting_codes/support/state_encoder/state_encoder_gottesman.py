@@ -6,7 +6,6 @@ from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
 from stim_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
-from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.support.check_matrix_to_gates import \
     CheckMatrixToGates
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder import StateEncoder
@@ -14,17 +13,15 @@ from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder
 
 class StateEncoderGottesman(StateEncoder):
     def __init__(self, check_matrix_standardized: CheckMatrixStandardized, data_qubits: list[LineQubit]):
-        super().__init__(check_matrix=check_matrix_standardized, data_qubits=data_qubits)
         self._check_matrix_standardized = check_matrix_standardized
+        self._data_qubits = data_qubits
 
-    def get_encoding_circuit(self) -> StateEncoding:
+    def encode_state(self) -> Circuit:
         hadamards = [H(self._get_qubit_at_index(control_index)) for control_index in
                      range(self._check_matrix_standardized.rank_of_pauli_x_portion)]
-        return StateEncoding(
-            circuit=Circuit(
-                self._encode_logical_nots(),
-                zip(hadamards, self._encode_generators()),
-            )
+        return Circuit(
+            self._encode_logical_nots(),
+            zip(hadamards, self._encode_generators()),
         )
 
     def _encode_logical_nots(self) -> List[List[List[Operation]]]:
