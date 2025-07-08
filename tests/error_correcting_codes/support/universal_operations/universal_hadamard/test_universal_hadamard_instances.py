@@ -34,7 +34,7 @@ class TestUniversalHadamard:
 
     @pytest.mark.parametrize('universal_hadamard_type', [
         pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
-        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant3x'),
+        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def test_random_alpha_beta(self, universal_hadamard_type: type[UniversalHadamard]):
         code = RepetitionCode(num_qubits=1)
@@ -57,7 +57,7 @@ class TestUniversalHadamard:
 
     @pytest.mark.parametrize('universal_hadamard_type', [
         pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
-        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant3x'),
+        pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def test_multiple_qubit_encoding_hadamard_one_qubit(self, universal_hadamard_type: type[UniversalHadamard]):
         code = StabilizerStandardizedCode(generators=get_check_matrix_values_4_qubit())
