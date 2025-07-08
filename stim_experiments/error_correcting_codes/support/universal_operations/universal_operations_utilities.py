@@ -12,9 +12,9 @@ from stim_experiments.error_correcting_codes.repetition_code.repetition_code imp
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
+from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -25,9 +25,9 @@ class UniversalOperationsUtilities:
         self._num_qubits_for_logical_operations = num_qubits_for_logical_operations
 
     def encode_three_cat(self, context: UniversalOperationsContext) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=[context.three_cat]) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=[context.multiple_cat_code]) as encodings_store:
             return [
-                context.three_cat.encode_logical_qubit(),
+                context.multiple_cat_code.encode_logical_qubit(),
                 encodings_store.get_all_correction_circuits()
             ]
 
@@ -40,7 +40,7 @@ class UniversalOperationsUtilities:
                     ControlledSingleQubitGatesApplier(operations=operations, controls=subregister[:len(operations)]).get_circuit(),
                     encodings_store.get_all_correction_circuits(),
                 ]
-                for subregister in context.three_cat.subregisters
+                for subregister in context.multiple_cat_code.subregisters
             ]
 
     def ensure_cat_parity_code_in_plus(self, observable: list[Operation], context: UniversalOperationsContext, trigger_value: int = 1) -> OP_TREE:
@@ -63,7 +63,7 @@ class UniversalOperationsUtilities:
             ]
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:
-        logical_z = list(context.three_cat.get_operation_circuit(
+        logical_z = list(context.multiple_cat_code.get_operation_circuit(
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
         ).all_operations())
         return self._measurer_type(operations=logical_z, measurement_key=measurement_key).get_measurement_circuit()
@@ -74,22 +74,27 @@ class UniversalOperationsUtilities:
 
     @contextmanager
     def use_fresh_ancilla_qubits(self) -> Generator[UniversalOperationsContext, None, None]:
-        num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * ThreeCatCode.num_cats
+        num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * self._num_cat_states
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
-            three_cat_code = ThreeCatCode(num_qubits_in_cat_state=self._num_qubits_for_logical_operations, qubits=ancilla_qubits)
-            cat_parity_code = CatParityCode(
-                num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
-                qubits=ancilla_qubits,
-            )
+            multiple_cat_code = MultipleCatCode(num_cats=self._num_cat_states,
+                                                num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
+                                                qubits=ancilla_qubits)
+            cat_parity_code = CatParityCode(num_cats=self._num_cat_states,
+                                            num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
+                                            qubits=ancilla_qubits)
             yield UniversalOperationsContext(
                 ancilla_qubits=ancilla_qubits,
                 cat_parity_code=cat_parity_code,
-                three_cat=three_cat_code,
+                multiple_cat_code=multiple_cat_code,
             )
 
     @property
     def _measurer_type(self) -> type[Measurer]:
         return self._configuration.measurer_type
+
+    @property
+    def _num_cat_states(self) -> int:
+        return self._configuration.num_cat_states
 
     @property
     def _configuration(self) -> ConfigurationErrorCorrectingCode:

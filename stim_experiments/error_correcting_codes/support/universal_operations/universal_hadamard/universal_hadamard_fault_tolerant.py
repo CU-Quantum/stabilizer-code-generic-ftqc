@@ -5,29 +5,15 @@ from typing import Generator
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, \
-    R
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
 
-from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_hadamard_fault_tolerant_3x_context import \
     UniversalHadamardFaultTolerant3xContext
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
-from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
-    ControlledSingleQubitGatesApplier
-from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
-from stim_experiments.error_correcting_codes.three_cat_code.three_cat_code import ThreeCatCode
-from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
-    CatParityCode
-from stim_experiments.error_correcting_codes.universal_hadamard_helper_code.universal_hadamard_helper_code import \
-    UniversalHadamardHelperCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class UniversalHadamardFaultTolerant(UniversalHadamard):

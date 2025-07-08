@@ -17,4 +17,5 @@ class ConfigurationErrorCorrectingCode:
     universal_hadamard_type: type[UniversalHadamard]
     universal_controlled_operation_type: type[UniversalControlledOperation]
     universal_t_type: type[UniversalT]
+    num_cat_states: int = 3
     seed: Optional[int] = None
