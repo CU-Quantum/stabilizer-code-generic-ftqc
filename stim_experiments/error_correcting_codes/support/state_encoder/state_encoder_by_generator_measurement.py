@@ -3,7 +3,6 @@ from uuid import uuid4
 from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Operation
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder import StateEncoder
@@ -20,23 +19,20 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
         self._phase_corrections = phase_corrections
         self._qubits = qubits
 
-    def encode_state(self) -> StateEncoding:
+    def encode_state(self) -> Circuit:
         measurement_keys = [MeasurementKey(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._check_matrix.matrix))]
         generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
-        return StateEncoding(
-            circuit=Circuit(
+        return Circuit(
+            [
                 [
-                    [
-                        self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
-                                            measurement_key=measurement_key).get_measurement_circuit(),
-                        CircuitOperation(
-                            FrozenCircuit(self._phase_corrections[generator_index]),
-                        ).with_classical_controls(measurement_key),
-                    ]
-                    for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, generators))
-                ],
-            ),
-            measurement_keys=measurement_keys,
+                    self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
+                                        measurement_key=measurement_key).get_measurement_circuit(),
+                    CircuitOperation(
+                        FrozenCircuit(self._phase_corrections[generator_index]),
+                    ).with_classical_controls(measurement_key),
+                ]
+                for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, generators))
+            ],
         )
 
     @property

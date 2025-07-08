@@ -108,10 +108,18 @@ The project provides a configuration system that allows you to customize various
 ```python
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import UniversalHadamardSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_single_ancilla import UniversalControlledOperationSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import UniversalTSingleAncilla
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import
+
+CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import
+
+UniversalHadamardSingleAncilla
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import
+
+UniversalControlledOperationSingleAncilla
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import
+
+UniversalTSingleAncilla
 
 # Get the configuration
 configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
@@ -129,10 +137,11 @@ Available configuration options:
 
 1. `measurer_type`: Type of measurer to use (default: `FaultTolerantMeasurer`)
 2. `cat_state_creator_type`: Type of cat state creator to use (default: `CatStateCreatorFlagPattern`)
-3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultToleratn`)
-4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultToleratn`)
+3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultTolerant`)
+4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultTolerant`)
 5. `universal_t_type`: Type of universal T implementation (default: `UniversalTFaultToleratn`)
-6. `seed`: Optional seed for random number generation (default: `None`)
+6. `num_cat_states`: Number of cat states to use for the Multiple Cat Code and Cat Parity Code  (default: `3`)
+7. `seed`: Optional seed for random number generation (default: `None`)
 
 
 ## Creating Your Own Error Correcting Code
@@ -144,7 +153,6 @@ from cirq import Circuit, LineQubit, R, X, Z
 from typing import Optional
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
@@ -155,7 +163,7 @@ class MyCustomCode(ErrorCorrectingCode):
                          num_logical_qubits=num_logical_qubits,
                          qubits=qubits)
 
-    def encode_logical_qubit(self) -> StateEncoding:
+    def encode_logical_qubit(self) -> Circuit:
         # Implement the encoding circuit for your code
         # For a 3-qubit repetition code, we could use CNOT gates to copy the state
         circuit = Circuit()
@@ -165,7 +173,7 @@ class MyCustomCode(ErrorCorrectingCode):
                 X(self.data_qubits[base_idx + 1]).controlled_by(self.data_qubits[base_idx]),
                 X(self.data_qubits[base_idx + 2]).controlled_by(self.data_qubits[base_idx])
             ])
-        return StateEncoding(circuit=circuit)
+        return circuit
 
     def get_error_correction_circuit(self) -> Circuit:
         # Implement error correction for your code
@@ -248,24 +256,32 @@ For example, if you are only using the Steane Code, you may specify a transversa
 from cirq import Circuit, X
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_fault_tolerant import UniversalControlledOperationFaultTolerant
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import
+
+UniversalControlledOperation
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import
+
+UniversalControlledFlipFaultTolerant
+
 
 class MyCustomControlledOperation(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         # Check both encodings are compatible
-        is_steane_to_steane = len(self._control.encoding.data_qubits) == 7 and len(self._target.encoding.data_qubits) == 7
+        is_steane_to_steane = len(self._control.encoding.data_qubits) == 7 and len(
+            self._target.encoding.data_qubits) == 7
         # Check is CX operation
         is_cx_operation = self._target.operation.gate == LogicalGateLabel.X
         if is_steane_to_steane and is_cx_operation:
             # Return transversal CX implementation
             return Circuit(
                 X(target_qubit).controlled_by(controt_qubit)
-                for controt_qubit, target_qubit in zip(self._control.encoding.data_qubits, self._target.encoding.data_qubits)
+                for controt_qubit, target_qubit in
+                zip(self._control.encoding.data_qubits, self._target.encoding.data_qubits)
             )
         else:
             # Default to fault-tolerant version
-            return UniversalControlledOperationFaultTolerant(control=self._control, target=self._target).get_controlled_operation_circuit()
+            return UniversalControlledFlipFaultTolerant(control=self._control,
+                                                        target=self._target).get_controlled_operation_circuit()
 ```
 
 You can then set this in the configuration before simulating:

@@ -6,7 +6,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT

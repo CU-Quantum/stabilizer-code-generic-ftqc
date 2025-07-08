@@ -7,6 +7,7 @@ from stim_experiments.error_correcting_codes.support.error_recovery.error_recove
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
+from stim_experiments.error_correcting_codes.support.recovery_operations_finder import RecoveryOperationsFinder
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
@@ -24,14 +25,7 @@ class ErrorRecoveryByGeneratorMeasurement:
 
     @property
     def _recoveries(self) -> list[RecoveryOperations]:
-        recoveries = RecoveryFinder(check_matrix=self._check_matrix).find_recoveries()
-        return [
-            RecoveryOperations(
-                operation=recovery_gates.gate(self._qubits[recovery_gates.qubit_index]),
-                symptom=recovery_gates.symptom
-            )
-            for recovery_gates in recoveries
-        ]
+        return RecoveryOperationsFinder(check_matrix=self._check_matrix, qubits=self._qubits).find_recovery_operations()
 
     @property
     def _measurer_type(self) -> type[Measurer]:

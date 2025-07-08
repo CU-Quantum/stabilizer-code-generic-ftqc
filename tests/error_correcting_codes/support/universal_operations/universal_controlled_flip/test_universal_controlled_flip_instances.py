@@ -10,11 +10,11 @@ from stim_experiments.error_correcting_codes.error_correcting_code_utilities imp
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_fault_tolerant import \
-    UniversalControlledOperationFaultTolerant
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation_single_ancilla import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import \
+    UniversalControlledFlipFaultTolerant
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import \
     UniversalControlledOperationSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
@@ -29,7 +29,7 @@ class TestUniversalControlledOperationInstances:
         set_configuration_to_reduce_ancilla_qubits()
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
-        pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
+        pytest.param(UniversalControlledFlipFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
         pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
     ])
     def test_cx_single_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
@@ -69,7 +69,7 @@ class TestUniversalControlledOperationInstances:
         assert states_are_equal(simulated_state, expected_state)
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
-        pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
+        pytest.param(UniversalControlledFlipFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
         pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
     ])
     def test_cx_multi_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
@@ -123,7 +123,7 @@ class TestUniversalControlledOperationInstances:
         assert states_are_equal(simulated_state, expected_state)
 
     @pytest.mark.parametrize('universal_controlled_operation_type', [
-        pytest.param(UniversalControlledOperationFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
+        pytest.param(UniversalControlledFlipFaultTolerant, id='UniversalControlledOperationFaultTolerant'),
         pytest.param(UniversalControlledOperationSingleAncilla, id='UniversalControlledOperationSingleAncilla'),
     ])
     def test_same_multi_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):

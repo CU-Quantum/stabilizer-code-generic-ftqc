@@ -3,7 +3,7 @@ from typing import Optional
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import \
     UniversalHadamard
@@ -17,4 +17,5 @@ class ConfigurationErrorCorrectingCode:
     universal_hadamard_type: type[UniversalHadamard]
     universal_controlled_operation_type: type[UniversalControlledOperation]
     universal_t_type: type[UniversalT]
+    num_cat_states: int = 3
     seed: Optional[int] = None

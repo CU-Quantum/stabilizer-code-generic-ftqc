@@ -1,11 +1,10 @@
 from typing import Optional
 
-from cirq import Circuit, I, LineQubit, MeasurementKey, Operation, X, Z
+from cirq import Circuit, I, LineQubit, Operation, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.custom_dataclasses.state_encoding import StateEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
@@ -27,11 +26,9 @@ class RepetitionCode(ErrorCorrectingCode):
                          num_logical_qubits=1,
                          qubits=qubits)
 
-    def encode_logical_qubit(self) -> StateEncoding:
+    def encode_logical_qubit(self) -> Circuit:
         if self._check_matrix is None:
-            return StateEncoding(
-                circuit=self._empty_circuit,
-            )
+            return self._empty_circuit
         phase_corrections = [
             self._get_anticommuter_for_generator(generator_index=generator_index)
             for generator_index in range(len(self._check_matrix.matrix))

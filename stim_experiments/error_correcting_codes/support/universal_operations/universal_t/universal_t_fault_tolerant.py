@@ -7,7 +7,7 @@ from cirq import Circuit, LineQubit, OP_TREE, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import TargetEncoding
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
 from stim_experiments.error_correcting_codes.tetrahedral_code.tetrahedral_code import TetrahedralCode
