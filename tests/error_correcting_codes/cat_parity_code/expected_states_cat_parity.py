@@ -9,9 +9,11 @@ from tests.error_correcting_codes.expected_states.expected_states import Expecte
 
 class ExpectedStatesCatParity(ExpectedStates):
     num_qubits_per_cat = 4
-    arbitrary_num_cats = 5
+    num_cats = 5
 
-    def __init__(self, num_qubits_per_cat: Optional[int] = None):
+    def __init__(self, num_cats: Optional[int] = None, num_qubits_per_cat: Optional[int] = None):
+        if num_cats:
+            self.num_cats = num_cats
         if num_qubits_per_cat:
             self.num_qubits_per_cat = num_qubits_per_cat
 
@@ -30,8 +32,8 @@ class ExpectedStatesCatParity(ExpectedStates):
             for cat_values in cat_values
         ]
         basis_states = [tensor(*states) for states in basis_states_by_value]
-        return (2 / np.sqrt(2) ** self.arbitrary_num_cats) * np.sum(basis_states, axis=0)
+        return (2 / np.sqrt(2) ** self.num_cats) * np.sum(basis_states, axis=0)
 
     @property
     def _all_cat_values(self) -> list[list[int]]:
-        return [int_to_binary_array(i, num_elements=self.arbitrary_num_cats) for i in range(2 ** self.arbitrary_num_cats)]
+        return [int_to_binary_array(i, num_elements=self.num_cats) for i in range(2 ** self.num_cats)]

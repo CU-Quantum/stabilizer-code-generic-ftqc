@@ -41,7 +41,7 @@ class ParametersForLogicalGatesTest:
 PARAMETERS = {
     "MultipleCatCode":ParametersForLogicalGatesTest(
         code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                             num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+                             num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
         expected_states=ExpectedStatesMultipleCat(),
     ),
     "RepetitionCode": ParametersForLogicalGatesTest(
@@ -49,8 +49,8 @@ PARAMETERS = {
         expected_states=ExpectedStatesRepetition(),
     ),
     "CatParityCode": ParametersForLogicalGatesTest(
-        code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats,
-                           num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
+        code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
+                           num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
         expected_states=ExpectedStatesCatParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(

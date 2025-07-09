@@ -56,10 +56,10 @@ class UniversalOperationsUtilities:
         num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * self._num_cat_states
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
             multiple_cat_code = MultipleCatCode(num_cats=self._num_cat_states,
-                                                num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
+                                                num_qubits_per_cat=self._num_qubits_for_logical_operations,
                                                 qubits=ancilla_qubits)
             cat_parity_code = CatParityCode(num_cats=self._num_cat_states,
-                                            num_qubits_in_cat_state=self._num_qubits_for_logical_operations,
+                                            num_qubits_per_cat=self._num_qubits_for_logical_operations,
                                             qubits=ancilla_qubits)
             yield UniversalOperationsContext(
                 ancilla_qubits=ancilla_qubits,

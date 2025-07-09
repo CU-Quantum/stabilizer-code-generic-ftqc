@@ -15,9 +15,9 @@ from stim_experiments.error_correcting_codes.support.recovery_finder import Reco
 
 
 class CatParityCode(StabilizerCode):
-    def __init__(self, num_cats: int, num_qubits_in_cat_state: int, qubits: Optional[list[LineQubit]] = None):
+    def __init__(self, num_cats: int, num_qubits_per_cat: int, qubits: Optional[list[LineQubit]] = None):
         self._num_cats = num_cats
-        self._num_qubits_in_cat_state = num_qubits_in_cat_state
+        self._num_qubits_in_cat_state = num_qubits_per_cat
 
         generator = MultipleCatCodeGenerators(num_qubits_per_cat=self._num_qubits_in_cat_state,
                                               num_cats=self._num_cats)
