@@ -1,3 +1,4 @@
+import pytest
 from cirq import LineQubit, X, Y, Z
 from numpy import array
 
@@ -256,3 +257,14 @@ class TestRecoveryCombinationsFinder:
                 symptom=[1, 0, 0]
             ),
         ]
+
+    @pytest.mark.parametrize('params', [
+        pytest.param((None, None, None), id='empty'),
+        pytest.param((None, None, 1), id='no-x'),
+        pytest.param((None, 1, None), id='no-y'),
+    ])
+    def test_invalid_args(self, params: tuple[int | None, int | None, int | None] | None):
+        arbitrary_recoveries = [RecoveryGate(gate=Z, qubit_index=0, symptom=[1])]
+        recovery_finder = RecoveryCombinationsFinder(max_num_errors=params[0], max_num_x_errors=params[1], max_num_z_errors=params[2])
+        with pytest.raises(ValueError, match='^Either "max_num_errors" must be provided or both "max_num_x_errors" and "max_num_z_errors" must be provided.$'):
+            recovery_finder.find_recoveries(single_error_recoveries=arbitrary_recoveries)

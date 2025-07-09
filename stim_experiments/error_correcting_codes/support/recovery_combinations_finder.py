@@ -33,7 +33,7 @@ class RecoveryCombinationsFinder:
                         recovery_gates.append(replace(recovery_gate, symptom=symptoms_combined))
         return recovery_gates
 
-    def _validate(self) -> None:  # TODO test this
+    def _validate(self) -> None:
         if self._max_num_errors is None and (self._max_num_x_errors is None or self._max_num_z_errors is None):
             raise ValueError(
                 'Either "max_num_errors" must be provided or both "max_num_x_errors" and "max_num_z_errors" must be provided.'
