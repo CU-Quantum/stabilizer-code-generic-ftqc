@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 import numpy
 import pytest
-from cirq import Circuit, Gate, LineQubit, X, Y, Z
+from cirq import Circuit, Gate, LineQubit, Operation, X, Y, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
@@ -45,7 +45,7 @@ class ParametersForCorrectionsTest:
     qubit_indices_to_test: list[int]
 
 
-PARAMETERS = {
+SINGLE_ERROR_PARAMETERS = {
     "MultipleCatCode": ParametersForCorrectionsTest(
         code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
                              num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
@@ -92,36 +92,41 @@ PARAMETERS = {
 }
 
 
-PARAMETERS_FLATTENED = [pytest.param((parameters, qubit_index), id=f'{name}_qubit-{qubit_index}')
-                        for name, parameters in PARAMETERS.items() for qubit_index in parameters.qubit_indices_to_test]
+SINGLE_ERROR_PARAMETERS_FLATTENED = [pytest.param((parameters, qubit_index), id=f'{name}_qubit-{qubit_index}')
+                                     for name, parameters in SINGLE_ERROR_PARAMETERS.items() for qubit_index in parameters.qubit_indices_to_test]
 
 
 class TestCorrections:
-    @pytest.fixture(autouse=True, params=PARAMETERS_FLATTENED)
-    def _setup(self, request):
+    @pytest.fixture(autouse=True)
+    def _setup(self):
         numpy.random.seed(0)
-        self._parameters: ParametersForCorrectionsTest = request.param[0]
-        self._qubit_index: int = request.param[1]
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._parameters.code.data_qubits))
         set_configuration_to_reduce_ancilla_qubits()
 
-    def test_bit_flip_error_is_corrected(self):
-        self._error_is_corrected(error_gate=X, qubit_index=self._qubit_index)
+    @pytest.mark.parametrize("req", SINGLE_ERROR_PARAMETERS_FLATTENED)
+    @pytest.mark.parametrize("error_gate", [
+        pytest.param(X, id='X'),
+        pytest.param(Y, id='Y'),
+        pytest.param(Z, id='Z')
+    ])
+    def test_single_error_is_corrected(self, error_gate: Gate, req: (ParametersForCorrectionsTest, int)):
+        params = req[0]
+        qubit_index = req[1]
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(params.code.data_qubits))
 
-    def test_phase_flip_error_is_corrected(self):
-        self._error_is_corrected(error_gate=Z, qubit_index=self._qubit_index)
+        error_operations = [error_gate(LineQubit(qubit_index))]
+        self._error_is_corrected(error_operations=error_operations, code=params.code, initial_state=params.initial_state)
 
-    def test_pauli_y_error_is_corrected(self):
-        self._error_is_corrected(error_gate=Y, qubit_index=self._qubit_index)
-
-    def _error_is_corrected(self, error_gate: Gate, qubit_index: int) -> None:
-        utilities = get_error_correcting_code_utilities(state=self._parameters.initial_state)
+    def _error_is_corrected(self,
+                            error_operations: list[Operation],
+                            code: ErrorCorrectingCode,
+                            initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> None:
+        utilities = get_error_correcting_code_utilities(state=initial_state)
         simulation_state = utilities.get_state_after_circuit(
             circuit=Circuit(
-                error_gate(LineQubit(qubit_index)),
-                self._parameters.code.get_error_correction_circuit(),
+                error_operations,
+                code.get_error_correction_circuit(),
             ),
-            num_data_qubits=len(self._parameters.code.data_qubits),
-            initial_data_state=self._parameters.initial_state,
+            num_data_qubits=len(code.data_qubits),
+            initial_data_state=initial_state,
         ).state
-        assert states_are_equal(simulation_state, self._parameters.initial_state)
+        assert states_are_equal(simulation_state, initial_state)
