@@ -21,11 +21,11 @@ class MultipleCatCode(CatParityCode):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
         if operation.gate == LogicalGateLabel.X:
             return Circuit(
-                [Z(self.data_qubits[i * self._num_qubits_in_cat_state]) for i in range(self._num_cats)]
+                [Z(self.data_qubits[i * self._num_qubits_per_cat]) for i in range(self._num_cats)]
             )
         elif operation.gate == LogicalGateLabel.Z:
             return Circuit(
-                [X(self.data_qubits[i]) for i in range(self._num_qubits_in_cat_state)]
+                [X(self.data_qubits[i]) for i in range(self._num_qubits_per_cat)]
             )
         return None
 
