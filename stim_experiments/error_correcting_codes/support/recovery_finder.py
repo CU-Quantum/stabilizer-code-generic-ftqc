@@ -1,5 +1,3 @@
-from typing import List
-
 from cirq import LineQubit, X, Y, Z
 
 from stim_experiments.custom_dataclasses.recovery import RecoveryGate, RecoveryOperation
@@ -21,7 +19,7 @@ class RecoveryFinder:
             for recovery_gates in recovery_gates
         ]
 
-    def find_recovery_gates(self) -> List[RecoveryGate]:
+    def find_recovery_gates(self) -> list[RecoveryGate]:
         possible_errors = [X, Z]
         transposed_check_matrix = self._check_matrix.matrix.transpose()
         x_or_z_recoveries = [RecoveryGate(gate=possible_errors[column_index < self._check_matrix.num_physical_qubits],
