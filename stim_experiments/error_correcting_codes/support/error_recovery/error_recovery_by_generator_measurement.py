@@ -1,13 +1,12 @@
 from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
-from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries import \
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
-from stim_experiments.error_correcting_codes.support.recovery_operations_finder import RecoveryOperationsFinder
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
@@ -24,8 +23,8 @@ class ErrorRecoveryByGeneratorMeasurement:
         ).get_error_correction_circuit()
 
     @property
-    def _recoveries(self) -> list[RecoveryOperations]:
-        return RecoveryOperationsFinder(check_matrix=self._check_matrix, qubits=self._qubits).find_recovery_operations()
+    def _recoveries(self) -> list[RecoveryOperation]:
+        return RecoveryFinder(check_matrix=self._check_matrix).find_recovery_operations(qubits=self._qubits)
 
     @property
     def _measurer_type(self) -> type[Measurer]:

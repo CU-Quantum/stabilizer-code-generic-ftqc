@@ -3,13 +3,13 @@ from uuid import uuid4
 from cirq import Circuit, MeasurementKey, Operation
 
 from stim_experiments.conditions.recovery_condition import RecoveryCondition
-from stim_experiments.custom_dataclasses.recovery import RecoveryOperations
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 class ErrorRecoveryByStabilizers:
-    def __init__(self, stabilizers: list[list[Operation]], recoveries: list[RecoveryOperations]):
+    def __init__(self, stabilizers: list[list[Operation]], recoveries: list[RecoveryOperation]):
         self._stabilizers = stabilizers
         self._recoveries = recoveries
 

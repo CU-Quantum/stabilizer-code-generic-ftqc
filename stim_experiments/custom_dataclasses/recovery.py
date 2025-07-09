@@ -5,13 +5,13 @@ from cirq import Gate, Operation
 
 
 @dataclass
-class RecoveryGates:
+class RecoveryGate:
     gate: Gate
     qubit_index: int
     symptom: List[int]
 
 
 @dataclass
-class RecoveryOperations:
+class RecoveryOperation:
     operation: Operation
     symptom: List[int]

@@ -11,7 +11,7 @@ from stim_experiments.error_correcting_codes.support.error_recovery.error_recove
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.cat_parity_code.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
-from stim_experiments.error_correcting_codes.support.recovery_operations_finder import RecoveryOperationsFinder
+from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 
 
 class CatParityCode(StabilizerCode):
@@ -62,7 +62,7 @@ class CatParityCode(StabilizerCode):
         x_stabilizers_modified = CheckMatrixToOperations(check_matrix=x_matrix, qubits=self.data_qubits).get_operations()
         if subregister_control_index < last_subregister_index:
             x_stabilizers_modified[subregister_control_index] += target_operations
-        recoveries = RecoveryOperationsFinder(check_matrix=x_matrix, qubits=self._qubits).find_recovery_operations()
+        recoveries = RecoveryFinder(check_matrix=x_matrix).find_recovery_operations(qubits=self._qubits)
         return ErrorRecoveryByStabilizers(
             stabilizers=x_stabilizers_modified,
             recoveries=recoveries,
