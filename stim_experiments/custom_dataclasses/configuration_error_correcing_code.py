@@ -12,6 +12,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 
 @dataclass
 class ConfigurationErrorCorrectingCode:
+    majority_vote_repetitions = 3
     measurer_type: type[Measurer]
     cat_state_creator_type: type[CatStateCreator]
     universal_hadamard_type: type[UniversalHadamard]

@@ -5,12 +5,14 @@ from cirq.protocols import json_serialization
 from numpy import array, bincount
 from numpy._typing import NDArray
 
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
-class ThreeRepetitionsMajorityVote(Condition):
+
+class MajorityVote(Condition):
     def __init__(self, desired_measurement_key: MeasurementKey):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
-        self.number_of_votes = 3
+        self.number_of_votes = ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
 
     @property
     def keys(self):
@@ -24,7 +26,7 @@ class ThreeRepetitionsMajorityVote(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'ThreeRepetitionsMajorityVote({self.key!r})'
+        return f'MajorityVote({self.desired_measurement_key!r})'
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
@@ -47,8 +49,8 @@ class ThreeRepetitionsMajorityVote(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, number_of_votes: int = 3, **kwargs):
-        return cls(desired_measurement_key=desired_measurement_key, number_of_votes=number_of_votes)
+    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, **kwargs):
+        return cls(desired_measurement_key=desired_measurement_key)
 
     @property
     def qasm(self):

@@ -1,9 +1,7 @@
-from typing import Optional
+from cirq import Circuit, CircuitOperation, M, R
 
-from cirq import Circuit, CircuitOperation, M, MeasurementKey, Operation, R
-
-from stim_experiments.conditions.three_repetitions_majority_vote import \
-    ThreeRepetitionsMajorityVote
+from stim_experiments.conditions.majority_vote import \
+    MajorityVote
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
@@ -16,7 +14,7 @@ class FaultTolerantMeasurer(Measurer):
             measurement_qubit = ancilla_qubits[0]
             applier = OperationsApplierUsingCatStateControl(operations=self._operations,
                                                             measurement_qubit=measurement_qubit)
-            condition = ThreeRepetitionsMajorityVote(desired_measurement_key=self._measurement_key)
+            condition = MajorityVote(desired_measurement_key=self._measurement_key)
             return Circuit(
                 CircuitOperation(
                     Circuit(
