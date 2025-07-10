@@ -15,7 +15,7 @@ from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder
     StateEncoderByGeneratorMeasurement
 
 
-class RepetitionCode(ErrorCorrectingCode):
+class RepetitionCodeOneLogical(ErrorCorrectingCode):
     def __init__(self, num_qubits: int, qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = None
         if num_qubits >= 2:

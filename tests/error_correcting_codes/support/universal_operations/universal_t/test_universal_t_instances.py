@@ -4,7 +4,7 @@ from cirq import Circuit
 
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import \
@@ -33,7 +33,7 @@ class TestUniversalTInstances:
     ])
     def test_random_alpha_beta(self, universal_t_type: type[UniversalT]):
         set_configuration_to_reduce_ancilla_qubits()
-        code = RepetitionCode(num_qubits=1)
+        code = RepetitionCodeOneLogical(num_qubits=1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
         universal_t = universal_t_type(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=0))
 

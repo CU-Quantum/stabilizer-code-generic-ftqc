@@ -7,7 +7,7 @@ from cirq import Circuit, Gate, LineQubit, Operation, X, Y, Z
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -54,7 +54,7 @@ SINGLE_ERROR_PARAMETERS = {
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
     "RepetitionCode": ParametersForCorrectionsTest(
-        code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+        code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(3)),
     ),
@@ -118,11 +118,6 @@ class TestCorrections:
         self._error_is_corrected(error_operations=error_operations, code=params.code, initial_state=params.initial_state)
 
     @pytest.mark.parametrize("params", [
-        pytest.param((
-                RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
-                ExpectedStatesRepetition().get_logical_zero_state_vector(),
-                [X(LineQubit(1)), X(LineQubit(2))]
-        ), id='Repetition'),
         pytest.param((
                 CatParityCode(num_cats=3, num_qubits_per_cat=5),
                 ExpectedStatesCatParity(num_cats=3, num_qubits_per_cat=5).get_logical_zero_state_vector(),

@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -65,12 +65,12 @@ PARAMETERS = {
     ),
     "RepetitionCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
             expected_state=ExpectedStatesRepetition().get_logical_zero_density_matrix(),
             initial_data_state=tensor(*[KET_ZERO_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),
         one=ParametersForStateEncodingTest(
-            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
             expected_state=ExpectedStatesRepetition().get_logical_one_density_matrix(),
             initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),

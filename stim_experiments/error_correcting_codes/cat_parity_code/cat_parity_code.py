@@ -27,8 +27,8 @@ class CatParityCode(StabilizerCode):
 
         self._check_matrix = CheckMatrix(matrix=array(z_stabilizers + x_stabilizers))
         super().__init__(check_matrix=self._check_matrix,
-                         recovery_combinations_finder=RecoveryCombinationsFinder(max_num_x_errors=self._num_qubits_per_cat // 2,
-                                                                                 max_num_z_errors=self._num_cats // 2),
+                         recovery_combinations_finder=RecoveryCombinationsFinder(max_num_x_errors=(self._num_qubits_per_cat - 1) // 2,
+                                                                                 max_num_z_errors=(self._num_cats - 1) // 2),
                          qubits=qubits)
 
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:

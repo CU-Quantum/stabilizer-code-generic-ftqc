@@ -7,7 +7,7 @@ from numpy import array
 
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
@@ -37,7 +37,7 @@ class TestUniversalHadamard:
         pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def test_random_alpha_beta(self, universal_hadamard_type: type[UniversalHadamard]):
-        code = RepetitionCode(num_qubits=1)
+        code = RepetitionCodeOneLogical(num_qubits=1)
         universal_hadamard = universal_hadamard_type(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=0))
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 

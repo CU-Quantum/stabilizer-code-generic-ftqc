@@ -6,7 +6,7 @@ from cirq import MeasurementKey, OP_TREE, Operation, R
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
@@ -30,7 +30,7 @@ class UniversalOperationsUtilities:
             ]
 
     def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
-        repetition_codes = [RepetitionCode(num_qubits=len(subregister), qubits=subregister)
+        repetition_codes = [RepetitionCodeOneLogical(num_qubits=len(subregister), qubits=subregister)
                             for subregister in context.cat_parity_code.subregisters]
         with ActiveEncodingsStore(additional_tracked_encodings=repetition_codes) as encodings_store:
             return [
