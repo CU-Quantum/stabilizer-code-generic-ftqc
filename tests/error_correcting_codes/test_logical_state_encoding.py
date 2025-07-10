@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     get_error_correcting_code_utilities
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -52,39 +52,39 @@ PARAMETERS = {
     "MultipleCatCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                                 num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+                                 num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
             expected_state=ExpectedStatesMultipleCat().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat * ExpectedStatesMultipleCat().arbitrary_num_cats),
         ),
         one=ParametersForStateEncodingTest(
             code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                                 num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+                                 num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
             expected_state=ExpectedStatesMultipleCat().get_logical_one_state_vector(),
             initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat - 1))] * ExpectedStatesMultipleCat().arbitrary_num_cats),
         ),
     ),
     "RepetitionCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
             expected_state=ExpectedStatesRepetition().get_logical_zero_density_matrix(),
             initial_data_state=tensor(*[KET_ZERO_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),
         one=ParametersForStateEncodingTest(
-            code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+            code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
             expected_state=ExpectedStatesRepetition().get_logical_one_density_matrix(),
             initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),
     ),
     "CatParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats, num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
+            code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats, num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
             expected_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().arbitrary_num_cats),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats, num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
+            code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats, num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
             expected_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().arbitrary_num_cats),
+            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats),
         ),
     ),
     "GenericStabilizerCodeFiveQubit": StateParameters(

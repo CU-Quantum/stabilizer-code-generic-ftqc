@@ -9,7 +9,7 @@ from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
     def __init__(self, qubits: Optional[list[LineQubit]] = None,):
-        self._alias = MultipleCatCode(num_cats=3, num_qubits_in_cat_state=3, qubits=qubits)
+        self._alias = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits)
         super().__init__(num_data_qubits=len(self._alias.data_qubits),
                          num_logical_qubits=self._alias.num_logical_qubits,
                          qubits=self._alias.data_qubits)

@@ -1,4 +1,4 @@
-from stim_experiments.error_correcting_codes.cat_parity_code.multiple_cat_code_generators import \
+from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
 
 

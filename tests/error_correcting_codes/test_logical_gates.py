@@ -8,7 +8,7 @@ from stim_experiments.error_correcting_codes.error_correcting_code.error_correct
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
@@ -41,16 +41,16 @@ class ParametersForLogicalGatesTest:
 PARAMETERS = {
     "MultipleCatCode":ParametersForLogicalGatesTest(
         code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                             num_qubits_in_cat_state=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
+                             num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
         expected_states=ExpectedStatesMultipleCat(),
     ),
     "RepetitionCode": ParametersForLogicalGatesTest(
-        code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+        code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         expected_states=ExpectedStatesRepetition(),
     ),
     "CatParityCode": ParametersForLogicalGatesTest(
-        code=CatParityCode(num_cats=ExpectedStatesCatParity().arbitrary_num_cats,
-                           num_qubits_in_cat_state=ExpectedStatesCatParity().num_qubits_per_cat),
+        code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
+                           num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
         expected_states=ExpectedStatesCatParity(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(

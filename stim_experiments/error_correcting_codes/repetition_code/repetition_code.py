@@ -5,22 +5,21 @@ from numpy import array
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
+    MultipleCatCodeGenerators
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
-from stim_experiments.utilities.repetition_z_stabilizers_generator import RepetitionZStabilizersGenerator
 
 
-class RepetitionCode(ErrorCorrectingCode):
+class RepetitionCodeOneLogical(ErrorCorrectingCode):
     def __init__(self, num_qubits: int, qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = None
         if num_qubits >= 2:
-            z_stabilizers = [
-                [0] * num_qubits + z_stabilizer
-                for z_stabilizer in RepetitionZStabilizersGenerator(num_qubits=num_qubits).get_stabilizers()
-            ]
+            z_stabilizers = MultipleCatCodeGenerators(num_qubits_per_cat=num_qubits, num_cats=1).get_z_generators()
             self._check_matrix = CheckMatrix(matrix=array(z_stabilizers))
         super().__init__(num_data_qubits=num_qubits,
                          num_logical_qubits=1,
@@ -47,7 +46,8 @@ class RepetitionCode(ErrorCorrectingCode):
             return self._empty_circuit
         return ErrorRecoveryByGeneratorMeasurement(
             check_matrix=self._check_matrix,
-            qubits=self.data_qubits
+            qubits=self.data_qubits,
+            recovery_combinations_finder=RecoveryCombinationsFinder(max_num_x_errors=self._num_data_qubits // 2, max_num_z_errors=0)
         ).get_error_correction_circuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:

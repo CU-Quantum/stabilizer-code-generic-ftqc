@@ -1,13 +1,10 @@
-import random
-
-import numpy as np
 import pytest
 from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCode
+from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
@@ -35,7 +32,7 @@ class TestUniversalControlledOperationInstances:
     def test_cx_single_qubit_encoding(self, universal_controlled_operation_type: type[UniversalControlledOperation]):
         qubits = LineQubit.range(2)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
-        code_control, code_target = codes = [RepetitionCode(num_qubits=1, qubits=code_qubits)
+        code_control, code_target = codes = [RepetitionCodeOneLogical(num_qubits=1, qubits=code_qubits)
                                              for code_qubits in (qubits[:1], qubits[1:])]
         encoding_control = LogicalEncodingIndex(encoding=code_control, qubit_index_relative=0)
         encoding_target = TargetEncoding(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0),

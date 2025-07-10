@@ -8,13 +8,20 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalOperati
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
     ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
 
 
 class StabilizerCode(ErrorCorrectingCode, ABC):
-    def __init__(self, check_matrix: CheckMatrix, qubits: Optional[list[LineQubit]] = None):
+    def __init__(self,
+                 check_matrix: CheckMatrix,
+                 recovery_combinations_finder: Optional[RecoveryCombinationsFinder] = None,
+                 qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = check_matrix
+        self._recovery_combinations_finder = recovery_combinations_finder
+        if self._recovery_combinations_finder is None:
+            self._recovery_combinations_finder = RecoveryCombinationsFinder(max_num_errors=1)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_logical_qubits=self._check_matrix.num_logical_qubits,
                          qubits=qubits)
@@ -41,5 +48,6 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
     def get_error_correction_circuit(self) -> Circuit:
         return ErrorRecoveryByGeneratorMeasurement(
             check_matrix=self._check_matrix,
-            qubits=self.data_qubits
+            qubits=self.data_qubits,
+            recovery_combinations_finder=self._recovery_combinations_finder
         ).get_error_correction_circuit()
