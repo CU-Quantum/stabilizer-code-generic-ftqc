@@ -142,6 +142,7 @@ Available configuration options:
 5. `universal_t_type`: Type of universal T implementation (default: `UniversalTFaultToleratn`)
 6. `num_cat_states`: Number of cat states to use for the Multiple Cat Code and Cat Parity Code  (default: `3`)
 7. `seed`: Optional seed for random number generation (default: `None`)
+8. `majority_vote_repetitions`: Number of repetitions for majority vote measurement (default: `3`)
 
 
 ## Creating Your Own Error Correcting Code
