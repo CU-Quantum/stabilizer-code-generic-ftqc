@@ -2,11 +2,11 @@ import numpy
 import pytest
 from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, FrozenCircuit, LineQubit, M, Simulator
 
-from stim_experiments.conditions.three_repetitions_majority_vote import \
-    ThreeRepetitionsMajorityVote
+from stim_experiments.conditions.majority_vote import \
+    MajorityVote
 
 
-class ThreeRepetitionsMajorityVoteStub(ThreeRepetitionsMajorityVote):
+class MajorityVoteStub(MajorityVote):
     def __init__(self, desired_measurement_key: str):
         super().__init__(desired_measurement_key=desired_measurement_key)
         self.saved_measurements = []
@@ -18,7 +18,7 @@ class ThreeRepetitionsMajorityVoteStub(ThreeRepetitionsMajorityVote):
 
 class TestThreeRepetitionsMajorityVote:
     def test_measurements_are_separate_per_instance(self):
-        separate_condition_instances = [ThreeRepetitionsMajorityVoteStub(desired_measurement_key='foo') for _ in range(2)]
+        separate_condition_instances = [MajorityVoteStub(desired_measurement_key='foo') for _ in range(2)]
         qubits = LineQubit.range(1)
         circuit = Circuit(
             CircuitOperation(
@@ -34,7 +34,7 @@ class TestThreeRepetitionsMajorityVote:
 
     def test_missing_key(self):
         store = ClassicalDataDictionaryStore()
-        condition = ThreeRepetitionsMajorityVote(desired_measurement_key='foo')
+        condition = MajorityVote(desired_measurement_key='foo')
         with pytest.raises(ValueError, match=f'^Measurement key {condition.key} missing when majority voting\\.$'):
             condition.resolve(classical_data=store)
 
@@ -43,7 +43,7 @@ class TestThreeRepetitionsMajorityVote:
 
         store = ClassicalDataDictionaryStore()
         desired_key = 'foo'
-        condition = ThreeRepetitionsMajorityVote(desired_measurement_key=desired_key)
+        condition = MajorityVote(desired_measurement_key=desired_key)
         different_measurements = [0, 1, 0]
         for i in range(condition.number_of_votes):
             is_last_vote = i == condition.number_of_votes - 1

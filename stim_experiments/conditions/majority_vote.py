@@ -5,12 +5,14 @@ from cirq.protocols import json_serialization
 from numpy import array, bincount
 from numpy._typing import NDArray
 
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
-class ThreeRepetitionsMajorityVote(Condition):
+
+class MajorityVote(Condition):
     def __init__(self, desired_measurement_key: MeasurementKey):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
-        self.number_of_votes = 3
+        self.number_of_votes = ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
 
     @property
     def keys(self):
