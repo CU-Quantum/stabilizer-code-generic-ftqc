@@ -32,7 +32,7 @@ class CatParityCode(StabilizerCode):
                          qubits=qubits)
 
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
-        x_stabilizer_start_index = self._num_generators - self._num_cats + 1
+        x_stabilizer_start_index = self._num_generators - self._num_x_stabilizers
         is_z_stabilizer = generator_index < x_stabilizer_start_index
         if is_z_stabilizer:
             num_checks_per_register = self._num_qubits_per_cat - 1
@@ -58,17 +58,15 @@ class CatParityCode(StabilizerCode):
             )
         return None
 
-    def get_modified_x_stabilizers_error_correction_circuit(self,
-                                                            subregister_control_index: int,
-                                                            target_operations: list[Operation]) -> Circuit: # TODO make this correct both x and z errors
-        last_subregister_index = len(self.subregisters) - 1
-        x_matrix = CheckMatrix(matrix=self._check_matrix.matrix[-last_subregister_index:])
-        x_stabilizers_modified = CheckMatrixToOperations(check_matrix=x_matrix, qubits=self.data_qubits).get_operations()
-        if subregister_control_index < last_subregister_index:
-            x_stabilizers_modified[subregister_control_index] += target_operations
-        recoveries = RecoveryFinder(check_matrix=x_matrix).find_recovery_operations(qubits=self._qubits)
+    def get_modified_stabilizers_error_correction_circuit(self,
+                                                          subregister_control_index: int,
+                                                          target_operations: list[Operation]) -> Circuit:
+        stabilizers = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self.data_qubits).get_operations()
+        if subregister_control_index < len(self.subregisters) - 1:
+            stabilizers[-self._num_x_stabilizers + subregister_control_index] += target_operations
+        recoveries = RecoveryFinder(check_matrix=self._check_matrix).find_recovery_operations(qubits=self._qubits)
         return ErrorRecoveryByStabilizers(
-            stabilizers=x_stabilizers_modified,
+            stabilizers=stabilizers,
             recoveries=recoveries,
         ).get_error_correction_circuit()
 
@@ -80,3 +78,7 @@ class CatParityCode(StabilizerCode):
     @property
     def _num_generators(self) -> int:
         return len(self._check_matrix.matrix)
+
+    @property
+    def _num_x_stabilizers(self) -> int:
+        return self._num_cats - 1

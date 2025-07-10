@@ -50,7 +50,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         return [
             [
                 subregister_operation,
-                context.cat_parity_code.get_modified_x_stabilizers_error_correction_circuit(
+                context.cat_parity_code.get_modified_stabilizers_error_correction_circuit(
                     subregister_control_index=i,
                     target_operations=context.target_operations,
                 )
