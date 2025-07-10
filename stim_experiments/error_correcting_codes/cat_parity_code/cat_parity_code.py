@@ -9,7 +9,7 @@ from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code imp
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries import \
     ErrorRecoveryByStabilizers
-from stim_experiments.error_correcting_codes.cat_parity_code.multiple_cat_code_generators import \
+from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder

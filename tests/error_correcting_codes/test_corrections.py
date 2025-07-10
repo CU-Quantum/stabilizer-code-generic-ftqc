@@ -32,11 +32,11 @@ from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
-QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS = list(
-    range(0,
-          ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats,
-          ExpectedStatesCatParity().num_qubits_per_cat + 1,
-          )) + [ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats - 1]
+QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS = [
+    0,
+    ExpectedStatesCatParity().num_qubits_per_cat + 1,
+    ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats - 1
+]
 
 
 @dataclass
@@ -51,7 +51,7 @@ SINGLE_ERROR_PARAMETERS = {
         code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
                              num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
         initial_state=ExpectedStatesMultipleCat().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
     "RepetitionCode": ParametersForCorrectionsTest(
         code=RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
@@ -62,13 +62,13 @@ SINGLE_ERROR_PARAMETERS = {
         code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
                            num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
         initial_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
     "CatParityCodeOneState": ParametersForCorrectionsTest(
         code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
                            num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
         initial_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PAIRITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
@@ -118,6 +118,11 @@ class TestCorrections:
         self._error_is_corrected(error_operations=error_operations, code=params.code, initial_state=params.initial_state)
 
     @pytest.mark.parametrize("params", [
+        pytest.param((
+                RepetitionCode(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+                ExpectedStatesRepetition().get_logical_zero_state_vector(),
+                [X(LineQubit(1)), X(LineQubit(2))]
+        ), id='Repetition'),
         pytest.param((
                 CatParityCode(num_cats=3, num_qubits_per_cat=5),
                 ExpectedStatesCatParity(num_cats=3, num_qubits_per_cat=5).get_logical_zero_state_vector(),
