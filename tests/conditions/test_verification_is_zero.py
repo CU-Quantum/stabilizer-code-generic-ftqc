@@ -14,7 +14,7 @@ class TestVerificationIsZero:
         self._qubit = LineQubit(0)
 
     def test_missing_key(self):
-        with pytest.raises(ValueError, match='Measurement key test_key missing when verifying all zeros.'):
+        with pytest.raises(ValueError, match='^Measurement key test_key missing when verifying all zeros\\.$'):
             self._condition.resolve(classical_data=self._store)
     
     def test_resolve_all_zeros(self):

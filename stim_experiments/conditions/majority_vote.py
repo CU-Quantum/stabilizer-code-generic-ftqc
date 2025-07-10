@@ -26,7 +26,7 @@ class MajorityVote(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'ThreeRepetitionsMajorityVote({self.key!r})'
+        return f'MajorityVote({self.desired_measurement_key!r})'
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
@@ -49,8 +49,8 @@ class MajorityVote(Condition):
         return json_serialization.dataclass_json_dict(self)
 
     @classmethod
-    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, number_of_votes: int = 3, **kwargs):
-        return cls(desired_measurement_key=desired_measurement_key, number_of_votes=number_of_votes)
+    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, **kwargs):
+        return cls(desired_measurement_key=desired_measurement_key)
 
     @property
     def qasm(self):
