@@ -7,7 +7,7 @@ from stim_experiments.conditions.majority_vote import MajorityVote
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
-class TestThreeRepetitionsMajorityVote:
+class TestMajorityVote:
     @pytest.fixture(autouse=True)
     def _setup(self):
         self._store = ClassicalDataDictionaryStore()
