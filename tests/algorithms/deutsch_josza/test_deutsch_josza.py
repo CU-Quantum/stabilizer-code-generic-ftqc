@@ -7,6 +7,7 @@ from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
+@pytest.mark.slow
 class TestDeutschJosza:
     @pytest.fixture(autouse=True)
     def _setup(self):
@@ -19,7 +20,7 @@ class TestDeutschJosza:
         oracle = []
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=2)
         result = algorithm.run_algorithm()
-        assert allequal(list(result.measurements.values()), [[0], [0]])
+        assert allequal(list(result.logical_qubit_measurements.values()), [[0], [0]])
 
     def test_deutsch_josza_balanced(self):
         num_qubits = 3
@@ -30,4 +31,4 @@ class TestDeutschJosza:
         ]
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=2)
         result = algorithm.run_algorithm()
-        assert not allequal(list(result.measurements.values()), [[0], [0]])
+        assert not allequal(list(result.logical_qubit_measurements.values()), [[0], [0]])

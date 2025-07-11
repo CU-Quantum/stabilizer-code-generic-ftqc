@@ -98,7 +98,7 @@ result = utilities.get_state_after_circuit(
 
 # Analyze the result
 print("Final state:", result.state)
-print("Measurements:", result.measurements)
+print("Measurements:", result.logical_qubit_measurements)
 ```
 
 ## Configuration Settings

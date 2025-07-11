@@ -7,6 +7,7 @@ from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_mea
     FaultTolerantMeasurer
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_PLUS_STATE_VECTOR
+from tests.utilities import set_seed
 
 
 class TestFaultTolerantMeasurer:
@@ -22,8 +23,6 @@ class TestFaultTolerantMeasurer:
         assert simulation.measurements[measurement_key.name] == array([0])
 
     def test_one_qubit_z(self):
-        numpy.random.seed(1)
-
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
@@ -37,6 +36,7 @@ class TestFaultTolerantMeasurer:
         num_trials = 5
         measurements = []
         for trial in range(num_trials):
+            set_seed(trial)
             simulation = utilities.get_state_after_circuit(circuit=circuit,
                                                            num_data_qubits=len(qubits),
                                                            initial_data_state=initial_target_state)
