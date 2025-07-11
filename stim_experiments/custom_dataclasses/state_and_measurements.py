@@ -12,6 +12,10 @@ class StateAndMeasurements:
     state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX
     measurements: dict[str, NDArray[int]] = field(default_factory=lambda: defaultdict(list))
 
+    @property
+    def logical_qubit_measurements(self) -> dict[str, NDArray[int]]:
+        return {k: v for k, v in self.measurements.items() if k.isdigit()}
+
     def __eq__(self, other):
         return states_are_equal(self.state, other.state) \
             and list(self.measurements.keys()) == list(other.measurements.keys()) \

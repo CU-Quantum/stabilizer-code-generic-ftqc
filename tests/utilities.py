@@ -35,7 +35,7 @@ def get_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:
 
 
 def set_configuration_to_reduce_ancilla_qubits() -> None:
-    configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
+    configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
     configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
     configuration.measurer_type = MeasurerWithSingleQubit
     configuration.universal_hadamard_type = UniversalHadamardSingleAncilla

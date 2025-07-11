@@ -1,5 +1,3 @@
-import numpy
-import pytest
 from cirq import Circuit, LineQubit, MeasurementKey, X, Z
 
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
@@ -7,13 +5,10 @@ from stim_experiments.error_correcting_codes.support.measurer.measurer_with_sing
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
     tensor
+from tests.utilities import set_seed
 
 
 class TestMeasurerWithSingleQubit:
-    @pytest.fixture(autouse=True)
-    def _setup(self):
-        numpy.random.seed(0)
-
     def test_trivial(self):
         measurer = MeasurerWithSingleQubit(operations=[])
         circuit = measurer.get_measurement_circuit()
@@ -33,6 +28,7 @@ class TestMeasurerWithSingleQubit:
         num_trials = 5
         measurements = []
         for trial in range(num_trials):
+            set_seed(trial)
             simulation = utilities.get_state_after_circuit(circuit=circuit,
                                                            num_data_qubits=len(qubits),
                                                            initial_data_state=initial_state)
@@ -53,6 +49,7 @@ class TestMeasurerWithSingleQubit:
         num_trials = 5
         measurements = []
         for trial in range(num_trials):
+            set_seed(trial)
             simulation = utilities.get_state_after_circuit(circuit=circuit,
                                                            num_data_qubits=len(qubits),
                                                            initial_data_state=initial_state)

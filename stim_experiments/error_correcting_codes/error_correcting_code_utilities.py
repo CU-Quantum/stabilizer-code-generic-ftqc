@@ -46,7 +46,7 @@ class ErrorCorrectingCodeUtilities(ABC):
 
         return StateAndMeasurements(
             state=data_state,
-            measurements=dict(simulation.measurements),
+            measurements=simulation.measurements,
         )
 
     def get_max_qubit_index(self, circuit: Circuit) -> int:
