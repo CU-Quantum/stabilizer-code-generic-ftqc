@@ -43,10 +43,11 @@ class ErrorCorrectingCodeUtilities(ABC):
 
         simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
+        only_logical_qubit_measurements = {k: v for k, v in simulation.measurements.items() if k.isdigit()}
 
         return StateAndMeasurements(
             state=data_state,
-            measurements=dict(simulation.measurements),
+            measurements=only_logical_qubit_measurements,
         )
 
     def get_max_qubit_index(self, circuit: Circuit) -> int:
