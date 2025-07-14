@@ -23,11 +23,10 @@ conda activate stim-experiments
 
 
 # Install required packages
-conda install --yes --file requirements.txt
+conda env create -f environment.yaml
 
 
 # Run your scripts
-
 python3 src/download_fma.py
 
 python3 src/process_fma.py
