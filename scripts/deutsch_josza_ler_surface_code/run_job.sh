@@ -4,6 +4,9 @@
 #SBATCH --time=01:00:00
 #SBATCH --partition=aa100
 #SBATCH --nodes=1
+#SBATCH --gres=gpu:16
+#SBATCH --ntasks=1
+#SBATCH --qos=normal
 #SBATCH --job-name=deutsch_josza
 #SBATCH --error=deutsch_josza_%j.err
 #SBATCH --output=deutsch_josza_%j.out

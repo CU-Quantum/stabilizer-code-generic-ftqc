@@ -4,6 +4,9 @@
 #SBATCH --time=01:00:00
 #SBATCH --partition=aa100
 #SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+#SBATCH --ntasks=1
+#SBATCH --qos=normal
 #SBATCH --job-name=qsim_setup
 #SBATCH --error=qsim_setup_%j.err
 #SBATCH --output=qsim_setup_%j.out
