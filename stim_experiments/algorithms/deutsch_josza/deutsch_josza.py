@@ -1,5 +1,6 @@
 from stim_experiments.custom_dataclasses.state_and_measurements import StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
     ErrorCorrectingCodeUtilitiesStateVector
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -8,7 +9,7 @@ from stim_experiments.simulators.simulator_using_circuits.logical_operations_cir
 
 
 class DeutschJosza:
-    def __init__(self, logical_qubits: list[MultipleCatCode], oracle: list[TransformationOperation], oracle_qubit_index: int):
+    def __init__(self, logical_qubits: list[ErrorCorrectingCode], oracle: list[TransformationOperation], oracle_qubit_index: int):
         self._logical_qubits = logical_qubits
         self._oracle = oracle
         self._oracle_qubit_index = oracle_qubit_index
