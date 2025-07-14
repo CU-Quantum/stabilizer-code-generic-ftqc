@@ -1,7 +1,10 @@
 import argparse
 from datetime import datetime
 
+from qsimcirq import QSimOptions, QSimSimulator
+
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
+from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesMultiGpu
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
 if __name__ == "__main__":
@@ -28,12 +31,19 @@ if __name__ == "__main__":
     # ]
     oracle_constant = []
     algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle_constant, oracle_qubit_index=oracle_qubit_index)
+    circuit = algorithm.get_circuit()
 
     successful_shots = 0
     for shot in range(num_shots):
         start_time = datetime.now()
         print(f"{start_time}: Shot {shot + 1}/{num_shots}")
-        result = algorithm.run_algorithm()
+
+        utilities = ErrorCorrectingCodeUtilitiesMultiGpu()
+        result = utilities.get_state_after_circuit(
+            circuit=circuit,
+            num_data_qubits=num_qubits,
+        )
+
         end_time = datetime.now()
         print(f"    {end_time} ({end_time - start_time}): {result.logical_qubit_measurements}")
         if any(measurement for measurements in result.logical_qubit_measurements.values() for measurement in measurements):

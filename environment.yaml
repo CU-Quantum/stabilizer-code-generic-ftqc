@@ -1,8 +1,7 @@
 name: stim-experiments-venv
-channels:
-  - conda-forge
 dependencies:
   - python>=3.12
   - anaconda
+  - pip
   - pip:
       - -r file:requirements.txt

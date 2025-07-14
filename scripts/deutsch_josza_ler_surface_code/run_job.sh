@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --account=ucb-general
+#SBATCH --account=ucb685_asc1
 #SBATCH --time=01:00:00
-#SBATCH --partition=amilan
+#SBATCH --partition=aa100
 #SBATCH --nodes=1
 #SBATCH --job-name=deutsch_josza
 #SBATCH --error=deutsch_josza_%j.err
@@ -27,10 +27,8 @@ conda env create -f environment.yaml
 
 
 # Run your scripts
-python3 src/download_fma.py
-
-python3 src/process_fma.py
-
-python3 src/train.py
-
-python3 src/test.py
+EXPORT march=x86_64
+docker pull nvcr.io/nvidia/cuquantum-appliance:25.03-${march}
+docker run --gpus all \
+           --rm nvcr.io/nvidia/cuquantum-appliance:25.03-${march}
+           python ~/workspace/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py

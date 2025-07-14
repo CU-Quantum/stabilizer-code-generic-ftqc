@@ -1,2 +1,3 @@
 cirq~=1.1.0
 stim~=1.14.0
+qsimcirq~=0.22.0

@@ -4,6 +4,7 @@ from typing import Optional
 from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseModel, \
     Simulator, \
     StateVectorTrialResult
+from qsimcirq import QSimOptions, QSimSimulator
 
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -66,7 +67,7 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     def _get_simulation_result(self,
                                circuit: Circuit,
                                qubits: list[LineQubit],
-                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                               initial_state: Optional[TYPE_DENSITY_MATRIX] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
         simulator = DensityMatrixSimulator(noise=noise_model, seed=self._seed)
@@ -87,7 +88,7 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     def _get_simulation_result(self,
                                circuit: Circuit,
                                qubits: list[LineQubit],
-                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                               initial_state: Optional[TYPE_STATE_VECTOR] = None,
                                noise_model: Optional[NoiseModel] = None,
                                ) -> StateAndMeasurements:
         simulator = Simulator(noise=noise_model, seed=self._seed)
@@ -95,6 +96,27 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
         return StateAndMeasurements(
             state=simulation.final_state_vector,
             measurements=dict(simulation.measurements),
+        )
+
+
+class ErrorCorrectingCodeUtilitiesMultiGpu(ErrorCorrectingCodeUtilities):
+    """Must be run in cuQuantum Appliance Docker container. See https://quantumai.google/qsim/choose_hw for more information."""
+    @property
+    def zero_state(self) -> TYPE_STATE_VECTOR:
+        return KET_ZERO_DENSITY_MATRIX
+
+    def _get_simulation_result(self,
+                               circuit: Circuit,
+                               qubits: list[LineQubit],
+                               initial_state: Optional[TYPE_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NoiseModel] = None,
+                               ) -> StateAndMeasurements:
+        qsim_options = QSimOptions(gpu_mode=16, verbosity=3, denormals_are_zeros=True)
+        simulator = QSimSimulator(qsim_options=qsim_options, noise=noise_model, seed=self._seed)
+        result = simulator.simulate(program=circuit)
+        return StateAndMeasurements(
+            state=result.final_state_vector,
+            measurements=dict(result.measurements),
         )
 
 
