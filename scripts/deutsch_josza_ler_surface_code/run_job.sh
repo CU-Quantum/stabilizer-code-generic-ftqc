@@ -14,18 +14,13 @@
 #SBATCH --mail-user=nipa4599@colorado.edu
 
 
-# Go to your project directory
-cd ~/workspace/stim-experiments
-
-
 # Create and activate a virtual environment
 module load anaconda/2023.09
 conda env create -f environment.yml
 
 
 # Run your scripts
-export march=x86_64
-apptainer pull nvcr.io/nvidia/cuquantum-appliance:25.03-${march}.sif docker://nvcr.io/nvidia/cuquantum-appliance:25.03-${march}
-apptainer run --gpus all \
-              --rm nvcr.io/nvidia/cuquantum-appliance:25.03-${march}
-              python ~/workspace/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
+export image_name=nvcr.io/nvidia/cuquantum-appliance:25.03-x86_64
+apptainer pull ${image_name}.sif docker://${image_name}
+apptainer run --gpus all --rm ${image_name} \
+  python ~/workspace/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py

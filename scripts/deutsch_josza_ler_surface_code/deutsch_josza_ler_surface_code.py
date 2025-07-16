@@ -1,8 +1,6 @@
 import argparse
 from datetime import datetime
 
-from qsimcirq import QSimOptions, QSimSimulator
-
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesMultiGpu
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
