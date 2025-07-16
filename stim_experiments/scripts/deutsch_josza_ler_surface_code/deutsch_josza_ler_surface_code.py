@@ -15,7 +15,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     num_shots = args.num_shots
-    num_input_qubits = args.num_qubits
+    num_input_qubits = args.num_input_qubits
     surface_code_distance = args.surface_code_distance
     num_oracle_qubits = 1
     num_qubits = num_input_qubits + num_oracle_qubits
