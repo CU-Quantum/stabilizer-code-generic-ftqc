@@ -17,6 +17,7 @@
 # Create and activate a virtual environment
 module load anaconda/2023.09
 conda env create -f environment.yml
+conda activate stim-experiments-venv
 
 
 # Setup workspace
