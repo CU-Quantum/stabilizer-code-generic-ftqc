@@ -1,6 +1,8 @@
 import argparse
 from datetime import datetime
 
+from cirq import depolarize
+
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesMultiGpu
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -40,6 +42,7 @@ if __name__ == "__main__":
         result = utilities.get_state_after_circuit(
             circuit=circuit,
             num_data_qubits=num_qubits,
+            noise_model=depolarize(p=1e-4)
         )
 
         end_time = datetime.now()
