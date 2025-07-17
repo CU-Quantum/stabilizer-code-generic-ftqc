@@ -19,7 +19,7 @@ class TestDeutschJosza:
         logical_qubits = [MultipleCatCode(num_cats=3, num_qubits_per_cat=3) for _ in range(num_qubits)]
         oracle = []
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=2)
-        result = algorithm.run_algorithm()
+        result = algorithm.get_circuit()
         assert allequal(list(result.logical_qubit_measurements.values()), [[0], [0]])
 
     def test_deutsch_josza_balanced(self):
@@ -30,5 +30,5 @@ class TestDeutschJosza:
             TransformationOperation(gate=TransformationGate.CX, control_qubit_index=1, target_qubit_index=2),
         ]
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=2)
-        result = algorithm.run_algorithm()
+        result = algorithm.get_circuit()
         assert not allequal(list(result.logical_qubit_measurements.values()), [[0], [0]])

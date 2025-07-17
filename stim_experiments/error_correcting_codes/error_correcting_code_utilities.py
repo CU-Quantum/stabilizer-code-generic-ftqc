@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NoiseModel, \
+from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NOISE_MODEL_LIKE, \
     Simulator, \
     StateVectorTrialResult
+from qsimcirq import QSimOptions, QSimSimulator
 
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
@@ -25,7 +26,7 @@ class ErrorCorrectingCodeUtilities(ABC):
                                circuit: Circuit,
                                qubits: list[LineQubit],
                                initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                               noise_model: Optional[NoiseModel] = None,
+                               noise_model: Optional[NOISE_MODEL_LIKE] = None,
                                ) -> StateAndMeasurements:
         pass
 
@@ -33,7 +34,7 @@ class ErrorCorrectingCodeUtilities(ABC):
                                 circuit: Circuit,
                                 num_data_qubits: int,
                                 initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                                noise_model: Optional[NoiseModel] = None,
+                                noise_model: Optional[NOISE_MODEL_LIKE] = None,
                                 ) -> StateAndMeasurements:
         if initial_data_state is None:
             initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
@@ -66,8 +67,8 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
     def _get_simulation_result(self,
                                circuit: Circuit,
                                qubits: list[LineQubit],
-                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                               noise_model: Optional[NoiseModel] = None,
+                               initial_state: Optional[TYPE_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NOISE_MODEL_LIKE] = None,
                                ) -> StateAndMeasurements:
         simulator = DensityMatrixSimulator(noise=noise_model, seed=self._seed)
         num_qubits = get_num_qubits_in_state(state=initial_state) if initial_state is not None else len(qubits)
@@ -87,14 +88,35 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
     def _get_simulation_result(self,
                                circuit: Circuit,
                                qubits: list[LineQubit],
-                               initial_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                               noise_model: Optional[NoiseModel] = None,
+                               initial_state: Optional[TYPE_STATE_VECTOR] = None,
+                               noise_model: Optional[NOISE_MODEL_LIKE] = None,
                                ) -> StateAndMeasurements:
         simulator = Simulator(noise=noise_model, seed=self._seed)
         simulation: StateVectorTrialResult = simulator.simulate(circuit, qubit_order=qubits, initial_state=initial_state)
         return StateAndMeasurements(
             state=simulation.final_state_vector,
             measurements=dict(simulation.measurements),
+        )
+
+
+class ErrorCorrectingCodeUtilitiesMultiGpu(ErrorCorrectingCodeUtilities):
+    """Must be run in cuQuantum Appliance Docker container. See https://quantumai.google/qsim/choose_hw for more information."""
+    @property
+    def zero_state(self) -> TYPE_STATE_VECTOR:
+        return KET_ZERO_DENSITY_MATRIX
+
+    def _get_simulation_result(self,
+                               circuit: Circuit,
+                               qubits: list[LineQubit],
+                               initial_state: Optional[TYPE_DENSITY_MATRIX] = None,
+                               noise_model: Optional[NOISE_MODEL_LIKE] = None,
+                               ) -> StateAndMeasurements:
+        qsim_options = QSimOptions(gpu_mode=16, verbosity=3, denormals_are_zeros=True)
+        simulator = QSimSimulator(qsim_options=qsim_options, noise=noise_model, seed=self._seed)
+        result = simulator.simulate(program=circuit)
+        return StateAndMeasurements(
+            state=result.final_state_vector,
+            measurements=dict(result.measurements),
         )
 
 
