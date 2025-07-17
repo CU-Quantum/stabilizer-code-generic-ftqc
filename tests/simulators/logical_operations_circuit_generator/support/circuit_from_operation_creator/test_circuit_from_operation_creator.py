@@ -8,7 +8,7 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import CircuitFromOperationCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
-from tests.simulators.simulator_using_circuits.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
+from tests.simulators.logical_operations_circuit_generator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
