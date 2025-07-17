@@ -21,13 +21,13 @@ conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:~/workspace/stim-experiments/stim-experiments
-mkdir -p ~/workspace/stim-experiments/results/deutsch_josza
-cd ~/workspace/stim-experiments/results/deutsch_josza
+export PYTHONPATH=$PYTHONPATH:~/workspace/stim_experiments
+mkdir -p ~/workspace/stim_experiments/results/deutsch_josza
+cd ~/workspace/stim_experiments/results/deutsch_josza
 
 
 # Run using cuQuantum Appliance
 export image_name=nvcr.io/nvidia/cuquantum-appliance:25.03-x86_64
 apptainer pull ${image_name}.sif docker://${image_name}
 apptainer run --gpus all --rm ${image_name} \
-  python ~/workspace/stim-experiments/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
+  python ~/workspace/stim_experiments/stim_experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
