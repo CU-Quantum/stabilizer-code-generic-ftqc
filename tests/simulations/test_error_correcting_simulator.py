@@ -2,20 +2,20 @@ import pytest
 from cirq import Circuit, LineQubit, M, X
 from numpy import array
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 
-class TestErrorCorrectingCodeUtilities:
+class TestErrorCorrectingSimulator:
     @pytest.mark.parametrize('initial_state', [
         KET_ZERO_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX
     ])
     def test_multiple_measurements_on_same_qubit_only_uses_last_one(self, initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX):
         initial_state = KET_ZERO_STATE_VECTOR
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
 
         num_qubits = 1
         qubit = LineQubit(num_qubits)
@@ -39,7 +39,7 @@ class TestErrorCorrectingCodeUtilities:
         tensor(KET_ZERO_DENSITY_MATRIX, KET_ZERO_DENSITY_MATRIX)
     ])
     def test_measurements_on_different_qubits(self, initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX):
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
 
         qubits = LineQubit.range(2)
         circuit = Circuit(

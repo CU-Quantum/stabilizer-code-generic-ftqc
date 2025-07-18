@@ -1,19 +1,18 @@
-import random
 from typing import Optional
 
-import numpy.random
 import pytest
 from cirq import Circuit, H, I, X, Z, LineQubit
 
+from simulations.logical_operations_circuit_creator.logical_operations_circuit_creator import \
+    LogicalOperationsCircuitCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import LogicalOperationsCircuitCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
@@ -71,7 +70,7 @@ class TestLogicalOperationsCircuitCreator:
             simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
             circuit = simulator.get_simulation_circuit()
 
-            utilities = get_error_correcting_code_utilities(state=KET_ZERO_STATE_VECTOR)
+            utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
             result = utilities.get_state_after_circuit(
                 circuit=circuit,
                 num_data_qubits=len(simulator.data_qubits),

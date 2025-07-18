@@ -8,7 +8,7 @@ from numpy._typing import NDArray
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
@@ -59,7 +59,7 @@ class RandomEncodedInitialState:
 
 def get_random_encoded_initial_state(code: ErrorCorrectingCode) -> RandomEncodedInitialState:
     initial_coefficients = random_complex_unit_vector(num_qubits=code.num_logical_qubits)
-    utilities = get_error_correcting_code_utilities(state=initial_coefficients)
+    utilities = get_error_correcting_simulator(state=initial_coefficients)
     computational_basis_states = [int_to_binary_array(i, code.num_logical_qubits)
                                   for i in range(2 ** code.num_logical_qubits)]
     computational_basis_states_encoded = array([

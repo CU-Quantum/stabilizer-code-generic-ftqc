@@ -4,7 +4,7 @@ from datetime import datetime
 from cirq import depolarize
 
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import ErrorCorrectingCodeUtilitiesMultiGpu
+from simulations.error_correcting_simulator import ErrorCorrectingSimulatorMultiGpu
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
 if __name__ == "__main__":
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         start_time = datetime.now()
         print(f"{start_time}: Shot {shot + 1}/{num_shots}")
 
-        utilities = ErrorCorrectingCodeUtilitiesMultiGpu()
+        utilities = ErrorCorrectingSimulatorMultiGpu()
         result = utilities.get_state_after_circuit(
             circuit=circuit,
             num_data_qubits=num_qubits,

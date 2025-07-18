@@ -1,7 +1,7 @@
 import pytest
 from cirq import Circuit, LineQubit, X
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_single_qubit_hadamard_control import \
@@ -41,7 +41,7 @@ class TestOperationsApplierInstances:
         circuit = applier.get_application_circuit()
 
         initial_state = tensor(*[KET_MINUS_STATE_VECTOR] * num_data_qubits, KET_ZERO_STATE_VECTOR)
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
         simulation = utilities.get_state_after_circuit(circuit=circuit,
                                                        num_data_qubits=num_qubits_with_measure,
                                                        initial_data_state=initial_state)

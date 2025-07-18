@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, X
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -35,7 +35,7 @@ class TestCatStateCreatorBasicNondeterministic:
 
     def _successfully_created_3_qubit_cat_state(self, circuit: Circuit, noise_model: Optional[NoiseModel]):
         initial_state = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_qubits)
-        error_correction_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correction_utilities = get_error_correcting_simulator(state=initial_state)
 
         state = error_correction_utilities.get_state_after_circuit(circuit=circuit,
                                                                    num_data_qubits=self._num_qubits,

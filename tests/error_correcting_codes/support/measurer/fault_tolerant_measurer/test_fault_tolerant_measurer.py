@@ -1,8 +1,7 @@
-import numpy.random
 from cirq import LineQubit, MeasurementKey, Simulator, Z
 from numpy.ma.core import allequal, array
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
     FaultTolerantMeasurer
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -16,7 +15,7 @@ class TestFaultTolerantMeasurer:
         measurer = FaultTolerantMeasurer(operations=[], measurement_key=measurement_key)
         circuit = measurer.get_measurement_circuit()
         initial_state = KET_PLUS_STATE_VECTOR
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
         simulation = utilities.get_state_after_circuit(circuit=circuit,
                                                        num_data_qubits=1,
                                                        initial_data_state=initial_state)
@@ -31,7 +30,7 @@ class TestFaultTolerantMeasurer:
         circuit = measurer.get_measurement_circuit()
 
         initial_target_state = KET_PLUS_STATE_VECTOR
-        utilities = get_error_correcting_code_utilities(state=initial_target_state)
+        utilities = get_error_correcting_simulator(state=initial_target_state)
 
         num_trials = 5
         measurements = []

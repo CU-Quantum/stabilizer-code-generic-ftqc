@@ -3,7 +3,7 @@ from numpy import sqrt
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
@@ -31,7 +31,7 @@ class TestUniversalHadamardSingleAncilla:
         )
 
         initial_data_state = ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector()
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         state = utilities.get_state_after_circuit(
             circuit=circuit,
             num_data_qubits=len(code.data_qubits),
@@ -50,7 +50,7 @@ class TestUniversalHadamardSingleAncilla:
         )
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
                                                                    num_data_qubits=len(code.data_qubits),
                                                                    initial_data_state=initial_data_state)
@@ -75,7 +75,7 @@ class TestUniversalHadamardSingleAncilla:
         )
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
                                                                    num_data_qubits=len(code.data_qubits),
                                                                    initial_data_state=initial_data_state)
@@ -93,7 +93,7 @@ class TestUniversalHadamardSingleAncilla:
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
 
         hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
         simulated_state = utilities.get_state_after_circuit(
@@ -121,7 +121,7 @@ class TestUniversalHadamardSingleAncilla:
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(code.data_qubits))
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
 
         arbitrary_error = X(LineQubit(0))
         hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
