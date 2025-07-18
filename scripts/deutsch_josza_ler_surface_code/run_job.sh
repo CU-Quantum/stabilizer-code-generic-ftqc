@@ -7,8 +7,8 @@
 #SBATCH --ntasks=1
 #SBATCH --qos=normal
 #SBATCH --job-name=deutsch_josza
-#SBATCH --error=deutsch_josza_%j.err
-#SBATCH --output=deutsch_josza_%j.out
+#SBATCH --error=~/workspace/stim-experiments/results/deutsch_josza/deutsch_josza_%j.err
+#SBATCH --output=~/workspace/stim-experiments/results/deutsch_josza/deutsch_josza_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -20,10 +20,9 @@ conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:~/workspace/stim_experiments
-mkdir -p ~/workspace/stim_experiments/results/deutsch_josza
-cd ~/workspace/stim_experiments/results/deutsch_josza
+export PYTHONPATH=$PYTHONPATH:~/workspace/stim-experiments
+cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim_experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
+python ~/workspace/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
