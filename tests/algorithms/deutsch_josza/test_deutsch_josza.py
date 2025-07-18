@@ -9,7 +9,6 @@ from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
-@pytest.mark.slow
 class TestDeutschJosza:
     @pytest.fixture(autouse=True, params=range(3))
     def _setup(self, request):
@@ -49,6 +48,6 @@ class TestDeutschJosza:
         circuit = algorithm.get_circuit()
 
         runner = ErrorCorrectingRunnerClifford()
-        result = runner.run_circuit(circuit, num_shots=5)
+        result = runner.run_circuit(circuit)
         for measurements in result.measurements_per_shot:
             assert not allequal(measurements, [0, 0])

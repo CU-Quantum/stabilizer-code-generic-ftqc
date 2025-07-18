@@ -1,14 +1,15 @@
 import pytest
 from cirq import LineQubit
 
+from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding, LogicalEncodingIndex
 from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import CircuitFromOperationCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
-from tests.simulators.logical_operations_circuit_generator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
+from tests.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 

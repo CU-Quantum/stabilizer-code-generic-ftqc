@@ -13,13 +13,19 @@ class DeutschJosza:
         self._oracle_qubit_index = oracle_qubit_index
 
     def get_circuit(self) -> Circuit:
-        input_qubit_indices = [i for i in range(len(self._logical_qubits)) if i != self._oracle_qubit_index]
+        qubit_indices = range(len(self._logical_qubits))
+        input_qubit_indices = [i for i in qubit_indices if i != self._oracle_qubit_index]
         operations = [
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=self._oracle_qubit_index),
-            TransformationOperation(gate=TransformationGate.H, target_qubit_index=self._oracle_qubit_index),
+            *[TransformationOperation(gate=TransformationGate.H, target_qubit_index=i)
+              for i in qubit_indices],
+
             *self._oracle,
+
+            *[TransformationOperation(gate=TransformationGate.H, target_qubit_index=i)
+              for i in qubit_indices],
             TransformationOperation(gate=TransformationGate.X, target_qubit_index=self._oracle_qubit_index),
-            TransformationOperation(gate=TransformationGate.H, target_qubit_index=self._oracle_qubit_index),
+
             *[TransformationOperation(gate=TransformationGate.M, target_qubit_index=i)
               for i in input_qubit_indices]
         ]
