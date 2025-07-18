@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, NOISE_MODEL_LIKE, \
+from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, \
+    NOISE_MODEL_LIKE, \
     Simulator, \
     StateVectorTrialResult
 from qsimcirq import QSimOptions, QSimSimulator
@@ -15,7 +16,7 @@ from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZE
     trace_out_ancillas_in_zero_state
 
 
-class ErrorCorrectingCodeUtilities(ABC):
+class ErrorCorrectingSimulator(ABC):
     @property
     @abstractmethod
     def zero_state(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
@@ -59,7 +60,7 @@ class ErrorCorrectingCodeUtilities(ABC):
         return ConfigurationErrorCorrectingCodeManager().get_configuration().seed
 
 
-class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
+class ErrorCorrectingSimulatorDensityMatrix(ErrorCorrectingSimulator):
     @property
     def zero_state(self) ->  TYPE_DENSITY_MATRIX:
         return KET_ZERO_DENSITY_MATRIX
@@ -80,7 +81,7 @@ class ErrorCorrectingCodeUtilitiesDensityMatrix(ErrorCorrectingCodeUtilities):
         )
 
 
-class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
+class ErrorCorrectingSimulatorStateVector(ErrorCorrectingSimulator):
     @property
     def zero_state(self) -> TYPE_STATE_VECTOR:
         return KET_ZERO_STATE_VECTOR
@@ -99,7 +100,44 @@ class ErrorCorrectingCodeUtilitiesStateVector(ErrorCorrectingCodeUtilities):
         )
 
 
-class ErrorCorrectingCodeUtilitiesMultiGpu(ErrorCorrectingCodeUtilities):
+# class ErrorCorrectingSimulatorClifford(ErrorCorrectingSimulator):
+#     @property
+#     def zero_state(self) -> TYPE_STATE_VECTOR:
+#         return KET_ZERO_STATE_VECTOR
+#
+#     def get_state_after_circuit(self,
+#                                 circuit: Circuit,
+#                                 num_data_qubits: int,
+#                                 initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+#                                 noise_model: Optional[NOISE_MODEL_LIKE] = None,
+#                                 ) -> StateAndMeasurements:
+#         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
+#         num_ancillas = len(qubits) - num_data_qubits
+#
+#         simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, noise_model=noise_model)
+#         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
+#
+#         return StateAndMeasurements(
+#             state=data_state,
+#             measurements=simulation.measurements,
+#         )
+#
+#     def _get_simulation_result(self,
+#                                circuit: Circuit,
+#                                qubits: list[LineQubit],
+#                                initial_state: Optional[TYPE_STATE_VECTOR] = None,
+#                                noise_model: Optional[NOISE_MODEL_LIKE] = None,
+#                                ) -> StateAndMeasurements:
+#         circuit_noisy = circuit.with_noise(noise_model) if noise_model is not None else circuit
+#         simulator = CliffordSimulator(seed=self._seed)
+#         simulation: CliffordTrialResult = simulator.run(circuit_noisy)
+#         return StateAndMeasurements(
+#             state=simulation.final_state,
+#             measurements=dict(simulation.measurements),
+#         )
+
+
+class ErrorCorrectingSimulatorMultiGpu(ErrorCorrectingSimulator):
     """Must be run in cuQuantum Appliance Docker container. See https://quantumai.google/qsim/choose_hw for more information."""
     @property
     def zero_state(self) -> TYPE_STATE_VECTOR:
@@ -120,5 +158,5 @@ class ErrorCorrectingCodeUtilitiesMultiGpu(ErrorCorrectingCodeUtilities):
         )
 
 
-def get_error_correcting_code_utilities(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> ErrorCorrectingCodeUtilities:
-    return ErrorCorrectingCodeUtilitiesStateVector() if is_state_vector(state=state) else ErrorCorrectingCodeUtilitiesDensityMatrix()
+def get_error_correcting_simulator(state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> ErrorCorrectingSimulator:
+    return ErrorCorrectingSimulatorStateVector() if is_state_vector(state=state) else ErrorCorrectingSimulatorDensityMatrix()

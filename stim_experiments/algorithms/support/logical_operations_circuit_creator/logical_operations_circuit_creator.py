@@ -1,14 +1,14 @@
-from cirq import Circuit, I, LineQubit
+from cirq import Circuit, LineQubit
 from proto.utils import cached_property
 
+from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
+from algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
+    TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import \
-    CircuitFromOperationCreator
-from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
-    TransformationOperationToSimulationOperationConverter
 
 
 class LogicalOperationsCircuitCreator:
@@ -27,9 +27,17 @@ class LogicalOperationsCircuitCreator:
             ).get_simulation_operation()
             for operation in self._operations
         ]
-        return Circuit(
+        operations_circuits = [
             CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
             for simulation_operation in simulation_operations
+        ]
+        encoding_circuits = [
+            encoding.encode_logical_qubit()
+            for encoding in self._encodings
+        ]
+        return Circuit(
+            encoding_circuits,
+            operations_circuits,
         )
 
     def _ensure_enough_logical_qubits(self) -> None:

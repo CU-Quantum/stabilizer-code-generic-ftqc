@@ -1,7 +1,7 @@
 from cirq import Circuit, I, LineQubit
 from numpy import sqrt
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -18,7 +18,7 @@ class TestCatStateCreatorCxFromFirstQubit:
         )
 
         initial_state = KET_ZERO_STATE_VECTOR
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                         num_data_qubits=1,
                                                                         initial_data_state=initial_state)
@@ -30,7 +30,7 @@ class TestCatStateCreatorCxFromFirstQubit:
         circuit = creator.get_cat_state_circuit()
 
         initial_state = KET_ZERO_STATE_VECTOR
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                         num_data_qubits=len(qubits),
                                                                         initial_data_state=initial_state)
@@ -43,7 +43,7 @@ class TestCatStateCreatorCxFromFirstQubit:
         circuit = creator.get_cat_state_circuit()
 
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
-        error_correcting_code_utilities = get_error_correcting_code_utilities(state=initial_state)
+        error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
         state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
                                                                         num_data_qubits=len(qubits),
                                                                         initial_data_state=initial_state)

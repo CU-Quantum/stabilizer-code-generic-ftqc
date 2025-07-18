@@ -1,16 +1,15 @@
 import pytest
-from cirq import Circuit, LineQubit, X
-from numpy import sqrt
+from cirq import Circuit
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
+from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
-    get_check_matrix_values_5_qubit, get_check_matrix_values_8_qubit
+    get_check_matrix_values_5_qubit
 
 
 class TestStabilizerStandardizedCode:
@@ -23,7 +22,7 @@ class TestStabilizerStandardizedCode:
         )
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
                                                                    num_data_qubits=len(code.data_qubits),
                                                                    initial_data_state=initial_data_state)

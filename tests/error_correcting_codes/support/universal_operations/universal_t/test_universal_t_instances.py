@@ -3,7 +3,7 @@ import pytest
 from cirq import Circuit
 
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -39,7 +39,7 @@ class TestUniversalTInstances:
 
         encoded_initial_state = get_random_encoded_initial_state(code=code)
         initial_state = encoded_initial_state.initial_state
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
@@ -69,7 +69,7 @@ class TestUniversalTInstances:
         initial_state = encoded_initial_state.initial_state
         initial_coefficients = encoded_initial_state.initial_coefficients
         computational_basis_states = encoded_initial_state.computational_basis_states
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
 
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(

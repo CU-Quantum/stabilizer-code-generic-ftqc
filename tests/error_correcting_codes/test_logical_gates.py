@@ -5,7 +5,7 @@ from cirq import Circuit, I
 from numpy import sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
@@ -90,7 +90,7 @@ class TestLogicalGates:
         initial_data_state = self._parameters.expected_states.get_logical_zero_state_vector()
         expected_state = self._parameters.expected_states.get_logical_one_state_vector()
 
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         current_state = utilities.get_state_after_circuit(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],
@@ -114,7 +114,7 @@ class TestLogicalGates:
             - self._parameters.expected_states.get_logical_one_state_vector()
         )
 
-        utilities = get_error_correcting_code_utilities(state=initial_data_state)
+        utilities = get_error_correcting_simulator(state=initial_data_state)
         simulated_state = utilities.get_state_after_circuit(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],

@@ -4,14 +4,14 @@ from typing import List, Optional
 import pytest
 from cirq import Circuit, H, LineQubit, T, X, Z
 
+from algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
+    TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
 from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation, TargetEncoding
-from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
-    TransformationOperationToSimulationOperationConverter
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
 

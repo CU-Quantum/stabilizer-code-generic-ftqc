@@ -1,6 +1,6 @@
 from cirq import Circuit, LineQubit, MeasurementKey, X, Z
 
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
@@ -23,7 +23,7 @@ class TestMeasurerWithSingleQubit:
         circuit = measurer.get_measurement_circuit()
 
         initial_state = KET_PLUS_STATE_VECTOR
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
 
         num_trials = 5
         measurements = []
@@ -44,7 +44,7 @@ class TestMeasurerWithSingleQubit:
         circuit = measurer.get_measurement_circuit()
 
         initial_state = tensor(KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR)
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
 
         num_trials = 5
         measurements = []

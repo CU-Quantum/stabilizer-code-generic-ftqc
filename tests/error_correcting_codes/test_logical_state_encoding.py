@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import pytest
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
-    get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import \
+    get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
@@ -163,7 +163,7 @@ class TestLogicalStateEncoding:
 
     def test_encoding(self):
         encoding = self._parameters.code.encode_logical_qubit()
-        utilities = get_error_correcting_code_utilities(state=self._parameters.initial_data_state)
+        utilities = get_error_correcting_simulator(state=self._parameters.initial_data_state)
         data_state = utilities.get_state_after_circuit(circuit=encoding,
                                                        num_data_qubits=len(self._parameters.code.data_qubits),
                                                        initial_data_state=self._parameters.initial_data_state).state

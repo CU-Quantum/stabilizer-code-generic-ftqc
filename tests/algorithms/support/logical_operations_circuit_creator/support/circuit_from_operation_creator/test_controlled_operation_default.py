@@ -1,23 +1,22 @@
-from cmath import exp, pi, sqrt
+from cmath import exp, sqrt
 
 import pytest
 from cirq import Circuit, LineQubit, rz
 
+from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, SimulationOperation, \
     TargetEncoding
-from stim_experiments.error_correcting_codes.error_correcting_code_utilities import \
-    ErrorCorrectingCodeUtilitiesStateVector, get_error_correcting_code_utilities
+from simulations.error_correcting_simulator import \
+    get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import \
-    CircuitFromOperationCreator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
-from tests.error_correcting_codes.support.universal_operations.universal_t.test_universal_t_instances import T_ROTATION
-from tests.simulators.simulator_using_circuits.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
+from tests.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
 from tests.utilities import set_configuration_to_reduce_ancilla_qubits
 
@@ -47,7 +46,7 @@ class TestControlledOperation:
         )
 
         initial_state = tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
         simulated_state = utilities.get_state_after_circuit(
             circuit=circuit,
@@ -79,7 +78,7 @@ class TestControlledOperation:
         )
 
         initial_state = tensor(KET_PLUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR)
-        utilities = get_error_correcting_code_utilities(state=initial_state)
+        utilities = get_error_correcting_simulator(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
         simulated_state = utilities.get_state_after_circuit(
             circuit=circuit,
