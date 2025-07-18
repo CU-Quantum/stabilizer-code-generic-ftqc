@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime
 
 import numpy as np
-from cirq import CliffordSimulator, Result, depolarize
+from cirq import LineQubit, depolarize
 
 from custom_dataclasses.state_and_measurements import Measurements
 from custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
@@ -16,7 +16,7 @@ if __name__ == "__main__":
         description='Runs the Deutsch-Josza algorithm using surface code and calculates the percentage of logical errors in the result.')
     parser.add_argument('-s', '--num-shots', type=int, default=1, help='Number of shots to run the algorithm for.')
     parser.add_argument('-q', '--num-input-qubits', type=int, default=2, help='Number of input qubits.')
-    parser.add_argument('-d', '--surface-code-distance', type=int, default=5, help='Surface code distance.')
+    parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-b', '--is-balanced', action="store_true", help='Surface code distance.')
     args = parser.parse_args()
     print(f"Running Deutsch-Josza Logical Error Rate Calculator with arguments: {args}")
@@ -27,11 +27,15 @@ if __name__ == "__main__":
     is_balanced = args.is_balanced
 
     num_oracle_qubits = 1
-    num_qubits = num_input_qubits + num_oracle_qubits
+    num_logical_qubits = num_input_qubits + num_oracle_qubits
     oracle_qubit_index = num_input_qubits
 
-    logical_qubits = [MultipleCatCode(num_cats=surface_code_distance, num_qubits_per_cat=surface_code_distance)
-                      for _ in range(num_qubits)]
+    encoding = MultipleCatCode(num_cats=surface_code_distance, num_qubits_per_cat=surface_code_distance)
+    num_qubits_per_encoding = len(encoding.data_qubits)
+    qubits = LineQubit.range(num_logical_qubits * num_qubits_per_encoding)
+    logical_qubits = [encoding.create_new(qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])
+                      for i in range(num_logical_qubits)]
+
     oracle = [
         TransformationOperation(gate=TransformationGate.CX, control_qubit_index=i, target_qubit_index=oracle_qubit_index)
         for i in range(num_input_qubits)
