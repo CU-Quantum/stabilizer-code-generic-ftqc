@@ -3,11 +3,10 @@ from cirq import LineQubit
 from numpy.ma.core import allequal
 
 from simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
-from tests.utilities import set_seed
+from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 @pytest.mark.slow
@@ -15,6 +14,7 @@ class TestDeutschJosza:
     @pytest.fixture(autouse=True, params=range(3))
     def _setup(self, request):
         set_seed(request.param)
+        set_configuration_to_reduce_ancilla_qubits()
 
     def test_deutsch_josza_constant(self):
         num_logical_qubits = 3

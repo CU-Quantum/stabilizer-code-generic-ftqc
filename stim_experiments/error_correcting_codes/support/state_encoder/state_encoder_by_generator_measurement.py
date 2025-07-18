@@ -27,9 +27,10 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
                 [
                     self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
                                         measurement_key=measurement_key).get_measurement_circuit(),
-                    CircuitOperation(
-                        FrozenCircuit(self._phase_corrections[generator_index]),
-                    ).with_classical_controls(measurement_key),
+                    [
+                        phase_correction.with_classical_controls(measurement_key)
+                        for phase_correction in self._phase_corrections[generator_index]
+                    ],
                 ]
                 for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, generators))
             ],
