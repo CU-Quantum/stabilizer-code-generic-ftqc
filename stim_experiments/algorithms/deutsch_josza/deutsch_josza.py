@@ -1,9 +1,9 @@
 from cirq import Circuit
 
+from simulations.logical_operations_circuit_creator.logical_operations_circuit_creator import \
+    LogicalOperationsCircuitCreator
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import \
-    LogicalOperationsCircuitCreator
 
 
 class DeutschJosza:

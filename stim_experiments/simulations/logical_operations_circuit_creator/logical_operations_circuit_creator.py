@@ -1,14 +1,14 @@
 from cirq import Circuit, I, LineQubit
 from proto.utils import cached_property
 
+from simulations.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+    CircuitFromOperationCreator
+from simulations.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
+    TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.simulators.simulator_using_circuits.support.circuit_from_operation_creator import \
-    CircuitFromOperationCreator
-from stim_experiments.simulators.simulator_using_circuits.support.transformation_operation_to_simulation_operation import \
-    TransformationOperationToSimulationOperationConverter
 
 
 class LogicalOperationsCircuitCreator:
