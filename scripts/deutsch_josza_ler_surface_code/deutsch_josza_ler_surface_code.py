@@ -4,7 +4,9 @@ from datetime import datetime
 import numpy as np
 from cirq import CliffordSimulator, Result, depolarize
 
+from custom_dataclasses.state_and_measurements import Measurements
 from custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
@@ -38,15 +40,12 @@ if __name__ == "__main__":
     circuit = algorithm.get_circuit()
 
     noise_model = depolarize(p=1e-4)
-    circuit_noisy = circuit.with_noise(noise_model)  # TODO apply noise model to CircuitOperations and FrozenCircuits
-    simulator = CliffordSimulator()
+    simulator = ErrorCorrectingRunnerClifford()
     start_time = datetime.now()
     print(f"{start_time}: Start simulation")
-    result: Result = simulator.run(circuit_noisy, repetitions=num_shots)
+    result: Measurements = simulator.run_circuit(circuit, num_shots=num_shots, noise_model=noise_model)
     print(f"    {datetime.now() - start_time}: End simulation")
-    logical_qubit_measurements = {k: v for k, v in result.records.items() if k.isdigit()}
-    measurements_per_shot = np.array(list(logical_qubit_measurements.values())).transpose()[0][0]
-    sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1)
+    sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
     nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
-    print(f"    Measurements per shot: {measurements_per_shot}")
+    print(f"    Measurements per shot: {result.measurements_per_shot}")
     print(f"    {abs(num_shots * (not is_balanced) - nonzero_shots) / num_shots * 100:.1f}% success rate.")
