@@ -7,8 +7,8 @@
 #SBATCH --ntasks=1
 #SBATCH --qos=normal
 #SBATCH --job-name=deutsch_josza
-#SBATCH --error=~/workspace/stim-experiments/results/deutsch_josza/deutsch_josza_%j.err
-#SBATCH --output=~/workspace/stim-experiments/results/deutsch_josza/deutsch_josza_%j.out
+#SBATCH --error=deutsch_josza_%j.err
+#SBATCH --output=deutsch_josza_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
