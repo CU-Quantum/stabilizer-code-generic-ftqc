@@ -4,9 +4,9 @@ from datetime import datetime
 import numpy as np
 from cirq import LineQubit, depolarize
 
-from custom_dataclasses.state_and_measurements import Measurements
-from custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
+from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
+from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 

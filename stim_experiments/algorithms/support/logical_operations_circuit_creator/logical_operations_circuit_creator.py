@@ -1,9 +1,9 @@
 from cirq import Circuit, LineQubit
 from proto.utils import cached_property
 
-from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
-from algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation

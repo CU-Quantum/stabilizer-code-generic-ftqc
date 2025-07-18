@@ -4,7 +4,7 @@ from typing import Optional
 from cirq import CliffordSimulator, NOISE_MODEL_LIKE, Result
 from qsimcirq.qsim_avx2 import Circuit
 
-from custom_dataclasses.state_and_measurements import Measurements
+from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 
 
 class ErrorCorrectingRunner(ABC):

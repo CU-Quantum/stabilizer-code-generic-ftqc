@@ -2,9 +2,9 @@ import pytest
 from cirq import Circuit, LineQubit, M, X
 from numpy import array
 
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ZERO_DENSITY_MATRIX, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, tensor
 
