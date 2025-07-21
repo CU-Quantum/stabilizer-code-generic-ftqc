@@ -6,6 +6,7 @@ from cirq import LineQubit, depolarize
 
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -18,6 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('-q', '--num-input-qubits', type=int, default=2, help='Number of input qubits.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-b', '--is-balanced', action="store_true", help='Surface code distance.')
+    parser.add_argument('-r', '--num-measurement-rounds', type=int, help='Number of tiems to measure for majority voting.')
     args = parser.parse_args()
     print(f"Running Deutsch-Josza Logical Error Rate Calculator with arguments: {args}")
 
@@ -25,6 +27,7 @@ if __name__ == "__main__":
     num_input_qubits = args.num_input_qubits
     surface_code_distance = args.surface_code_distance
     is_balanced = args.is_balanced
+    num_measurement_rounds = args.num_measurement_rounds
 
     num_oracle_qubits = 1
     num_logical_qubits = num_input_qubits + num_oracle_qubits
@@ -43,7 +46,8 @@ if __name__ == "__main__":
     algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
     circuit = algorithm.get_circuit()
 
-    noise_model = depolarize(p=1e-4)
+    ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions = num_measurement_rounds
+    noise_model = None#depolarize(p=1e-4)
     simulator = ErrorCorrectingRunnerClifford()
     start_time = datetime.now()
     print(f"{start_time}: Start simulation")
