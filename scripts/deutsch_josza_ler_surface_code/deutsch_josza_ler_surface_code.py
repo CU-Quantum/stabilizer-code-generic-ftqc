@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument('-q', '--num-input-qubits', type=int, default=2, help='Number of input qubits.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-b', '--is-balanced', action="store_true", help='Surface code distance.')
-    parser.add_argument('-r', '--num-measurement-rounds', type=int, help='Number of tiems to measure for majority voting.')
+    parser.add_argument('-r', '--num-measurement-rounds', type=int, default=0, help='Number of times to measure for majority voting.')
     args = parser.parse_args()
     print(f"Running Deutsch-Josza Logical Error Rate Calculator with arguments: {args}")
 
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     num_input_qubits = args.num_input_qubits
     surface_code_distance = args.surface_code_distance
     is_balanced = args.is_balanced
-    num_measurement_rounds = args.num_measurement_rounds
+    num_measurement_rounds = args.num_measurement_rounds or surface_code_distance
 
     num_oracle_qubits = 1
     num_logical_qubits = num_input_qubits + num_oracle_qubits
