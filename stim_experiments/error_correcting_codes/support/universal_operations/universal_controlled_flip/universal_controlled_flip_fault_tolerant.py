@@ -30,7 +30,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
                 self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.multiple_cat_code, qubit_index_relative=0)).get_hadamard_circuit(),
                 self._c_helpers_to_target(context=context),
                 self._measure_out_helper(context=context),
-                self._reset_ancilla_qubits(context=context),
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)), # FrozenCircuit in order to ensure separate moment from measurement
             )
 
     def _encode_three_cat(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:

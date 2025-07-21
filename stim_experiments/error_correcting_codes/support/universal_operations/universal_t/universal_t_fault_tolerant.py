@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Generator
 
-from cirq import Circuit, LineQubit, OP_TREE, R
+from cirq import Circuit, FrozenCircuit, LineQubit, OP_TREE, R
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import TargetEncoding
@@ -30,7 +30,7 @@ class UniversalTFaultTolerant(UniversalT):
                 self._cx_code_to_tetrahedral(context=context),
                 self._perform_t_on_tetrahedral(context=context),
                 self._cx_code_to_tetrahedral(context=context),
-                self._reset_ancilla_qubits(context=context),
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)), # FrozenCircuit in order to ensure separate moment from measurement
             )
 
     def _encode_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:

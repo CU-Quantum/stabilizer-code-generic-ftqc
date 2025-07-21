@@ -14,6 +14,7 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
 class DeutschJoszaLerSurfaceCode:
@@ -33,8 +34,6 @@ class DeutschJoszaLerSurfaceCode:
         self._num_measurement_rounds = num_measurement_rounds
         self._depolarization_probability_one_qubit = depolarization_probability_one_qubit
         self._depolarization_probability_two_qubit = depolarization_probability_two_qubit
-
-        self._num_noisy_operations = 0
 
     def run_main(self):
         print(f"Running Deutsch-Josza Logical Error Rate Calculator with arguments: {args}")
@@ -57,23 +56,17 @@ class DeutschJoszaLerSurfaceCode:
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
         circuit = algorithm.get_circuit()
 
+        noisy_circuit = NoisyCircuitCreator(circuit=circuit).get_noisy_circuit()
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
-        map_func = partial(self.add_noisy_moment, inactive_qubits_all=set(qubits))
-        noisy_circuit = map_moments(circuit=circuit, map_func=map_func, deep=True)
         print(f"{start_time}: Start simulation")
-        print(f"    {self._num_noisy_operations} noisy operations")
-        result: Measurements = simulator.run_circuit(noisy_circuit, num_shots=self._num_shots)
-        print(f"    {datetime.now() - start_time}: End simulation")
+        print(f"    {noisy_circuit.num_noisy_operations} noisy operations")
+        result: Measurements = simulator.run_circuit(noisy_circuit.circuit, num_shots=self._num_shots)
+        print(f"    Time Taken: {datetime.now() - start_time}")
         sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
         print(f"    Measurements per shot: {result.measurements_per_shot}")
         print(f"    {abs(self._num_shots * (not self._is_balanced) - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
-
-    def add_noisy_moment(self, moment: Moment, moment_index: int, inactive_qubits_all: set[Qid]) -> Sequence[Moment]:
-        noisy_moment = self._configuration.noise_parameters.add_noisy_moment(moment, moment_index, inactive_qubits_all)
-        self._num_noisy_operations += noisy_moment.num_noisy_operations
-        return noisy_moment.moments
 
     @property
     def _configuration(self) -> ConfigurationErrorCorrectingCode:

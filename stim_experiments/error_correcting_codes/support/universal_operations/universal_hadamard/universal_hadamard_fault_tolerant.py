@@ -23,7 +23,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                 self._encode_three_cat(context=context),
                 self._czx_helpers_to_data(context=context),
                 self._measure_out_helper(context=context),
-                self._reset_ancilla_qubits(context=context),
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
             )
 
     def _encode_three_cat(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
