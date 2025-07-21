@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from cirq import Circuit, MeasurementKey, Operation
+from cirq import Circuit, FrozenCircuit, MeasurementKey, Moment, Operation
 
 from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
@@ -30,7 +30,7 @@ class ErrorRecoveryByStabilizers:
 
         return Circuit(
             syndrome_operations,
-            recovery_operations,
+            FrozenCircuit(recovery_operations),  # FrozenCircuit in order to ensure separate moment from syndrome extraction
         )
 
     @property

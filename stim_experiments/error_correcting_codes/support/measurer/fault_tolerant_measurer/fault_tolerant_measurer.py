@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, M, R
+from cirq import Circuit, CircuitOperation, M, R, TaggedOperation
 
 from stim_experiments.conditions.majority_vote import \
     MajorityVote
@@ -16,13 +16,16 @@ class FaultTolerantMeasurer(Measurer):
                                                             measurement_qubit=measurement_qubit)
             condition = MajorityVote(desired_measurement_key=self._measurement_key)
             return Circuit(
-                CircuitOperation(
-                    Circuit(
-                        applier.get_application_circuit(),
-                        M(measurement_qubit, key=condition.key),
-                        R(measurement_qubit),
-                    ).freeze(),
-                    use_repetition_ids=False,
-                    repeat_until=condition
-                ),
+                TaggedOperation(
+                    CircuitOperation(
+                        Circuit(
+                            applier.get_application_circuit(),
+                            M(measurement_qubit, key=condition.key),
+                            R(measurement_qubit),
+                        ).freeze(),
+                        use_repetition_ids=False,
+                        repeat_until=condition
+                    ),
+                    'FAULT_TOLERANT_MEASURER'
+                )
             )
