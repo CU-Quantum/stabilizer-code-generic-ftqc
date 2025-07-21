@@ -7,6 +7,7 @@ import numpy as np
 from cirq import Circuit, LineQubit, Moment, NoiseModel, OP_TREE, OpIdentifier, Operation, Qid, depolarize, map_moments
 from cirq.devices import InsertionNoiseModel
 
+from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -81,6 +82,7 @@ class DeutschJoszaLerSurfaceCode:
         num_oracle_qubits = 1
         num_logical_qubits = self._num_input_qubits + num_oracle_qubits
         oracle_qubit_index = self._num_input_qubits
+        self._configuration.majority_vote_repetitions = self._num_measurement_rounds
 
         encoding = MultipleCatCode(num_cats=self._surface_code_distance, num_qubits_per_cat=self._surface_code_distance)
         num_qubits_per_encoding = len(encoding.data_qubits)
@@ -95,43 +97,27 @@ class DeutschJoszaLerSurfaceCode:
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
         circuit = algorithm.get_circuit()
 
-        ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions = self._num_measurement_rounds
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         map_func = partial(self.add_noisy_moment, inactive_qubits_all=set(qubits))
         map_moments(circuit=circuit, map_func=map_func, deep=True)
         print(f"{start_time}: Start simulation")
-        print(f"    {self._num_noisy_operations} noisy operations.")
+        print(f"    {self._num_noisy_operations} noisy operations")
         result: Measurements = simulator.run_circuit(circuit, num_shots=self._num_shots)
         print(f"    {datetime.now() - start_time}: End simulation")
         sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
         print(f"    Measurements per shot: {result.measurements_per_shot}")
-        print(f"    {abs(self._num_shots * (not self._is_balanced) - nonzero_shots) / self._num_shots * 100:.1f}% success rate.")
+        print(f"    {abs(self._num_shots * (not self._is_balanced) - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
 
     def add_noisy_moment(self, moment: Moment, moment_index: int, inactive_qubits_all: set[Qid]) -> Sequence[Moment]:
-        inactive_qubits = inactive_qubits_all.copy()
-        operations = moment.operations
-        noise_ops: List[Operation] = []
-        for operation in operations:
-            if len(operation.qubits) > 2:
-                continue
-            noise_probability = self._depolarization_probability_one_qubit \
-                if len(operation.qubits) == 1 \
-                else self._depolarization_probability_two_qubit
-            for qubit in operation.qubits:
-                noise_ops.append(depolarize(p=noise_probability).on(qubit))
-                inactive_qubits.discard(qubit)
-                self._num_noisy_operations += 1
-        noise_steps = Circuit(
-            noise_ops,
-            [
-                depolarize(p=self._depolarization_probability_one_qubit).on(qubit)
-                for qubit in inactive_qubits
-            ]
-        )
-        return [moment, *noise_steps.moments]
+        noisy_moment = self._configuration.noise_parameters.add_noisy_moment(moment, moment_index, inactive_qubits_all)
+        self._num_noisy_operations += noisy_moment.num_noisy_operations
+        return noisy_moment.moments
 
+    @property
+    def _configuration(self) -> ConfigurationErrorCorrectingCode:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

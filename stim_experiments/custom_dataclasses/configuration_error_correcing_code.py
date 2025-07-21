@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
+from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
@@ -12,11 +13,12 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 
 @dataclass
 class ConfigurationErrorCorrectingCode:
-    majority_vote_repetitions = 3
-    measurer_type: type[Measurer]
     cat_state_creator_type: type[CatStateCreator]
+    majority_vote_repetitions: int
+    measurer_type: type[Measurer]
+    noise_parameters: NoiseParameters
+    num_cat_states: int
+    seed: Optional[int]
     universal_hadamard_type: type[UniversalHadamard]
     universal_controlled_operation_type: type[UniversalControlledOperation]
     universal_t_type: type[UniversalT]
-    num_cat_states: int = 3
-    seed: Optional[int] = None

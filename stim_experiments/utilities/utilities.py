@@ -1,5 +1,6 @@
 import numpy as np
-from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, density_matrix_from_state_vector, kron
+from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, \
+    density_matrix_from_state_vector, kron
 from numpy import allclose, array, log2, trace
 from numpy._typing import NDArray
 
