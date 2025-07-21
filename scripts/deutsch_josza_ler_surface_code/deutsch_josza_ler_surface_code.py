@@ -16,46 +16,6 @@ from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
 
-class OneAndTwoQubitGateDepolarization(NoiseModel):
-    def __init__(self, depolarization_probability_one_qubit: float, depolarization_probability_two_qubit: float):
-        super().__init__()
-        self._depolarization_probability_one_qubit = depolarization_probability_one_qubit
-        self._depolarization_probability_two_qubit = depolarization_probability_two_qubit
-        self.num_noisy_operations = 0
-
-    def noisy_moment(self, moment: Moment, system_qubits: Sequence[Qid]) -> OP_TREE:
-        op_tree, inactive_qubits = self._noisy_moment(moment=moment, inactive_qubits=set(system_qubits))
-        inactive_depolarization = Circuit(
-            depolarize(p=self._depolarization_probability_one_qubit).on(qubit)
-            for qubit in inactive_qubits
-        )
-        return [op_tree, *inactive_depolarization.moments]
-
-    def _noisy_moment(self, moment: Moment, inactive_qubits: set[Qid]) -> (OP_TREE, set[Qid]):
-        operations = moment.operations
-
-        noise_ops: List[Operation] = []
-        for operation in operations:
-            if hasattr(operation, 'circuit'):
-                noise_ops_prime: List[Operation] = []
-                for mom in operation.circuit.moments:
-                    op_tree, inactive_qubits = self._noisy_moment(moment=mom, inactive_qubits=inactive_qubits)
-                    noise_ops_prime.append(op_tree)
-                noisy_circuit = Circuit(noise_ops_prime)
-                operation.circuit = noisy_circuit.freeze()
-            else:
-                noise_probability = self._depolarization_probability_one_qubit \
-                    if len(operation.qubits) == 1 \
-                    else self._depolarization_probability_two_qubit
-                for qubit in operation.qubits:
-                    noise_ops.append(depolarize(p=noise_probability).on(qubit))
-                    inactive_qubits.discard(qubit)
-                    self.num_noisy_operations += 1
-        noise_steps = Circuit(noise_ops)
-
-        return [moment, *noise_steps.moments], inactive_qubits
-
-
 class DeutschJoszaLerSurfaceCode:
     def __init__(self,
                  num_shots: int,
