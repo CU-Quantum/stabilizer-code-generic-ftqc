@@ -15,6 +15,7 @@ class UniversalTSingleAncilla(UniversalT):
             ancilla_qubit = ancilla_qubits[0]
             cz_ancilla_to_control = CircuitOperation(logical_z_control.freeze()).controlled_by(ancilla_qubit)
             return Circuit(
+                R(ancilla_qubit),
                 H(ancilla_qubit),
                 cz_ancilla_to_control,
                 H(ancilla_qubit),

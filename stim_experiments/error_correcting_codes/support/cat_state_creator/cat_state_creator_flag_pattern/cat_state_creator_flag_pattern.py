@@ -56,6 +56,7 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             ancilla = ancilla_qubits[0]
             return [
+                R(ancilla),
                 X(ancilla).controlled_by(self._qubit_register[self._parity_check_infos[0].control_qubit_index]),
                 [
                     [

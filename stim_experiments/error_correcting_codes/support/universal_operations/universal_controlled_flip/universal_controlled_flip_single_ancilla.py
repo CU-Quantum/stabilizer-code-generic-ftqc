@@ -24,6 +24,7 @@ class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
                 for op in self._target.encoding.get_operation_circuit(self._target.operation).all_operations()
             ]
             circuit = Circuit(
+                R(ancilla_qubit),
                 H(ancilla_qubit),
                 cz_ancilla_to_control,
                 H(ancilla_qubit),

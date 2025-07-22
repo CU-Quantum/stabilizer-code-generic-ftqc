@@ -20,6 +20,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
     def get_hadamard_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
                 self._encode_three_cat(context=context),
                 self._czx_helpers_to_data(context=context),
                 self._measure_out_helper(context=context),

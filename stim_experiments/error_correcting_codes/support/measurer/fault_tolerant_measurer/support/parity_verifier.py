@@ -15,6 +15,7 @@ class ParityVerifier:
             verifier_ancilla = ancillas[0]
             return Circuit(
                     [
+                        R(verifier_ancilla),
                         X(verifier_ancilla).controlled_by(self._target_qubits[i]),
                         X(verifier_ancilla).controlled_by(self._target_qubits[i + 1]),
                         M(verifier_ancilla, key=self._measurement_key),

@@ -26,6 +26,7 @@ class UniversalTFaultTolerant(UniversalT):
     def get_t_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)), # FrozenCircuit in order to ensure separate moment from measurement
                 self._encode_tetrahedral(context=context),
                 self._cx_code_to_tetrahedral(context=context),
                 self._perform_t_on_tetrahedral(context=context),

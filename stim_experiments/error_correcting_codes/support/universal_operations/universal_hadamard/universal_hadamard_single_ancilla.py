@@ -27,6 +27,7 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
                 for logical_operation in logical_operations
             )
             circuit = Circuit(
+                R(ancilla_qubit),
                 H(ancilla_qubit),
                 logical_cx,
                 logical_cz,

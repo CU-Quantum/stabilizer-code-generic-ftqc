@@ -25,6 +25,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
+                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
                 self._encode_three_cat(context=context),
                 self._cz_helpers_to_control(context=context),
                 self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.multiple_cat_code, qubit_index_relative=0)).get_hadamard_circuit(),
@@ -90,7 +91,8 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         ).all_operations())
         target_logical_operations = list(self._target.encoding.get_operation_circuit(self._target.operation).all_operations())
 
-        num_qubits_for_logical_operations = max(len(control_logical_z), len(target_logical_operations))
+        minimum_qubits_per_subregister = 3
+        num_qubits_for_logical_operations = max(len(control_logical_z), len(target_logical_operations), minimum_qubits_per_subregister)
         return UniversalOperationsUtilities(num_qubits_for_logical_operations=num_qubits_for_logical_operations)
 
     def _get_control_logical_operations(self, gate_label: LogicalGateLabel) -> list[Operation]:

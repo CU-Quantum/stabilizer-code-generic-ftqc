@@ -80,7 +80,7 @@ if __name__ == "__main__":
     parser.add_argument('-q', '--num-input-qubits', type=int, default=2, help='Number of input qubits.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-b', '--is-balanced', action="store_true", help='Surface code distance.')
-    parser.add_argument('-r', '--num-measurement-rounds', type=int, default=0, help='Number of times to measure for majority voting.')
+    parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
     args = parser.parse_args()
 
     DeutschJoszaLerSurfaceCode(

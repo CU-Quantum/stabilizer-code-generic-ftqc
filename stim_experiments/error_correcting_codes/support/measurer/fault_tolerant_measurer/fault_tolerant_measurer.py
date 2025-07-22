@@ -8,6 +8,9 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
+FAULT_TOLERANT_MEASURER_TAG = 'FAULT_TOLERANT_MEASURER'
+
+
 class FaultTolerantMeasurer(Measurer):
     def get_measurement_circuit(self) -> Circuit:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
@@ -19,6 +22,7 @@ class FaultTolerantMeasurer(Measurer):
                 TaggedOperation(
                     CircuitOperation(
                         Circuit(
+                            R(measurement_qubit),
                             applier.get_application_circuit(),
                             M(measurement_qubit, key=condition.key),
                             R(measurement_qubit),
@@ -26,6 +30,6 @@ class FaultTolerantMeasurer(Measurer):
                         use_repetition_ids=False,
                         repeat_until=condition
                     ),
-                    'FAULT_TOLERANT_MEASURER'
+                    FAULT_TOLERANT_MEASURER_TAG
                 )
             )
