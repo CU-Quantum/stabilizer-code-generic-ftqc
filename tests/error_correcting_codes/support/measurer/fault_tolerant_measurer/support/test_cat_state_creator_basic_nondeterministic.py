@@ -58,7 +58,7 @@ class BitFlipOnceNoiseModel(NoiseModel):
         self._added_noise = False
 
     def noisy_operation(self, operation: Operation) -> OP_TREE:
-        circuit = operation.circuit.unfreeze()
+        circuit = operation.untagged.circuit.unfreeze()
         circuit.insert(1, BitFlipOnceChannel().on(operation.qubits[1]))
         return CircuitOperation(circuit.freeze(), use_repetition_ids=False, repeat_until=operation.repeat_until),
 
