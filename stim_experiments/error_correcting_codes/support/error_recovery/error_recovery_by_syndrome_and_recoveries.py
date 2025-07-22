@@ -14,11 +14,13 @@ class ErrorRecoveryByStabilizers:
         self._recoveries = recoveries
 
     def get_error_correction_circuit(self) -> Circuit:
-        measurement_key = MeasurementKey(f'ERROR_RECOVERY_{uuid4()}')
+        tag = uuid4().hex
+        measurement_key = MeasurementKey(f'ERROR_RECOVERY_{tag}')
         syndrome_operations = [
             self._measurer_type(
                 operations=operations,
                 measurement_key=measurement_key,
+                tag=tag,
             ).get_measurement_circuit()
             for operations in self._stabilizers
         ]

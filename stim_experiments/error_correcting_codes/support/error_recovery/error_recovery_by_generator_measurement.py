@@ -33,7 +33,3 @@ class ErrorRecoveryByGeneratorMeasurement:
     def _recoveries(self) -> list[RecoveryOperation]:
         recoveries = RecoveryFinder(check_matrix=self._check_matrix).find_recovery_operations(qubits=self._qubits)
         return self._recovery_combinations_finder.find_recovery_operations(single_error_recoveries=recoveries)
-
-    @property
-    def _measurer_type(self) -> type[Measurer]:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type

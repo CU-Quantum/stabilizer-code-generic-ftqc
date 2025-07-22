@@ -1,8 +1,8 @@
 from cirq import LineQubit, MeasurementKey, Simulator, Z
 from numpy.ma.core import allequal, array
 
-from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer.fault_tolerant_measurer import \
-    FaultTolerantMeasurer
+from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer_fast_measurement import \
+    FaultTolerantMeasurerFastMeasurement
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_PLUS_STATE_VECTOR
@@ -12,7 +12,7 @@ from tests.utilities import set_seed
 class TestFaultTolerantMeasurer:
     def test_no_operations(self):
         measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurer(operations=[], measurement_key=measurement_key)
+        measurer = FaultTolerantMeasurerFastMeasurement(operations=[], measurement_key=measurement_key)
         circuit = measurer.get_measurement_circuit()
         initial_state = KET_PLUS_STATE_VECTOR
         utilities = get_error_correcting_simulator(state=initial_state)
@@ -25,8 +25,7 @@ class TestFaultTolerantMeasurer:
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurer(operations=[Z(qubits[0])],
-                                         measurement_key=measurement_key)
+        measurer = FaultTolerantMeasurerFastMeasurement(operations=[Z(qubits[0])], measurement_key=measurement_key)
         circuit = measurer.get_measurement_circuit()
 
         initial_target_state = KET_PLUS_STATE_VECTOR
@@ -46,8 +45,8 @@ class TestFaultTolerantMeasurer:
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurer(operations=[Z(qubits[0])],
-                                         measurement_key=measurement_key)
+        measurer = FaultTolerantMeasurerFastMeasurement(operations=[Z(qubits[0])],
+                                                        measurement_key=measurement_key)
         circuit = measurer.get_measurement_circuit()
 
         simulator = Simulator()

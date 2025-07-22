@@ -8,9 +8,11 @@ class Measurer(ABC):
     def __init__(self,
                  operations: list[Operation],
                  measurement_key: Optional[MeasurementKey] = None,
+                 tag: Optional[str] = '',
                  ):
         self._operations = operations
         self._measurement_key = measurement_key
+        self._tag = tag
 
     @abstractmethod
     def get_measurement_circuit(self) -> Circuit:
