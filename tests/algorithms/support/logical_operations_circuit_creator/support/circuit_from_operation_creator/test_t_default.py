@@ -3,12 +3,12 @@ from cmath import exp, sqrt
 from cirq import Circuit, rz
 from numpy import array
 
-from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal
 from tests.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \

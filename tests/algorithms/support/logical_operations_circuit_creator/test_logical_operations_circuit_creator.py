@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from cirq import Circuit, H, I, X, Z, LineQubit
 
-from algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -11,8 +11,8 @@ from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor

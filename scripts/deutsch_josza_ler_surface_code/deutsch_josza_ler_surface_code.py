@@ -56,7 +56,7 @@ class DeutschJoszaLerSurfaceCode:
         algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
         circuit = algorithm.get_circuit()
 
-        noisy_circuit = NoisyCircuitCreator(circuit=circuit).get_noisy_circuit()
+        noisy_circuit = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")

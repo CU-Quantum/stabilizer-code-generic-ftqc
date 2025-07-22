@@ -3,7 +3,6 @@ from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -14,6 +13,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import \
     UniversalControlledOperationSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import states_are_equal, tensor
 from tests.utilities import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed

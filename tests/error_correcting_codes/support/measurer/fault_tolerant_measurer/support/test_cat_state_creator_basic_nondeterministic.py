@@ -3,12 +3,12 @@ from typing import Optional
 import pytest
 from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, X
 
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.conditions.verification_is_zero import \
     VerificationIsZero
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, states_are_equal, tensor
 from tests.utilities import get_cat_state_vector
 
@@ -48,7 +48,7 @@ class TestCatStateCreatorBasicNondeterministic:
     def _number_of_repetitions(self, circuit: Circuit) -> int:
         number_of_measurements_per_repetition = 2
         operation: CircuitOperation = circuit.moments[0].operations[0]
-        resolver: VerificationIsZero = operation.repeat_until
+        resolver: VerificationIsZero = operation.untagged.repeat_until
         return resolver._last_num_measurements // number_of_measurements_per_repetition
 
 

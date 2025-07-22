@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Sequence
 
-from cirq import Circuit, CircuitOperation, Moment, Operation, Qid, ResetChannel, depolarize, map_moments
+from cirq import Circuit, CircuitOperation, LineQubit, Moment, Operation, Qid, ResetChannel, depolarize, map_moments
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
@@ -12,16 +12,21 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 
 # TODO during fault tolerant measurement, only insert noise on data qubits after all measurements
 class NoisyCircuitCreator:
-    def __init__(self, circuit: Circuit):
+    def __init__(self, circuit: Circuit, num_data_qubits: int):
         self._circuit = circuit
+        self._num_data_qubits = num_data_qubits
         self._num_noisy_operations = 0
         self._measurement_operation = defaultdict(set)
 
     def get_noisy_circuit(self) -> NoisyCircuit:
         self._num_noisy_operations = 0
-        noisy_circuit = map_moments(circuit=self._circuit, map_func=self._add_noisy_moment, deep=True)
+        ancilla_qubits = self._get_all_qubits_in_circuit() - set(LineQubit.range(self._num_data_qubits))
+        noisy_moments = map_moments(circuit=self._circuit, map_func=self._add_noisy_moment, deep=True)
         return NoisyCircuit(
-            circuit=noisy_circuit,
+            circuit=Circuit(
+                noisy_moments,
+                ResetChannel().on_each(*ancilla_qubits)
+            ),
             num_noisy_operations=self._num_noisy_operations
         )
 

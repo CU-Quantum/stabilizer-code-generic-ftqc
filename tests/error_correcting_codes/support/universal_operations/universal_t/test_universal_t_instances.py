@@ -3,7 +3,6 @@ import pytest
 from cirq import Circuit
 
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -14,6 +13,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import \
     UniversalTSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import states_are_equal
 from tests.utilities import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed
