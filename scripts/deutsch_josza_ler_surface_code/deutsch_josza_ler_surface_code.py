@@ -10,6 +10,9 @@ from cirq.devices import InsertionNoiseModel
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
+    CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
@@ -73,6 +76,9 @@ class DeutschJoszaLerSurfaceCode:
         configuration.majority_vote_repetitions = self._num_measurement_rounds
         configuration.noise_parameters.depolarization_probability_one_qubit = self._depolarization_probability_one_qubit
         configuration.noise_parameters.depolarization_probability_two_qubit = self._depolarization_probability_two_qubit
+
+        configuration.measurer_type = MeasurerWithSingleQubit
+        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
 
 
 if __name__ == "__main__":
