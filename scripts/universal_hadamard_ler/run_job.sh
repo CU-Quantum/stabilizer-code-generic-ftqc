@@ -6,9 +6,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --qos=normal
-#SBATCH --job-name=deutsch_josza
-#SBATCH --error=results/deutsch_josza/deutsch_josza_%j.err
-#SBATCH --output=results/deutsch_josza/deutsch_josza_%j.out
+#SBATCH --job-name=hadamard_ler
+#SBATCH --error=results/hadamard_ler/hadamard_ler_%j.err
+#SBATCH --output=results/hadamard_ler/hadamard_ler_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
