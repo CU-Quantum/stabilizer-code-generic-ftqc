@@ -4,7 +4,7 @@ from stim_experiments.conditions.majority_vote import \
     MajorityVote
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
-    DELIMITER, OperationsApplierUsingCatStateControl
+    OperationsApplierUsingCatStateControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
@@ -31,6 +31,6 @@ class FaultTolerantMeasurerFastMeasurement(Measurer):
                         use_repetition_ids=False,
                         repeat_until=condition
                     ),
-                    f'FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG{DELIMITER}{self._tag}'
+                    FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG, self._tag
                 )
             )

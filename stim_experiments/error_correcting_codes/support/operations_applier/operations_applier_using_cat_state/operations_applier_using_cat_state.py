@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, Operation, R, TaggedOperation
+from cirq import Circuit, CircuitOperation, LineQubit, Operation, R, TaggedOperation
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
@@ -9,11 +9,10 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 OPERATIONS_APPLIER_USING_CAT_STATE_CONTROL_TAG = 'OPERATIONS_APPLIER_USING_CAT_STATE_CONTROL'
-DELIMITER = '-'
 
 
 class OperationsApplierUsingCatStateControl(OperationsApplier):
-    def __init__(self, operations: list[Operation], measurement_qubit: int, tag: str):
+    def __init__(self, operations: list[Operation], measurement_qubit: LineQubit, tag: str):
         super().__init__(operations=operations, measurement_qubit=measurement_qubit)
         self._tag = tag
 
@@ -28,7 +27,7 @@ class OperationsApplierUsingCatStateControl(OperationsApplier):
                     CircuitOperation(
                         ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze(),
                     ),
-                    f'{OPERATIONS_APPLIER_USING_CAT_STATE_CONTROL_TAG}{DELIMITER}{self._tag}'
+                    OPERATIONS_APPLIER_USING_CAT_STATE_CONTROL_TAG, self._tag
                 ),
                 cat_state_creator.decode_state(),
                 [R(qubit) for qubit in ancilla_qubits]

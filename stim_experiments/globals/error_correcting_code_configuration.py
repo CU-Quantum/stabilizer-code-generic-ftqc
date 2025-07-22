@@ -29,7 +29,7 @@ class ConfigurationErrorCorrectingCodeManager:
             measurer_type=FaultTolerantMeasurerFastMeasurement,
             noise_parameters=NoiseParameters(
                 depolarization_probability_one_qubit=1e-4,
-                depolarization_probability_two_qubit=1e-4,
+                depolarization_probability_two_qubit=2e-4,
             ),
             num_cat_states=3,
             seed=None,
