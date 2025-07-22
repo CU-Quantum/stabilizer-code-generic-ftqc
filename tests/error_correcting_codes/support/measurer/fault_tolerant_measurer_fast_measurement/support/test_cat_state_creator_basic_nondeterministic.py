@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, NoiseModel, OP_TREE, Operation, X
 
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic import \
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.conditions.verification_is_zero import \

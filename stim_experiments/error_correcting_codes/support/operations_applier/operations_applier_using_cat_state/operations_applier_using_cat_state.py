@@ -12,7 +12,7 @@ OPERATIONS_APPLIER_USING_CAT_STATE_CONTROL_TAG = 'OPERATIONS_APPLIER_USING_CAT_S
 
 
 class OperationsApplierUsingCatStateControl(OperationsApplier):
-    def __init__(self, operations: list[Operation], measurement_qubit: LineQubit, tag: str):
+    def __init__(self, operations: list[Operation], measurement_qubit: LineQubit, tag: str = ''):
         super().__init__(operations=operations, measurement_qubit=measurement_qubit)
         self._tag = tag
 

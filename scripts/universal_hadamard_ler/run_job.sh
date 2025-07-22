@@ -25,4 +25,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/universal_hadamard_ler/duniversal_hadamard_ler.py
+python ~/workspace/stim-experiments/scripts/universal_hadamard_ler/universal_hadamard_ler.py
