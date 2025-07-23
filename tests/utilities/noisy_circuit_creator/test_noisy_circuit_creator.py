@@ -1,5 +1,6 @@
-from cirq import Circuit, I, LineQubit, Moment, Z, depolarize
+from cirq import CZ, Circuit, I, LineQubit, Moment, Z, depolarize
 
+from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
@@ -21,10 +22,90 @@ class TestNoisyCircuitCreator:
         assert circuit_noisy == NoisyCircuit(
             circuit=Circuit(
                 Moment(Z(qubits[0])),
-                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))),
+                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
+            ),
             num_noisy_operations=1,
+        )
+
+    def test_noise_added_after_two_moments(self):
+        qubits = LineQubit.range(1)
+        circuit = Circuit(Moment(Z(qubits[0])), Moment(Z(qubits[0])))
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(Z(qubits[0])),
+                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
+                Moment(Z(qubits[0])),
+                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
+            ),
+            num_noisy_operations=2,
+        )
+
+    def test_noise_added_after_one_moment_two_qubits(self):
+        qubits = LineQubit.range(2)
+        circuit = Circuit(Moment(Z(qubits[0]), Z(qubits[1])),)
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(Z(qubits[0]), Z(qubits[1])),
+                Moment(
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                ),
+            ),
+            num_noisy_operations=2,
+        )
+
+    def test_noise_on_inactive_qubits(self):
+        qubits = LineQubit.range(2)
+        circuit = Circuit(
+            Moment(Z(qubits[0]), Z(qubits[1])),
+            Moment(Z(qubits[0])),
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(Z(qubits[0]), Z(qubits[1])),
+                Moment(
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                ),
+                Moment(Z(qubits[0])),
+                Moment(
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                ),
+            ),
+            num_noisy_operations=4,
+        )
+
+    def test_noise_on_inactive_qubits_after_two_qubit_gate(self):
+        qubits = LineQubit.range(3)
+        circuit = Circuit(
+            Moment(Z(qubit) for qubit in qubits),
+            Moment(CZ(qubits[0], qubits[1])),
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(Z(qubits[0]), Z(qubits[1]), Z(qubits[2])),
+                Moment(
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                ),
+                Moment(CZ(qubits[0], qubits[1])),
+                Moment(
+                    [depolarize(p=self._depolarization_noise_two_qubit_gate).on(qubit) for qubit in qubits[:2]],
+                    [depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits[2:]]
+                ),
+            ),
+            num_noisy_operations=6,
         )
 
     @property
     def _depolarization_noise_one_qubit_gate(self) -> float:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().noise_parameters.depolarization_probability_one_qubit
+        return self._noise_parameters.depolarization_probability_one_qubit
+
+    @property
+    def _depolarization_noise_two_qubit_gate(self) -> float:
+        return self._noise_parameters.depolarization_probability_two_qubit
+
+    @property
+    def _noise_parameters(self) -> NoiseParameters:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().noise_parameters
