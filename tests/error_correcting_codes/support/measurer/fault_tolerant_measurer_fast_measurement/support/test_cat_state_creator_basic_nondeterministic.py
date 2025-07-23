@@ -10,7 +10,7 @@ from stim_experiments.conditions.verification_is_zero import \
     VerificationIsZero
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ZERO_STATE_VECTOR, states_are_equal, tensor
-from tests.utilities import get_cat_state_vector
+from tests.utilities_for_tests import get_cat_state_vector
 
 
 class TestCatStateCreatorBasicNondeterministic:

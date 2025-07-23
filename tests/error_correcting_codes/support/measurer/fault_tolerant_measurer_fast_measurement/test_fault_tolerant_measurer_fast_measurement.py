@@ -6,7 +6,7 @@ from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_mea
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_PLUS_STATE_VECTOR
-from tests.utilities import set_seed
+from tests.utilities_for_tests import set_seed
 
 
 class TestFaultTolerantMeasurer:

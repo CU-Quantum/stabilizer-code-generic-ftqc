@@ -20,7 +20,7 @@ from stim_experiments.simulations.error_correcting_runner import ErrorCorrecting
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
 class DeutschJoszaLerSurfaceCode:

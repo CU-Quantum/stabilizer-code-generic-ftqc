@@ -16,7 +16,7 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import states_are_equal
-from tests.utilities import get_random_encoded_initial_state, random_complex_unit_vector, \
+from tests.utilities_for_tests import get_random_encoded_initial_state, random_complex_unit_vector, \
     set_configuration_to_reduce_ancilla_qubits, set_seed
 
 

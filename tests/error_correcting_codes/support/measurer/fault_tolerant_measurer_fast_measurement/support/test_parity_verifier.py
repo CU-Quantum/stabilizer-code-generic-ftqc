@@ -8,7 +8,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
-from tests.utilities import get_cat_state_vector
+from tests.utilities_for_tests import get_cat_state_vector
 
 
 class TestParityVerifier:

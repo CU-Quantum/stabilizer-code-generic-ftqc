@@ -28,7 +28,7 @@ from tests.error_correcting_codes.shors_code.expected_states_shor import Expecte
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]

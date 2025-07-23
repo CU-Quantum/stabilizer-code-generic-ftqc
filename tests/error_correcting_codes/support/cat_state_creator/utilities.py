@@ -4,7 +4,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     CatStateCreatorFlagPattern
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, \
     states_are_equal, trace_out_ancillas_in_zero_state
-from tests.utilities import get_cat_state_vector
+from tests.utilities_for_tests import get_cat_state_vector
 
 
 def circuit_results_in_expected_state(circuit: Circuit, expected_state: TYPE_STATE_VECTOR) -> bool:

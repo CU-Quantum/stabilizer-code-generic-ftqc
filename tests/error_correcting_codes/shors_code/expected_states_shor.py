@@ -3,7 +3,7 @@ from numpy import sqrt
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, TYPE_STATE_VECTOR, \
     tensor
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
-from tests.utilities import get_cat_state_vector
+from tests.utilities_for_tests import get_cat_state_vector
 
 
 class ExpectedStatesShor(ExpectedStates):

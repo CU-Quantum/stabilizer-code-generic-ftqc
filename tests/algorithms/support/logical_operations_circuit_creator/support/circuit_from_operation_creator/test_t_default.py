@@ -14,7 +14,7 @@ from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_
 from tests.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
 from tests.error_correcting_codes.support.universal_operations.universal_t.test_universal_t_instances import T_ROTATION
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestTDefault:

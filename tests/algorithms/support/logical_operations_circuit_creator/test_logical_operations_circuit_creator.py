@@ -16,7 +16,7 @@ from stim_experiments.simulations.error_correcting_simulator import get_error_co
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 ENCODING_OPERATION_MARK = I
