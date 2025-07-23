@@ -3,6 +3,9 @@ from abc import ABC, abstractmethod
 from cirq import Circuit, LineQubit, Operation
 
 
+NO_NOISE_TAG = 'NO_NOISE_TAG'
+
+
 class OperationsApplier(ABC):
     def __init__(self,
                  operations: list[Operation],

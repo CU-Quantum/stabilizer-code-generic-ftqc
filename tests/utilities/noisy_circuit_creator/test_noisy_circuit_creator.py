@@ -1,4 +1,5 @@
-from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Moment, TaggedOperation, Z, depolarize
+from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Moment, ResetChannel, TaggedOperation, Z, \
+    depolarize
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
@@ -162,6 +163,19 @@ class TestNoisyCircuitCreator:
                         'TAG0'
                     ),
                 ),
+            ),
+            num_noisy_operations=1,
+        )
+
+    def test_reset_qubits_after_noise(self):
+        qubits = LineQubit.range(1)
+        circuit = Circuit(Moment(Z(qubits[0])))
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=0).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(Z(qubits[0])),
+                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
+                ResetChannel().on(qubits[0])
             ),
             num_noisy_operations=1,
         )

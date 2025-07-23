@@ -1,20 +1,20 @@
-from cirq import Circuit, H, R
+from cirq import Circuit, CircuitOperation, H, TaggedOperation
 
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import NO_NOISE_TAG, \
+    OperationsApplier
 
 
 class OperationsApplierUsingSingleQubitHadamardControl(OperationsApplier):
     def _perform_get_application_circuit(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1 - bool(self._measurement_qubit)) as ancilla_qubits:
-            self._measurement_qubit = self._measurement_qubit or ancilla_qubits[0]
-            return Circuit(
-                [R(qubit) for qubit in ancilla_qubits],
-                H(self._measurement_qubit),
-                [
-                    operation.controlled_by(self._measurement_qubit)
-                    for operation in self._operations
-                ],
-                H(self._measurement_qubit),
-                [R(qubit) for qubit in ancilla_qubits],
-            )
+        return Circuit(
+            H(self._measurement_qubit),
+            TaggedOperation(
+                CircuitOperation(
+                    Circuit(
+                        [operation.controlled_by(self._measurement_qubit) for operation in self._operations]
+                    ).freeze(),
+                ),
+                NO_NOISE_TAG
+            ),
+            H(self._measurement_qubit),
+        )
