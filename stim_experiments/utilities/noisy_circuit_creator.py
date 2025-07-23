@@ -54,7 +54,7 @@ class NoisyCircuitCreator:
         # if fast_measurement_noise is not None:
         #     return fast_measurement_noise
 
-        noise_was_added_recursively = isinstance(operation, CircuitOperation) or isinstance(operation, TaggedOperation)
+        noise_was_added_recursively = isinstance(operation.untagged, CircuitOperation)
         if len(operation.qubits) > 2 or noise_was_added_recursively:
             return []
 
