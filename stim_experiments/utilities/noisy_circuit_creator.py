@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import Optional, Sequence
 
-from cirq import Circuit, CircuitOperation, LineQubit, Moment, Operation, Qid, ResetChannel, depolarize, map_moments
+from cirq import Circuit, CircuitOperation, LineQubit, Moment, Operation, Qid, ResetChannel, TaggedOperation, \
+    depolarize, map_moments
 
 from stim_experiments.custom_dataclasses.fast_measurement import FastMeasurement
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
@@ -53,7 +54,8 @@ class NoisyCircuitCreator:
         # if fast_measurement_noise is not None:
         #     return fast_measurement_noise
 
-        if len(operation.qubits) > 2:
+        noise_was_added_recursively = isinstance(operation, CircuitOperation) or isinstance(operation, TaggedOperation)
+        if len(operation.qubits) > 2 or noise_was_added_recursively:
             return []
 
         noise_probability = self._noise_parameters.depolarization_probability_one_qubit \

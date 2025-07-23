@@ -1,4 +1,4 @@
-from cirq import CZ, Circuit, I, LineQubit, Moment, Z, depolarize
+from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Moment, TaggedOperation, Z, depolarize
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
@@ -96,6 +96,74 @@ class TestNoisyCircuitCreator:
                 ),
             ),
             num_noisy_operations=6,
+        )
+
+    def test_noise_after_circuit_operation(self):
+        qubits = LineQubit.range(3)
+        circuit = Circuit(
+            CircuitOperation(
+                FrozenCircuit(Z(qubits[0]))
+            )
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                CircuitOperation(
+                    FrozenCircuit(
+                        Moment(Z(qubits[0])),
+                        Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
+                    ),
+                )
+            ),
+            num_noisy_operations=1,
+        )
+
+    def test_noise_after_tagged_operation(self):
+        qubits = LineQubit.range(3)
+        circuit = Circuit(
+            TaggedOperation(
+                Z(qubits[0]),
+                'TAG0'
+            )
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(
+                    TaggedOperation(
+                        Z(qubits[0]),
+                        'TAG0'
+                    ),
+                ),
+                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
+            ),
+            num_noisy_operations=1,
+        )
+
+    def test_noise_after_tagged_circuit_operation(self):
+        qubits = LineQubit.range(3)
+        circuit = Circuit(
+            TaggedOperation(
+                CircuitOperation(FrozenCircuit(Z(qubits[0]))),
+                'TAG0'
+            )
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                Moment(
+                    TaggedOperation(
+                        CircuitOperation(
+                            FrozenCircuit(
+                                Moment(Z(qubits[0])),
+                                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
+                            ),
+                        ),
+                        'TAG0'
+                    ),
+                ),
+            ),
+            num_noisy_operations=1,
         )
 
     @property
