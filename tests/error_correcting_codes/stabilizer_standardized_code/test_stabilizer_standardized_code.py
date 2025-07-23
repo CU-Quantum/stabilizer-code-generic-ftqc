@@ -23,11 +23,11 @@ class TestStabilizerStandardizedCode:
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
-                                                                   num_data_qubits=len(code.data_qubits),
-                                                                   initial_data_state=initial_data_state)
+        state_and_measurements = utilities.run_simulation(circuit=circuit,
+                                                          num_data_qubits=len(code.data_qubits),
+                                                          initial_data_state=initial_data_state)
 
-        expected_state = utilities.get_state_after_circuit(
+        expected_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
             ),

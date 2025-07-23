@@ -3,6 +3,7 @@ from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Mom
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
+from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCount
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
@@ -13,7 +14,6 @@ class TestNoisyCircuitCreator:
         circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=0).get_noisy_circuit()
         assert circuit_noisy == NoisyCircuit(
             circuit=Circuit(),
-            num_noisy_operations=0,
         )
 
     def test_noise_added_after_one_moment(self):
@@ -25,7 +25,9 @@ class TestNoisyCircuitCreator:
                 Moment(Z(qubits[0])),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
             ),
-            num_noisy_operations=1,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=1,
+            ),
         )
 
     def test_noise_added_after_two_moments(self):
@@ -39,7 +41,9 @@ class TestNoisyCircuitCreator:
                 Moment(Z(qubits[0])),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
             ),
-            num_noisy_operations=2,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=2,
+            ),
         )
 
     def test_noise_added_after_one_moment_two_qubits(self):
@@ -53,7 +57,9 @@ class TestNoisyCircuitCreator:
                     depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
                 ),
             ),
-            num_noisy_operations=2,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=2,
+            ),
         )
 
     def test_noise_on_inactive_qubits(self):
@@ -67,14 +73,16 @@ class TestNoisyCircuitCreator:
             circuit=Circuit(
                 Moment(Z(qubits[0]), Z(qubits[1])),
                 Moment(
-                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits)
                 ),
                 Moment(Z(qubits[0])),
                 Moment(
-                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits)
                 ),
             ),
-            num_noisy_operations=4,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=4,
+            ),
         )
 
     def test_noise_on_inactive_qubits_after_two_qubit_gate(self):
@@ -88,15 +96,18 @@ class TestNoisyCircuitCreator:
             circuit=Circuit(
                 Moment(Z(qubits[0]), Z(qubits[1]), Z(qubits[2])),
                 Moment(
-                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits)
                 ),
                 Moment(CZ(qubits[0], qubits[1])),
                 Moment(
-                    [depolarize(p=self._depolarization_noise_two_qubit_gate).on(qubit) for qubit in qubits[:2]],
-                    [depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits[2:]]
+                    depolarize(p=self._depolarization_noise_two_qubit_gate).on_each(*qubits[:2]),
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits[2:]),
                 ),
             ),
-            num_noisy_operations=6,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=4,
+                two_qubit=2,
+            ),
         )
 
     def test_noise_after_circuit_operation(self):
@@ -116,7 +127,9 @@ class TestNoisyCircuitCreator:
                     ),
                 )
             ),
-            num_noisy_operations=1,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=1,
+            ),
         )
 
     def test_noise_after_tagged_operation(self):
@@ -138,7 +151,9 @@ class TestNoisyCircuitCreator:
                 ),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
             ),
-            num_noisy_operations=1,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=1,
+            ),
         )
 
     def test_noise_after_tagged_circuit_operation(self):
@@ -146,7 +161,7 @@ class TestNoisyCircuitCreator:
         circuit = Circuit(
             TaggedOperation(
                 CircuitOperation(FrozenCircuit(Z(qubits[0]))),
-                'TAG0'
+                'TAG_0'
             )
         )
         circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
@@ -160,11 +175,13 @@ class TestNoisyCircuitCreator:
                                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
                             ),
                         ),
-                        'TAG0'
+                        'TAG_0'
                     ),
                 ),
             ),
-            num_noisy_operations=1,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=1,
+            ),
         )
 
     def test_reset_qubits_after_noise(self):
@@ -175,9 +192,11 @@ class TestNoisyCircuitCreator:
             circuit=Circuit(
                 Moment(Z(qubits[0])),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
-                ResetChannel().on(qubits[0])
+                ResetChannel().on(qubits[0]),
             ),
-            num_noisy_operations=1,
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=1,
+            ),
         )
 
     @property

@@ -95,7 +95,7 @@ circuit = simulator.get_simulation_circuit()
 
 # Simulate the circuit
 utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.get_state_after_circuit(
+result = utilities.run_simulation(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
 )
@@ -111,7 +111,9 @@ The project provides a configuration system that allows you to customize various
 
 ```python
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import
+
+MeasurerWithSingleQubitSequential
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import
 
 CatStateCreatorCxFromFirstQubit
@@ -129,7 +131,7 @@ UniversalTSingleAncilla
 configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
 
 # Modify configuration settings
-configuration.measurer_type = MeasurerWithSingleQubit
+configuration.measurer_type = MeasurerWithSingleQubitSequential
 configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
 configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
 configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
@@ -248,7 +250,7 @@ operations = [
 simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 circuit = simulator.get_simulation_circuit()
 utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.get_state_after_circuit(
+result = utilities.run_simulation(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
 )

@@ -63,7 +63,7 @@ def get_random_encoded_initial_state(code: ErrorCorrectingCode) -> RandomEncoded
     computational_basis_states = [int_to_binary_array(i, code.num_logical_qubits)
                                   for i in range(2 ** code.num_logical_qubits)]
     computational_basis_states_encoded = array([
-        utilities.get_state_after_circuit(
+        utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 [code.get_operation_circuit(LogicalOperation(gate=LogicalGateLabel.X, qubit_index=qubit_index))

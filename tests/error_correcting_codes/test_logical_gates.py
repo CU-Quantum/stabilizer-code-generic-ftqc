@@ -91,7 +91,7 @@ class TestLogicalGates:
         expected_state = self._parameters.expected_states.get_logical_one_state_vector()
 
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        current_state = utilities.get_state_after_circuit(
+        current_state = utilities.run_simulation(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],
                 self._parameters.code.get_operation_circuit(operation=operation)
@@ -115,7 +115,7 @@ class TestLogicalGates:
         )
 
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],
                 self._parameters.code.get_operation_circuit(operation=operation)

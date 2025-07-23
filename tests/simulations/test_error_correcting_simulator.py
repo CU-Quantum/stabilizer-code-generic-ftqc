@@ -26,9 +26,9 @@ class TestErrorCorrectingSimulator:
             X(qubit),
         )
 
-        result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         num_data_qubits=num_qubits,
-                                                                         initial_data_state=initial_state)
+        result = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                                num_data_qubits=num_qubits,
+                                                                initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
             measurements={'q(1)': array([1])}
@@ -49,9 +49,9 @@ class TestErrorCorrectingSimulator:
             X(qubits[1]),
         )
 
-        result = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                         num_data_qubits=len(qubits),
-                                                                         initial_data_state=initial_state)
+        result = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                                num_data_qubits=len(qubits),
+                                                                initial_data_state=initial_state)
         assert result == StateAndMeasurements(
             state=initial_state,
             measurements={'q(0)': array([0]), 'q(1)': [1]}

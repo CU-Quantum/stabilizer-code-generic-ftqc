@@ -33,7 +33,7 @@ class TestHadamardDefault:
 
         utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(encoding.data_qubits),
         ).state
@@ -55,7 +55,7 @@ class TestHadamardDefault:
         initial_state = KET_PLUS_STATE_VECTOR
         utilities = get_error_correcting_simulator(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(encoding.data_qubits),
             initial_data_state=initial_state,

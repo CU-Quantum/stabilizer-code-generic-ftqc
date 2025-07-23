@@ -63,7 +63,7 @@ class DeutschJoszaLerSurfaceCode:
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")
-        print(f"    {noisy_circuit.num_noisy_operations} noisy operations")
+        print(f"    {noisy_circuit.noisy_operations_count} noisy operations")
         result: Measurements = simulator.run_circuit(noisy_circuit.circuit, num_shots=self._num_shots)
         print(f"    Time Taken: {datetime.now() - start_time}")
         sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)

@@ -20,7 +20,6 @@ class ErrorRecoveryByStabilizers:
             self._measurer_type(
                 operations=operations,
                 measurement_key=measurement_key,
-                tag=tag,
             ).get_measurement_circuit()
             for operations in self._stabilizers
         ]

@@ -29,9 +29,9 @@ class TestMeasurerWithSingleQubit:
         measurements = []
         for trial in range(num_trials):
             set_seed(trial)
-            simulation = utilities.get_state_after_circuit(circuit=circuit,
-                                                           num_data_qubits=len(qubits),
-                                                           initial_data_state=initial_state)
+            simulation = utilities.run_simulation(circuit=circuit,
+                                                  num_data_qubits=len(qubits),
+                                                  initial_data_state=initial_state)
             measurements.extend(simulation.measurements[measurement_key.name])
         assert any(measurements) and not all(measurements)
 
@@ -50,8 +50,8 @@ class TestMeasurerWithSingleQubit:
         measurements = []
         for trial in range(num_trials):
             set_seed(trial)
-            simulation = utilities.get_state_after_circuit(circuit=circuit,
-                                                           num_data_qubits=len(qubits),
-                                                           initial_data_state=initial_state)
+            simulation = utilities.run_simulation(circuit=circuit,
+                                                  num_data_qubits=len(qubits),
+                                                  initial_data_state=initial_state)
             measurements.extend(simulation.measurements[measurement_key.name])
         assert not any(measurements)

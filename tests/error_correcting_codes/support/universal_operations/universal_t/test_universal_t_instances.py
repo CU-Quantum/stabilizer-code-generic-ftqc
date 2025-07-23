@@ -41,7 +41,7 @@ class TestUniversalTInstances:
         initial_state = encoded_initial_state.initial_state
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_t.get_t_circuit(),
@@ -71,7 +71,7 @@ class TestUniversalTInstances:
         computational_basis_states = encoded_initial_state.computational_basis_states
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_t.get_t_circuit(),

@@ -47,7 +47,7 @@ class TestControlledOperation:
         initial_state = tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         utilities = get_error_correcting_simulator(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
             initial_data_state=initial_state,
@@ -79,7 +79,7 @@ class TestControlledOperation:
         initial_state = tensor(KET_PLUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR)
         utilities = get_error_correcting_simulator(state=initial_state)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
             initial_data_state=tensor(KET_PLUS_STATE_VECTOR, KET_PLUS_STATE_VECTOR),

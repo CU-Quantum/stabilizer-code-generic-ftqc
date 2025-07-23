@@ -42,11 +42,11 @@ class TestCircuitFromOperationCreator:
 
         utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state_with_inactive_control = utilities.get_state_after_circuit(
+        simulated_state_with_inactive_control = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
         ).state
-        simulated_state_with_active_control = utilities.get_state_after_circuit(
+        simulated_state_with_active_control = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
             initial_data_state=tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR),
@@ -68,7 +68,7 @@ class TestCircuitFromOperationCreator:
 
         utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulation = utilities.get_state_after_circuit(
+        simulation = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(control_encoding.encoding.data_qubits),
         )

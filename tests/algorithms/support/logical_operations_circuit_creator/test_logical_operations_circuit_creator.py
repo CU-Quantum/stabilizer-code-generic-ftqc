@@ -86,7 +86,7 @@ class TestLogicalOperationsCircuitCreator:
             circuit = simulator.get_simulation_circuit()
 
             utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
-            result = utilities.get_state_after_circuit(
+            result = utilities.run_simulation(
                 circuit=circuit,
                 num_data_qubits=len(simulator.data_qubits),
             )

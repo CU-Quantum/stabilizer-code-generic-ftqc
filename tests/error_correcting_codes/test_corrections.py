@@ -137,7 +137,7 @@ class TestCorrections:
                             code: ErrorCorrectingCode,
                             initial_state: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX) -> None:
         utilities = get_error_correcting_simulator(state=initial_state)
-        simulation_state = utilities.get_state_after_circuit(
+        simulation_state = utilities.run_simulation(
             circuit=Circuit(
                 error_operations,
                 code.get_error_correction_circuit(),

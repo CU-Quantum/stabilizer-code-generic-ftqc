@@ -16,9 +16,9 @@ class TestFaultTolerantMeasurerSequential:
         circuit = measurer.get_measurement_circuit()
         initial_state = KET_PLUS_STATE_VECTOR
         utilities = get_error_correcting_simulator(state=initial_state)
-        simulation = utilities.get_state_after_circuit(circuit=circuit,
-                                                       num_data_qubits=1,
-                                                       initial_data_state=initial_state)
+        simulation = utilities.run_simulation(circuit=circuit,
+                                              num_data_qubits=1,
+                                              initial_data_state=initial_state)
         assert simulation.measurements[measurement_key.name] == array([0])
 
     def test_one_qubit_z(self):
@@ -35,9 +35,9 @@ class TestFaultTolerantMeasurerSequential:
         measurements = []
         for trial in range(num_trials):
             set_seed(trial)
-            simulation = utilities.get_state_after_circuit(circuit=circuit,
-                                                           num_data_qubits=len(qubits),
-                                                           initial_data_state=initial_target_state)
+            simulation = utilities.run_simulation(circuit=circuit,
+                                                  num_data_qubits=len(qubits),
+                                                  initial_data_state=initial_target_state)
             measurements.extend(simulation.measurements[measurement_key.name])
         assert any(measurements) and not all(measurements)
 

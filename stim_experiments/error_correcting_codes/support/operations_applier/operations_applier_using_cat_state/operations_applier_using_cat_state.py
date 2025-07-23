@@ -4,7 +4,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     CatStateCreatorBasicNondeterministic
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import NO_NOISE_TAG, \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG, \
     OperationsApplier
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
@@ -21,7 +21,7 @@ class OperationsApplierUsingCatStateControl(OperationsApplier):
                     CircuitOperation(
                         ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze(),
                     ),
-                    NO_NOISE_TAG, self._tag
+                    DELAYED_NOISE_TAG
                 ),
                 cat_state_creator.decode_state(),
                 [R(qubit) for qubit in ancilla_qubits]

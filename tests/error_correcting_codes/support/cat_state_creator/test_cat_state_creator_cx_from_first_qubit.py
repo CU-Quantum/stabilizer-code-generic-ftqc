@@ -19,9 +19,9 @@ class TestCatStateCreatorCxFromFirstQubit:
 
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=1,
-                                                                        initial_data_state=initial_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=1,
+                                                               initial_data_state=initial_state)
         assert states_are_equal(state.state, initial_state)
 
     def test_create_one_qubit_cat_state(self):
@@ -31,9 +31,9 @@ class TestCatStateCreatorCxFromFirstQubit:
 
         initial_state = KET_ZERO_STATE_VECTOR
         error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=initial_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=initial_state)
         assert states_are_equal(state.state, KET_PLUS_STATE_VECTOR)
 
     def test_create_two_qubit_cat_state(self):
@@ -44,9 +44,9 @@ class TestCatStateCreatorCxFromFirstQubit:
 
         initial_state = tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         error_correcting_code_utilities = get_error_correcting_simulator(state=initial_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=initial_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=initial_state)
         expected_state = (1 / sqrt(2)) * (tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
                                           + tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR))
         assert states_are_equal(state.state, expected_state)

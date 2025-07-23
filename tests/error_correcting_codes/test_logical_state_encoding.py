@@ -163,7 +163,7 @@ class TestLogicalStateEncoding:
     def test_encoding(self):
         encoding = self._parameters.code.encode_logical_qubit()
         utilities = get_error_correcting_simulator(state=self._parameters.initial_data_state)
-        data_state = utilities.get_state_after_circuit(circuit=encoding,
-                                                       num_data_qubits=len(self._parameters.code.data_qubits),
-                                                       initial_data_state=self._parameters.initial_data_state).state
+        data_state = utilities.run_simulation(circuit=encoding,
+                                              num_data_qubits=len(self._parameters.code.data_qubits),
+                                              initial_data_state=self._parameters.initial_data_state).state
         assert states_are_equal(data_state, self._parameters.expected_state)

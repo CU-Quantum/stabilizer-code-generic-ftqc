@@ -27,9 +27,9 @@ class TestParityVerifier:
 
         one_qubit_cat_state = get_cat_state_vector(num_qubits=1)
         error_correcting_code_utilities = get_error_correcting_simulator(state=one_qubit_cat_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=one_qubit_cat_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=one_qubit_cat_state)
         assert state == StateAndMeasurements(
             state=one_qubit_cat_state,
             measurements={}
@@ -47,9 +47,9 @@ class TestParityVerifier:
 
         two_qubit_cat_state = get_cat_state_vector(num_qubits=len(qubits))
         error_correcting_code_utilities = get_error_correcting_simulator(state=two_qubit_cat_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=two_qubit_cat_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=two_qubit_cat_state)
         assert state == StateAndMeasurements(
             state=two_qubit_cat_state,
             measurements={measurement_key.name: array([0])}
@@ -64,9 +64,9 @@ class TestParityVerifier:
 
         invalid_cat_state = tensor(KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR)
         error_correcting_code_utilities = get_error_correcting_simulator(state=invalid_cat_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=invalid_cat_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=invalid_cat_state)
         assert state == StateAndMeasurements(
             state=invalid_cat_state,
             measurements={measurement_key.name: array([1])}
@@ -81,9 +81,9 @@ class TestParityVerifier:
 
         three_qubit_cat_state = get_cat_state_vector(num_qubits=3)
         error_correcting_code_utilities = get_error_correcting_simulator(state=three_qubit_cat_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=three_qubit_cat_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=three_qubit_cat_state)
         assert state == StateAndMeasurements(
             state=three_qubit_cat_state,
             measurements={measurement_key.name: array([0])}
@@ -100,9 +100,9 @@ class TestParityVerifier:
                     (1 / sqrt(2)) * (tensor(KET_ZERO_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR)
                                      + tensor(KET_ONE_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)))
         error_correcting_code_utilities = get_error_correcting_simulator(state=invalid_three_qubit_cat_state)
-        state = error_correcting_code_utilities.get_state_after_circuit(circuit=circuit,
-                                                                        num_data_qubits=len(qubits),
-                                                                        initial_data_state=invalid_three_qubit_cat_state)
+        state = error_correcting_code_utilities.run_simulation(circuit=circuit,
+                                                               num_data_qubits=len(qubits),
+                                                               initial_data_state=invalid_three_qubit_cat_state)
         assert state == StateAndMeasurements(
             state=invalid_three_qubit_cat_state,
             measurements={measurement_key.name: array([1])}

@@ -1,6 +1,6 @@
 from cirq import Circuit, CircuitOperation, H, TaggedOperation
 
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import NO_NOISE_TAG, \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG, \
     OperationsApplier
 
 
@@ -14,7 +14,7 @@ class OperationsApplierUsingSingleQubitHadamardControl(OperationsApplier):
                         [operation.controlled_by(self._measurement_qubit) for operation in self._operations]
                     ).freeze(),
                 ),
-                NO_NOISE_TAG
+                DELAYED_NOISE_TAG
             ),
             H(self._measurement_qubit),
         )

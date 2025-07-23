@@ -44,7 +44,7 @@ class TestUniversalControlledOperationInstances:
         initial_state = tensor(*[encoded_initial_state.initial_state for encoded_initial_state in encoded_initial_states])
         utilities = get_error_correcting_simulator(state=encoded_initial_states_control.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [code.encode_logical_qubit() for code in codes],
                 universal_controlled_operation.get_controlled_operation_circuit(),
@@ -89,7 +89,7 @@ class TestUniversalControlledOperationInstances:
         initial_state = tensor(*[encoded_initial_state.initial_state for encoded_initial_state in encoded_initial_states])
         utilities = get_error_correcting_simulator(state=encoded_initial_states_control.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [code.encode_logical_qubit() for code in codes],
                 universal_controlled_operation.get_controlled_operation_circuit(),
@@ -138,7 +138,7 @@ class TestUniversalControlledOperationInstances:
         encoded_initial_states = get_random_encoded_initial_state(code=code)
         utilities = get_error_correcting_simulator(state=encoded_initial_states.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_controlled_operation.get_controlled_operation_circuit(),

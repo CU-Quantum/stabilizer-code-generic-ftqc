@@ -15,9 +15,7 @@ class FaultTolerantMeasurerSequential(Measurer):
     def get_measurement_circuit(self) -> Circuit:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measurement_qubit = ancilla_qubits[0]
-            applier = OperationsApplierUsingCatStateControl(operations=self._operations,
-                                                            measurement_qubit=measurement_qubit,
-                                                            tag=self._tag)
+            applier = OperationsApplierUsingCatStateControl(operations=self._operations, measurement_qubit=measurement_qubit)
             condition = MajorityVote(desired_measurement_key=self._measurement_key)
             return Circuit(
                 TaggedOperation(
@@ -31,6 +29,6 @@ class FaultTolerantMeasurerSequential(Measurer):
                         use_repetition_ids=False,
                         repeat_until=condition
                     ),
-                    FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG, self._tag
+                    FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG,
                 )
             )

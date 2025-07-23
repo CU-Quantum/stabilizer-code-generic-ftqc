@@ -32,7 +32,7 @@ class TestUniversalHadamardSingleAncilla:
 
         initial_data_state = ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector()
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        state = utilities.get_state_after_circuit(
+        state = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_data_state,
@@ -51,11 +51,11 @@ class TestUniversalHadamardSingleAncilla:
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
-                                                                   num_data_qubits=len(code.data_qubits),
-                                                                   initial_data_state=initial_data_state)
+        state_and_measurements = utilities.run_simulation(circuit=circuit,
+                                                          num_data_qubits=len(code.data_qubits),
+                                                          initial_data_state=initial_data_state)
 
-        expected_state = utilities.get_state_after_circuit(
+        expected_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
             ),
@@ -76,10 +76,10 @@ class TestUniversalHadamardSingleAncilla:
 
         initial_data_state = tensor(*[KET_ZERO_STATE_VECTOR] * len(code.data_qubits))
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        state_and_measurements = utilities.get_state_after_circuit(circuit=circuit,
-                                                                   num_data_qubits=len(code.data_qubits),
-                                                                   initial_data_state=initial_data_state)
-        expected_state = utilities.get_state_after_circuit(
+        state_and_measurements = utilities.run_simulation(circuit=circuit,
+                                                          num_data_qubits=len(code.data_qubits),
+                                                          initial_data_state=initial_data_state)
+        expected_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
             ),
@@ -96,7 +96,7 @@ class TestUniversalHadamardSingleAncilla:
         utilities = get_error_correcting_simulator(state=initial_data_state)
 
         hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 hadamard_circuit,
@@ -107,7 +107,7 @@ class TestUniversalHadamardSingleAncilla:
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_data_state
         ).state
-        expected_state = utilities.get_state_after_circuit(
+        expected_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
             ),
@@ -125,7 +125,7 @@ class TestUniversalHadamardSingleAncilla:
 
         arbitrary_error = X(LineQubit(0))
         hadamard_circuit = UniversalHadamardSingleAncilla(code=LogicalEncodingIndex(encoding=code, qubit_index_relative=1)).get_hadamard_circuit()
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 hadamard_circuit,
@@ -140,7 +140,7 @@ class TestUniversalHadamardSingleAncilla:
             tensor(*[KET_ZERO_STATE_VECTOR] * 8)
             + tensor(*[KET_ZERO_STATE_VECTOR] * 4, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR)
         )
-        expected_state = utilities.get_state_after_circuit(
+        expected_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
             ),

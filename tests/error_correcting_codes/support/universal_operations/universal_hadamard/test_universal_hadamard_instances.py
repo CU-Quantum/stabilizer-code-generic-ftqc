@@ -38,7 +38,7 @@ class TestUniversalHadamard:
         initial_state = random_complex_unit_vector(num_qubits=1)
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_hadamard.get_hadamard_circuit(),
@@ -64,7 +64,7 @@ class TestUniversalHadamard:
         computational_basis_states = encoded_initial_state.computational_basis_states
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_hadamard.get_hadamard_circuit(),

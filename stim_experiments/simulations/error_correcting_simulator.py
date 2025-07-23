@@ -31,12 +31,12 @@ class ErrorCorrectingSimulator(ABC):
                                ) -> StateAndMeasurements:
         pass
 
-    def get_state_after_circuit(self,
-                                circuit: Circuit,
-                                num_data_qubits: int,
-                                initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                                noise_model: Optional[NOISE_MODEL_LIKE] = None,
-                                ) -> StateAndMeasurements:
+    def run_simulation(self,
+                       circuit: Circuit,
+                       num_data_qubits: int,
+                       initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                       noise_model: Optional[NOISE_MODEL_LIKE] = None,
+                       ) -> StateAndMeasurements:
         if initial_data_state is None:
             initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)

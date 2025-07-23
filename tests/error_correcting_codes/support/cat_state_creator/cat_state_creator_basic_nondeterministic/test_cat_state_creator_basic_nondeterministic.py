@@ -37,10 +37,10 @@ class TestCatStateCreatorBasicNondeterministic:
         initial_state = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_qubits)
         error_correction_utilities = get_error_correcting_simulator(state=initial_state)
 
-        state = error_correction_utilities.get_state_after_circuit(circuit=circuit,
-                                                                   num_data_qubits=self._num_qubits,
-                                                                   initial_data_state=initial_state,
-                                                                   noise_model=noise_model)
+        state = error_correction_utilities.run_simulation(circuit=circuit,
+                                                          num_data_qubits=self._num_qubits,
+                                                          initial_data_state=initial_state,
+                                                          noise_model=noise_model)
 
         expected_target_qubits_state = get_cat_state_vector(num_qubits=self._num_qubits)
         return states_are_equal(state.state, tensor(expected_target_qubits_state))
