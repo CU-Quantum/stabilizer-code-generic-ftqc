@@ -11,7 +11,7 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG = 'FAULT_TOLERANT_MEASURER'
 
 
-class FaultTolerantMeasurerFastMeasurement(Measurer):
+class FaultTolerantMeasurerSequential(Measurer):
     def get_measurement_circuit(self) -> Circuit:
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measurement_qubit = ancilla_qubits[0]
