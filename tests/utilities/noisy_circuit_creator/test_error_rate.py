@@ -14,6 +14,11 @@ from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 class TestErrorRate:
     def test_error_rate(self):
         num_shots = 1000
+
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        configuration.noise_parameters.depolarization_probability_one_qubit = 1e-2
+        configuration.noise_parameters.depolarization_probability_two_qubit = 2e-2
+
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         circuit = Circuit(

@@ -1,15 +1,11 @@
 import argparse
 from datetime import datetime
-from functools import partial
-from typing import List, Sequence
 
 import numpy as np
-from cirq import Circuit, LineQubit, Moment, NoiseModel, OP_TREE, OpIdentifier, Operation, Qid, depolarize, map_moments
-from cirq.devices import InsertionNoiseModel
+from cirq import LineQubit
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
-from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
@@ -17,10 +13,8 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
-from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
 class DeutschJoszaLerSurfaceCode:

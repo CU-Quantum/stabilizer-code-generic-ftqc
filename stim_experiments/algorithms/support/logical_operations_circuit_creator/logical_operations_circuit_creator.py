@@ -8,6 +8,7 @@ from stim_experiments.algorithms.support.logical_operations_circuit_creator.supp
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
@@ -35,10 +36,17 @@ class LogicalOperationsCircuitCreator:
             encoding.encode_logical_qubit()
             for encoding in self._encodings
         ]
-        return Circuit(
-            encoding_circuits,
-            operations_circuits,
-        )
+        with ActiveEncodingsStore(additional_tracked_encodings=self._encodings) as encodings_store:
+            return Circuit(
+                encoding_circuits,
+                encodings_store.get_all_correction_circuits(),
+                [
+                    [
+                        operation_circuit,
+                        encodings_store.get_all_correction_circuits(),
+                    ] for operation_circuit in operations_circuits
+                ],
+            )
 
     def _ensure_enough_logical_qubits(self) -> None:
         num_logical_qubits_given = sum(code.num_logical_qubits for code in self._encodings)
