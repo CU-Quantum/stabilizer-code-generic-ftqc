@@ -6,11 +6,11 @@ from cirq import Circuit, MeasurementKey, Operation
 
 class Measurer(ABC):
     def __init__(self,
-                 operations: list[Operation],
-                 measurement_key: Optional[MeasurementKey] = None,
+                 observables: list[list[Operation]],
+                 measurement_keys: Optional[list[MeasurementKey]] = None,
                  ):
-        self._operations = operations
-        self._measurement_key = measurement_key
+        self._observables = observables
+        self._measurement_keys = measurement_keys or []
 
     @abstractmethod
     def get_measurement_circuit(self) -> Circuit:

@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from cirq import Circuit, FrozenCircuit, MeasurementKey, Moment, Operation
+from cirq import Circuit, FrozenCircuit, MeasurementKey, Operation
 
 from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
@@ -8,19 +8,17 @@ from stim_experiments.error_correcting_codes.support.measurer.measurer import Me
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
-# TODO create version that measures in parallel
-class ErrorRecoveryByStabilizers:
+class ErrorRecoveryByStabilizersSequential:
     def __init__(self, stabilizers: list[list[Operation]], recoveries: list[RecoveryOperation]):
         self._stabilizers = stabilizers
         self._recoveries = recoveries
 
     def get_error_correction_circuit(self) -> Circuit:
-        tag = uuid4().hex
-        measurement_key = MeasurementKey(f'ERROR_RECOVERY_{tag}')
+        measurement_key = MeasurementKey(f'ERROR_RECOVERY_{uuid4().hex}')
         syndrome_operations = [
             self._measurer_type(
-                operations=operations,
-                measurement_key=measurement_key,
+                observables=[operations],
+                measurement_keys=[measurement_key],
             ).get_measurement_circuit()
             for operations in self._stabilizers
         ]

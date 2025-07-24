@@ -13,10 +13,10 @@ class ConfigurationErrorCorrectingCodeManager:
 
     @classmethod
     def reset_configuration(cls) -> None:
-        from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.cat_state_creator_basic_nondeterministic import \
-            CatStateCreatorBasicNondeterministic
-        from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer_sequential import \
-            FaultTolerantMeasurerSequential
+        from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
+            CatStateCreatorFlagPattern
+        from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer import \
+            FaultTolerantMeasurer
         from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import \
             UniversalControlledFlipFaultTolerant
         from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_fault_tolerant import \
@@ -24,9 +24,9 @@ class ConfigurationErrorCorrectingCodeManager:
         from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_fault_tolerant import \
             UniversalTFaultTolerant
         cls._configuration = ConfigurationErrorCorrectingCode(
-            cat_state_creator_type=CatStateCreatorBasicNondeterministic,
+            cat_state_creator_type=CatStateCreatorFlagPattern,
             majority_vote_repetitions=3,
-            measurer_type=FaultTolerantMeasurerSequential,
+            measurer_type=FaultTolerantMeasurer,
             noise_parameters=NoiseParameters(
                 depolarization_probability_one_qubit=1e-4,
                 depolarization_probability_two_qubit=2e-4,

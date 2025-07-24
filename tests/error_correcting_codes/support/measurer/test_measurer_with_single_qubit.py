@@ -10,7 +10,7 @@ from tests.utilities_for_tests import set_seed
 
 class TestMeasurerWithSingleQubit:
     def test_trivial(self):
-        measurer = MeasurerWithSingleQubit(operations=[])
+        measurer = MeasurerWithSingleQubit(observables=[])
         circuit = measurer.get_measurement_circuit()
         assert circuit == Circuit()
 
@@ -18,8 +18,8 @@ class TestMeasurerWithSingleQubit:
         qubits = LineQubit.range(1)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubit(operations=[Z(qubits[0])],
-                                           measurement_key=measurement_key)
+        measurer = MeasurerWithSingleQubit(observables=[Z(qubits[0])],
+                                           measurement_keys=measurement_key)
         circuit = measurer.get_measurement_circuit()
 
         initial_state = KET_PLUS_STATE_VECTOR
@@ -39,8 +39,8 @@ class TestMeasurerWithSingleQubit:
         qubits = LineQubit.range(2)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubit(operations=[X(qubits[0]), Z(qubits[1])],
-                                           measurement_key=measurement_key)
+        measurer = MeasurerWithSingleQubit(observables=[X(qubits[0]), Z(qubits[1])],
+                                           measurement_keys=measurement_key)
         circuit = measurer.get_measurement_circuit()
 
         initial_state = tensor(KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR)

@@ -5,7 +5,7 @@ from cirq import Circuit, LineQubit
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
-from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries import \
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_syndrome_and_recoveries_sequential import \
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
