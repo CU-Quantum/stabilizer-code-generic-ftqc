@@ -3,7 +3,7 @@ from cirq import Circuit, CircuitOperation, M, R, TaggedOperation
 from stim_experiments.conditions.majority_vote import \
     MajorityVote
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 

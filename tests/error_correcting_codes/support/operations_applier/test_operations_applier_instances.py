@@ -1,7 +1,7 @@
 import pytest
 from cirq import Circuit, LineQubit, X
 
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_single_qubit_hadamard_control import \
     OperationsApplierUsingSingleQubitHadamardControl

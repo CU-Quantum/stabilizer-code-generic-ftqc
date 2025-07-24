@@ -4,6 +4,7 @@ from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Mom
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCount
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
@@ -196,6 +197,45 @@ class TestNoisyCircuitCreator:
             ),
             noisy_operations_count=NoisyOperationsCount(
                 one_qubit=1,
+            ),
+        )
+
+    def test_delayed_noise_multiple_gates_and_idle_qubits(self):
+        qubits = LineQubit.range(4)
+        circuit = Circuit(
+            I.on_each(*qubits),
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        Z(qubits[0]).controlled_by(qubits[2]),
+                        Z(qubits[1]).controlled_by(qubits[2]),
+                    )
+                ),
+                DELAYED_NOISE_TAG
+            ),
+        )
+        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=4).get_noisy_circuit()
+        assert circuit_noisy == NoisyCircuit(
+            circuit=Circuit(
+                I.on_each(*qubits),
+                depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits),
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            Z(qubits[0]).controlled_by(qubits[2]),
+                            Z(qubits[1]).controlled_by(qubits[2]),
+                        )
+                    ),
+                    DELAYED_NOISE_TAG
+                ),
+                Moment(
+                    depolarize(p=self._depolarization_noise_two_qubit_gate).on_each(qubits[:3]),
+                    depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[3])
+                ),
+            ),
+            noisy_operations_count=NoisyOperationsCount(
+                one_qubit=5,
+                two_qubit=3
             ),
         )
 
