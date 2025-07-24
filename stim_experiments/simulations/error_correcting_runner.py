@@ -8,6 +8,9 @@ from stim_experiments.custom_dataclasses.state_and_measurements import Measureme
 
 
 class ErrorCorrectingRunner(ABC):
+    def __init__(self, seed: Optional[int] = None):
+        self._seed = seed
+
     @abstractmethod
     def run_circuit(self, circuit: Circuit, num_shots: int, noise_model: Optional[NOISE_MODEL_LIKE] = None) -> Measurements:
         pass
@@ -16,6 +19,6 @@ class ErrorCorrectingRunner(ABC):
 class ErrorCorrectingRunnerClifford(ErrorCorrectingRunner):
     def run_circuit(self, circuit: Circuit, num_shots: int = 1, noise_model: Optional[NOISE_MODEL_LIKE] = None) -> Measurements:
         circuit_noisy = circuit.with_noise(noise_model) if noise_model else circuit
-        simulator = CliffordSimulator()
+        simulator = CliffordSimulator(seed=self._seed,)
         result: Result = simulator.run(circuit_noisy, repetitions=num_shots)
         return Measurements(measurements=dict(result.records))

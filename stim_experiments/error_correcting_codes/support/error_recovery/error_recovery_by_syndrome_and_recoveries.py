@@ -8,6 +8,7 @@ from stim_experiments.error_correcting_codes.support.measurer.measurer import Me
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
+# TODO create version that measures in parallel
 class ErrorRecoveryByStabilizers:
     def __init__(self, stabilizers: list[list[Operation]], recoveries: list[RecoveryOperation]):
         self._stabilizers = stabilizers

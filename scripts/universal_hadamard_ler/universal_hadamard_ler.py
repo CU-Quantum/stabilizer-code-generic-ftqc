@@ -86,10 +86,14 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--num-shots', type=int, default=1, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-4, help='Probability of depolarization on one qubit gates.')
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-4, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
 
     DeutschJoszaLerSurfaceCode(
         num_shots=args.num_shots,
         surface_code_distance=args.surface_code_distance,
         num_measurement_rounds=max(3, args.num_measurement_rounds),
+        depolarization_probability_one_qubit=args.prob_one_qubit_error,
+        depolarization_probability_two_qubit=args.prob_two_qubit_error,
     ).run_main()
