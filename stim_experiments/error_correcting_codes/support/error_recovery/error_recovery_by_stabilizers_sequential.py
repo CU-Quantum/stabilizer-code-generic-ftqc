@@ -6,9 +6,10 @@ from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class ErrorRecoveryByStabilizersSequential:
+class ErrorRecoveryByStabilizers:
     def __init__(self, stabilizers: list[list[Operation]], recoveries: list[RecoveryOperation]):
         self._stabilizers = stabilizers
         self._recoveries = recoveries
@@ -17,8 +18,8 @@ class ErrorRecoveryByStabilizersSequential:
         measurement_key = MeasurementKey(f'ERROR_RECOVERY_{uuid4().hex}')
         syndrome_operations = [
             self._measurer_type(
-                observables=[operations],
-                measurement_keys=[measurement_key],
+                operations=operations,
+                measurement_key=measurement_key,
             ).get_measurement_circuit()
             for operations in self._stabilizers
         ]
@@ -28,10 +29,11 @@ class ErrorRecoveryByStabilizersSequential:
             for recovery in self._recoveries
         ]
 
-        return Circuit(
-            syndrome_operations,
-            FrozenCircuit(recovery_operations),  # FrozenCircuit in order to ensure separate moment from syndrome extraction
-        )
+        with FreshAncillasPool().parallel(ConfigurationErrorCorrectingCodeManager().get_configuration().parallel):
+            return Circuit(
+                syndrome_operations,
+                FrozenCircuit(recovery_operations),  # FrozenCircuit in order to ensure separate moment from syndrome extraction
+            )
 
     @property
     def _measurer_type(self) -> type[Measurer]:

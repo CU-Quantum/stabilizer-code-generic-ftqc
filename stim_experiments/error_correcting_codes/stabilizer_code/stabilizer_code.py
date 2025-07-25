@@ -6,8 +6,8 @@ from cirq import Circuit, LineQubit, Operation
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_generator_measurement import \
-    ErrorRecoveryByGeneratorMeasurement
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_check_matrix import \
+    ErrorRecoveryByCheckMatrix
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
@@ -46,7 +46,7 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
         ).encode_state()
 
     def get_error_correction_circuit(self) -> Circuit:
-        return ErrorRecoveryByGeneratorMeasurement(
+        return ErrorRecoveryByCheckMatrix(
             check_matrix=self._check_matrix,
             qubits=self.data_qubits,
             recovery_combinations_finder=self._recovery_combinations_finder

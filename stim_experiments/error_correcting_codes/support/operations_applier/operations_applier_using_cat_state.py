@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, R, TaggedOperation
+from cirq import Circuit, R
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
@@ -17,12 +17,7 @@ class OperationsApplierUsingCatStateControl(OperationsApplier):
             return Circuit(
                 [R(qubit) for qubit in ancilla_qubits],
                 cat_state_creator.get_cat_state_circuit(),
-                TaggedOperation(
-                    CircuitOperation(
-                        ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit().freeze(),
-                    ),
-                    DELAYED_NOISE_TAG
-                ),
+                ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
                 cat_state_creator.decode_state(),
                 [R(qubit) for qubit in ancilla_qubits]
             )

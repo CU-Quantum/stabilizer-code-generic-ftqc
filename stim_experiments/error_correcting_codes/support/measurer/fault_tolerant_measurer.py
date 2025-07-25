@@ -13,31 +13,22 @@ FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG = 'FAULT_TOLERANT_MEASURER'
 
 class FaultTolerantMeasurer(Measurer):
     def get_measurement_circuit(self) -> Circuit:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._observables)) as ancilla_qubits:
-            appliers = [
-                OperationsApplierUsingCatStateControl(operations=operations, measurement_qubit=measurement_qubit)
-                for operations, measurement_qubit in zip(self._observables, ancilla_qubits)
-            ]
-            conditions = [
-                MajorityVote(desired_measurement_key=measurement_key)
-                for measurement_key in self._measurement_keys
-            ]
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
+            measurement_qubit = ancilla_qubits[0]
+            applier = OperationsApplierUsingCatStateControl(operations=self._operations, measurement_qubit=measurement_qubit)
+            condition = MajorityVote(desired_measurement_key=self._measurement_key)
             return Circuit(
-                [
-                    [
-                        TaggedOperation(
-                            CircuitOperation(
-                                Circuit(
-                                    R(measurement_qubit),
-                                    applier.get_application_circuit(),
-                                    M(measurement_qubit, key=condition.key),
-                                    R(measurement_qubit),
-                                ).freeze(),
-                                use_repetition_ids=False,
-                                repeat_until=condition
-                            ),
-                            FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG,
-                        )
-                    ] for applier, condition, measurement_qubit in zip(appliers, conditions, ancilla_qubits)
-                ]
+                TaggedOperation(
+                    CircuitOperation(
+                        Circuit(
+                            R(measurement_qubit),
+                            applier.get_application_circuit(),
+                            M(measurement_qubit, key=condition.key),
+                            R(measurement_qubit),
+                        ).freeze(),
+                        use_repetition_ids=False,
+                        repeat_until=condition
+                    ),
+                    FAULT_TOLERANT_MEASURER_FAST_MEASUREMENT_TAG,
+                )
             )
