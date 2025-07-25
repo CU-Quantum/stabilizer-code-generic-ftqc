@@ -23,7 +23,7 @@ class TestErrorRate:
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         circuit = Circuit(
             X(qubits[0]),
-            MeasurerWithSingleQubit(observables=[Z(qubits[0]), ], measurement_key=MeasurementKey('0')).get_measurement_circuit()
+            MeasurerWithSingleQubit(operations=[Z(qubits[0]),], measurement_key=MeasurementKey('0')).get_measurement_circuit()
         )
         circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
         runner = ErrorCorrectingRunnerClifford(seed=0)

@@ -32,7 +32,7 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
         return Circuit([ENCODING_OPERATION_MARK(qubit) for qubit in self.data_qubits])
 
     def get_error_correction_circuit(self) -> Circuit:
-        pass
+        return Circuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         gates = []

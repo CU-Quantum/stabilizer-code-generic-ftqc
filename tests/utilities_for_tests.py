@@ -41,6 +41,7 @@ def set_configuration_to_reduce_ancilla_qubits() -> None:
     configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
     configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
     configuration.universal_t_type = UniversalTSingleAncilla
+    configuration.parallel = False
 
 
 def random_complex_unit_vector(num_qubits: int) -> np.ndarray:

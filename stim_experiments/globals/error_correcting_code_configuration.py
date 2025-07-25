@@ -1,7 +1,5 @@
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
-from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_stabilizers_parallel import \
-    ErrorRecoveryByStabilizersParallel
 
 
 class ConfigurationErrorCorrectingCodeManager:
@@ -34,7 +32,7 @@ class ConfigurationErrorCorrectingCodeManager:
                 depolarization_probability_two_qubit=2e-4,
             ),
             num_cat_states=3,
-            parallel=False,
+            parallel=True,
             seed=None,
             universal_hadamard_type=UniversalHadamardFaultTolerant,
             universal_controlled_operation_type=UniversalControlledFlipFaultTolerant,
