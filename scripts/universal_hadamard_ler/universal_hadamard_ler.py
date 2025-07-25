@@ -71,6 +71,7 @@ class DeutschJoszaLerSurfaceCode:
 
         configuration.measurer_type = MeasurerWithSingleQubit
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+        configuration.parallel = True
 
 
 if __name__ == "__main__":

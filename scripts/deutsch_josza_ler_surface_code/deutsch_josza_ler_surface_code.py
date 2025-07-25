@@ -1,13 +1,9 @@
 import argparse
 from datetime import datetime
-from functools import partial
-from typing import List, Sequence
 
 import numpy as np
-from cirq import Circuit, LineQubit, Moment, NoiseModel, OP_TREE, OpIdentifier, Operation, Qid, depolarize, map_moments
-from cirq.devices import InsertionNoiseModel
+from cirq import LineQubit
 
-from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
@@ -79,6 +75,7 @@ class DeutschJoszaLerSurfaceCode:
 
         configuration.measurer_type = MeasurerWithSingleQubit
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+        configuration.parallel = True
 
 
 if __name__ == "__main__":
