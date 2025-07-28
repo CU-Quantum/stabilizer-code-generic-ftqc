@@ -16,20 +16,20 @@ class ErrorRecoveryByStabilizers:
 
     def get_error_correction_circuit(self) -> Circuit:
         measurement_key = MeasurementKey(f'ERROR_RECOVERY_{uuid4().hex}')
-        syndrome_operations = [
-            self._measurer_type(
-                operations=operations,
-                measurement_key=measurement_key,
-            ).get_measurement_circuit()
-            for operations in self._stabilizers
-        ]
-
-        recovery_operations = [
-            recovery.operation.with_classical_controls(RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
-            for recovery in self._recoveries
-        ]
-
         with FreshAncillasPool().parallel(ConfigurationErrorCorrectingCodeManager().get_configuration().parallel):
+            syndrome_operations = [
+                self._measurer_type(
+                    operations=operations,
+                    measurement_key=measurement_key,
+                ).get_measurement_circuit()
+                for operations in self._stabilizers
+            ]
+
+            recovery_operations = [
+                recovery.operation.with_classical_controls(RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
+                for recovery in self._recoveries
+            ]
+
             return Circuit(
                 syndrome_operations,
                 FrozenCircuit(recovery_operations),  # FrozenCircuit in order to ensure separate moment from syndrome extraction

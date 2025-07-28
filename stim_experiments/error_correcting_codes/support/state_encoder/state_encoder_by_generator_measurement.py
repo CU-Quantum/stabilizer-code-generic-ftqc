@@ -24,16 +24,19 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
         generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return Circuit(
             [
+                self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
+                                    measurement_key=measurement_key).get_measurement_circuit()
+                for measurement_key, operations in zip(measurement_keys, generators)
+            ],
+            FrozenCircuit(
                 [
-                    self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
-                                        measurement_key=measurement_key).get_measurement_circuit(),
                     [
                         phase_correction.with_classical_controls(measurement_key)
                         for phase_correction in self._phase_corrections[generator_index]
-                    ],
+                    ]
+                    for generator_index, measurement_key in enumerate(measurement_keys)
                 ]
-                for generator_index, (measurement_key, operations) in enumerate(zip(measurement_keys, generators))
-            ],
+            )
         )
 
     @property

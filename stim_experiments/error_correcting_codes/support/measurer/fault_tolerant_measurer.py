@@ -21,7 +21,7 @@ class FaultTolerantMeasurer(Measurer):
                 TaggedOperation(
                     CircuitOperation(
                         Circuit(
-                            R(measurement_qubit),
+                            R(measurement_qubit),  # TODO parallelize these resets
                             applier.get_application_circuit(),
                             M(measurement_qubit, key=condition.key),
                             R(measurement_qubit),
