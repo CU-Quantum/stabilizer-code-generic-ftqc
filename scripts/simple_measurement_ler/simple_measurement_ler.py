@@ -79,7 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-4, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
 
-    DeutschJoszaLerSurfaceCode(
+    SimpleMeasurementLer(
         num_shots=args.num_shots,
         surface_code_distance=args.surface_code_distance,
         num_measurement_rounds=max(3, args.num_measurement_rounds),
