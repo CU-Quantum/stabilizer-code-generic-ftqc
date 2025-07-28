@@ -10,6 +10,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     ParityVerifier
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
 class CatStateCreatorBasicNondeterministic(CatStateCreator):
@@ -21,7 +22,7 @@ class CatStateCreatorBasicNondeterministic(CatStateCreator):
         preparation_circuit = Circuit(
             [R(qubit) for qubit in self._qubit_register.copy()],
             self._state_propagation,
-            ParityVerifier(target_qubits=self._qubit_register, measurement_key=verification_condition.key).validate_parity(),
+            self._parity_verifier(target_qubits=self._qubit_register, measurement_key=verification_condition.key).validate_parity(),
         )
         return Circuit(
             TaggedOperation(
@@ -38,3 +39,7 @@ class CatStateCreatorBasicNondeterministic(CatStateCreator):
     @cached_property
     def _state_propagation(self) -> Circuit:
         return CatStateCreatorCxFromFirstQubit(qubit_register=self._qubit_register).get_cat_state_circuit()
+
+    @property
+    def _parity_verifier(self) -> type[ParityVerifier]:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().parity_verifier

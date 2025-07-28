@@ -7,7 +7,7 @@ class MultipleConditions(Condition):
 
     @property
     def keys(self):
-        return tuple(condition.keys for condition in self._conditions)
+        return tuple(key for condition in self._conditions for key in condition.keys)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
         for condition in self._conditions:

@@ -18,7 +18,7 @@ from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
-class UniversalHadamardLer:
+class SimpleMeasurementLer:
     def __init__(self,
                  num_shots: int,
                  surface_code_distance: int,
@@ -43,10 +43,7 @@ class UniversalHadamardLer:
         logical_qubits = [encoding.create_new(data_qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])
                           for i in range(num_logical_qubits)]
 
-        num_hadamard_repetitions = 2
         operations = [
-            *[TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)
-              for _ in range(num_hadamard_repetitions)],
             TransformationOperation(gate=TransformationGate.M, target_qubit_index=0)
         ]
         circuit_creator = LogicalOperationsCircuitCreator(encodings=logical_qubits, operations=operations)
@@ -70,14 +67,11 @@ class UniversalHadamardLer:
         configuration.noise_parameters.depolarization_probability_one_qubit = self._depolarization_probability_one_qubit
         configuration.noise_parameters.depolarization_probability_two_qubit = self._depolarization_probability_two_qubit
 
-        configuration.measurer_type = MeasurerWithSingleQubitParallel
-        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog='Hadamard Logical Error Rate Calculator',
-        description='Runs the universal Hadamard operation twice using surface code and calculates the percentage of zero measurements.')
+        prog='Simple Measurement Error Rate Calculator',
+        description='Runs a measurement operation on surface code and calculates the percentage of zero measurements.')
     parser.add_argument('-s', '--num-shots', type=int, default=1, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
@@ -85,7 +79,7 @@ if __name__ == "__main__":
     parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-4, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
 
-    UniversalHadamardLer(
+    DeutschJoszaLerSurfaceCode(
         num_shots=args.num_shots,
         surface_code_distance=args.surface_code_distance,
         num_measurement_rounds=max(3, args.num_measurement_rounds),

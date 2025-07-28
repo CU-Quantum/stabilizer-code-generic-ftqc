@@ -15,7 +15,13 @@ FAULT_TOLERANT_MEASURER_PARALLEL_TAG = 'FAULT_TOLERANT_MEASURER_PARALLEL'
 
 class FaultTolerantMeasurerParallel(Measurer):
     def get_measurement_circuit(self) -> Circuit:
+        if not self._measurement_keys:
+            return Circuit()
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._observables)) as ancilla_qubits:
+            conditions = [
+                MajorityVote(desired_measurement_key=measurement_key)
+                for measurement_key in self._measurement_keys
+            ]
             return Circuit(
                 TaggedOperation(
                     CircuitOperation(
@@ -26,17 +32,12 @@ class FaultTolerantMeasurerParallel(Measurer):
                                 for measurement_qubit, operations in zip(ancilla_qubits, self._observables)
                             ],
                             [
-                                M(measurement_qubit, key=measurement_key)
-                                for measurement_qubit, measurement_key in zip(ancilla_qubits, self._measurement_keys)
+                                M(measurement_qubit, key=condition.key)
+                                for measurement_qubit, condition in zip(ancilla_qubits, conditions)
                             ],
                         ).freeze(),
                         use_repetition_ids=False,
-                        repeat_until=MultipleConditions(
-                            [
-                                MajorityVote(desired_measurement_key=measurement_key)
-                                for measurement_key in self._measurement_keys
-                            ]
-                        )
+                        repeat_until=MultipleConditions(conditions)
                     ),
                     FAULT_TOLERANT_MEASURER_PARALLEL_TAG,
                 ),
