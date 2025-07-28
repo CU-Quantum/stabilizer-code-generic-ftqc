@@ -10,10 +10,12 @@ from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 class ParityVerifierSequential(ParityVerifier):
     def validate_parity(self) -> Circuit:
+        if self._num_target_qubits <= 1:
+            return Circuit()
         operations = []
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancillas:
+            verifier_ancilla = ancillas[0]
             for i in range(self._num_target_qubits - 1):
-                verifier_ancilla = ancillas[0]
                 operations.append(
                     [
                         R(verifier_ancilla),

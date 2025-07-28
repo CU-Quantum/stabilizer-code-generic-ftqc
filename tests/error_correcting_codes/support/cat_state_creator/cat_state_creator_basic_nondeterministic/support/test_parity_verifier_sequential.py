@@ -4,7 +4,7 @@ from numpy import array, sqrt
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_sequential import \
-    ParityVerifier, ParityVerifierSequential
+    ParityVerifierSequential
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, tensor
@@ -19,6 +19,7 @@ class TestParityVerifierSequential:
 
     def test_valid_cat_state_one_qubit(self):
         qubits = LineQubit.range(1)
+        FreshAncillasPool().set_first_ancilla_num(len(qubits))
         verifier = ParityVerifierSequential(target_qubits=qubits, measurement_key=MeasurementKey('arbitrary'))
         circuit = Circuit(
             I(qubits[0]),

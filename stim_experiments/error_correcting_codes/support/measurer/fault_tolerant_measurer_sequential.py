@@ -21,7 +21,7 @@ class FaultTolerantMeasurerSequential(Measurer):
                 OperationsApplierUsingCatStateControl(operations=operations, measurement_qubit=measurement_qubit)
                 for operations in self._observables
             ]
-            condition = MajorityVote(desired_measurement_key=self._measurement_keys)
+            conditions = [MajorityVote(desired_measurement_key=measurement_key) for measurement_key in self._measurement_keys]
             return Circuit(
                 [
                     TaggedOperation(
@@ -36,7 +36,7 @@ class FaultTolerantMeasurerSequential(Measurer):
                         ),
                         FAULT_TOLERANT_MEASURER_SEQUENTIAL_TAG,
                     )
-                    for applier in appliers
+                    for applier, condition in zip(appliers, conditions)
                 ],
                 R(measurement_qubit)
             )

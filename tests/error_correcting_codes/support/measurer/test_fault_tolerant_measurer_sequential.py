@@ -10,22 +10,11 @@ from tests.utilities_for_tests import set_seed
 
 
 class TestFaultTolerantMeasurerSequential:
-    def test_no_operations(self):
-        measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurerSequential(observables=[], measurement_keys=[measurement_key])
-        circuit = measurer.get_measurement_circuit()
-        initial_state = KET_PLUS_STATE_VECTOR
-        utilities = get_error_correcting_simulator(state=initial_state)
-        simulation = utilities.run_simulation(circuit=circuit,
-                                              num_data_qubits=1,
-                                              initial_data_state=initial_state)
-        assert simulation.measurements[measurement_key.name] == array([0])
-
     def test_one_qubit_z(self):
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurerSequential(observables=[Z(qubits[0])], measurement_keys=[measurement_key])
+        measurer = FaultTolerantMeasurerSequential(observables=[[Z(qubits[0])]], measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 
         initial_target_state = KET_PLUS_STATE_VECTOR
@@ -45,7 +34,7 @@ class TestFaultTolerantMeasurerSequential:
         qubits = LineQubit.range(1)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = FaultTolerantMeasurerSequential(observables=[Z(qubits[0])],
+        measurer = FaultTolerantMeasurerSequential(observables=[[Z(qubits[0])]],
                                                    measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 

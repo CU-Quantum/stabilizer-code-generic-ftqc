@@ -10,7 +10,8 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import MeasurerWithSingleQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import \
+    MeasurerWithSingleQubitSequential
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import \
     UniversalControlledOperationSingleAncilla
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
@@ -37,7 +38,7 @@ def get_cat_state_vector(num_qubits: int) -> TYPE_STATE_VECTOR:
 def set_configuration_to_reduce_ancilla_qubits() -> None:
     configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
     configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
-    configuration.measurer_type = MeasurerWithSingleQubit
+    configuration.measurer_type = MeasurerWithSingleQubitSequential
     configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
     configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
     configuration.universal_t_type = UniversalTSingleAncilla
@@ -75,9 +76,10 @@ def get_random_encoded_initial_state(code: ErrorCorrectingCode) -> RandomEncoded
         ).state
         for basis_state in computational_basis_states
     ])
-    initial_state = sum(
-        coefficient * computational_basis_state
-        for coefficient, computational_basis_state in zip(initial_coefficients, computational_basis_states_encoded)
+    initial_state = np.sum(
+        [coefficient * computational_basis_state
+         for coefficient, computational_basis_state in zip(initial_coefficients, computational_basis_states_encoded)],
+        axis=0
     )
     return RandomEncodedInitialState(
         initial_state=initial_state,

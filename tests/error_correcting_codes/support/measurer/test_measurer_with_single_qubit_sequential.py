@@ -19,8 +19,7 @@ class TestMeasurerWithSingleQubitSequential:
         qubits = LineQubit.range(1)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubitSequential(observables=[Z(qubits[0])],
-                                           measurement_keys=[measurement_key])
+        measurer = MeasurerWithSingleQubitSequential(observables=[[Z(qubits[0])]], measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 
         initial_state = KET_PLUS_STATE_VECTOR
@@ -40,8 +39,8 @@ class TestMeasurerWithSingleQubitSequential:
         qubits = LineQubit.range(2)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubitSequential(observables=[X(qubits[0]), Z(qubits[1])],
-                                           measurement_keys=[measurement_key])
+        measurer = MeasurerWithSingleQubitSequential(observables=[[X(qubits[0]), Z(qubits[1])]],
+                                                     measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 
         initial_state = tensor(KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR)
