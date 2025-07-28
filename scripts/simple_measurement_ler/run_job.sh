@@ -6,9 +6,9 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --qos=normal
-#SBATCH --job-name=hadamard_ler
-#SBATCH --error=results/hadamard_ler/hadamard_ler_%j.err
-#SBATCH --output=results/hadamard_ler/hadamard_ler_%j.out
+#SBATCH --job-name=simple_measurement_ler
+#SBATCH --error=results/simple_measurement_ler/simple_measurement_ler_%j.err
+#SBATCH --output=results/simple_measurement_ler/simple_measurement_ler_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -25,4 +25,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/universal_hadamard_ler/universal_hadamard_ler.py
+python ~/workspace/stim-experiments/scripts/simple_measurement_ler/simple_measurement_ler.py
