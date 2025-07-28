@@ -36,9 +36,11 @@ class FreshAncillasPool:
     def parallel(self, use_parallel: bool) -> Generator[None, None, None]:
         if use_parallel:
             self.__class__._parallel = True
+            old_ancilla_num = self._next_ancilla_num
             old_pool = self._pool.copy()
             yield
             self.__class__._pool = old_pool
+            self.__class__._next_ancilla_num = old_ancilla_num
             self.__class__._parallel = False
         else:
             yield
