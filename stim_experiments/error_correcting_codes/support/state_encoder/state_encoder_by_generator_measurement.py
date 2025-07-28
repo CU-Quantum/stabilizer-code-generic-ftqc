@@ -23,11 +23,7 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
         measurement_keys = [MeasurementKey(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._check_matrix.matrix))]
         generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return Circuit(
-            [
-                self._measurer_type(operations=[operation for target_index, operation in enumerate(operations)],
-                                    measurement_key=measurement_key).get_measurement_circuit()
-                for measurement_key, operations in zip(measurement_keys, generators)
-            ],
+            self._measurer_type(observables=generators, measurement_keys=measurement_keys).get_measurement_circuit(),
             FrozenCircuit(
                 [
                     [

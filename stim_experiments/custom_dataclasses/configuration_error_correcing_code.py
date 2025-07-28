@@ -18,7 +18,6 @@ class ConfigurationErrorCorrectingCode:
     measurer_type: type[Measurer]
     noise_parameters: NoiseParameters
     num_cat_states: int
-    parallel: bool
     seed: Optional[int]
     universal_hadamard_type: type[UniversalHadamard]
     universal_controlled_operation_type: type[UniversalControlledOperation]

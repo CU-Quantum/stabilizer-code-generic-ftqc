@@ -111,7 +111,7 @@ The project provides a configuration system that allows you to customize various
 
 ```python
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import
 
 MeasurerWithSingleQubitSequential
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import

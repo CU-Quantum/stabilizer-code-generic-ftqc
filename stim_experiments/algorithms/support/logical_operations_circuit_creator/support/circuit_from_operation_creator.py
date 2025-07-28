@@ -38,8 +38,8 @@ class CircuitFromOperationCreator:
         )
         logical_z_on_control = self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
         measurer = self._measurer_type(
-            operations=list(logical_z_on_control.all_operations()),
-            measurement_key=MeasurementKey(str(self._operation.control_encoding.qubit_index_logical)),
+            observables=[list(logical_z_on_control.all_operations())],
+            measurement_keys=[MeasurementKey(str(self._operation.control_encoding.qubit_index_logical))],
         )
         return measurer.get_measurement_circuit()
 

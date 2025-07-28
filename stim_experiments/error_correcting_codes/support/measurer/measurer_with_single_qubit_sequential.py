@@ -6,19 +6,20 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class MeasurerWithSingleQubit(Measurer):
+class MeasurerWithSingleQubitSequential(Measurer):
     def get_measurement_circuit(self) -> Circuit:
-        if not self._operations:
+        if not self._observables:
             return Circuit()
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
             measuring_qubit = ancilla_qubits[0]
             operations = [
-                R(measuring_qubit),
-                OperationsApplierUsingSingleQubitHadamardControl(
-                    operations=self._operations,
-                    measurement_qubit=measuring_qubit,
-                ).get_application_circuit(),
-                M(measuring_qubit, key=self._measurement_key),
-                R(measuring_qubit)
+                [
+                    R(measuring_qubit),
+                    OperationsApplierUsingSingleQubitHadamardControl(
+                        operations=operations,
+                        measurement_qubit=measuring_qubit,
+                    ).get_application_circuit(),
+                    M(measuring_qubit, key=measurement_key),
+                ] for operations, measurement_key in zip(self._observables, self._measurement_keys)
             ]
-            return Circuit(operations)
+            return Circuit(operations, R(measuring_qubit),)

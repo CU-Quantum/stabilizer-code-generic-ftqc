@@ -45,7 +45,7 @@ class UniversalOperationsUtilities:
         logical_z = list(context.multiple_cat_code.get_operation_circuit(
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
         ).all_operations())
-        return self._measurer_type(operations=logical_z, measurement_key=measurement_key).get_measurement_circuit()
+        return self._measurer_type(observables=[logical_z], measurement_keys=[measurement_key]).get_measurement_circuit()
 
     @staticmethod
     def reset_ancilla_qubits(context: UniversalOperationsContext):

@@ -1,6 +1,7 @@
 from cirq import Circuit, LineQubit, MeasurementKey, X, Z
 
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import \
+    MeasurerWithSingleQubitSequential
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, \
@@ -8,9 +9,9 @@ from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE
 from tests.utilities_for_tests import set_seed
 
 
-class TestMeasurerWithSingleQubit:
+class TestMeasurerWithSingleQubitSequential:
     def test_trivial(self):
-        measurer = MeasurerWithSingleQubit(operations=[])
+        measurer = MeasurerWithSingleQubitSequential(observables=[])
         circuit = measurer.get_measurement_circuit()
         assert circuit == Circuit()
 
@@ -18,8 +19,8 @@ class TestMeasurerWithSingleQubit:
         qubits = LineQubit.range(1)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubit(operations=[Z(qubits[0])],
-                                           measurement_key=measurement_key)
+        measurer = MeasurerWithSingleQubitSequential(observables=[Z(qubits[0])],
+                                           measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 
         initial_state = KET_PLUS_STATE_VECTOR
@@ -39,8 +40,8 @@ class TestMeasurerWithSingleQubit:
         qubits = LineQubit.range(2)
         FreshAncillasPool.set_first_ancilla_num(first_ancilla_num=len(qubits))
         measurement_key = MeasurementKey('TEST')
-        measurer = MeasurerWithSingleQubit(operations=[X(qubits[0]), Z(qubits[1])],
-                                           measurement_key=measurement_key)
+        measurer = MeasurerWithSingleQubitSequential(observables=[X(qubits[0]), Z(qubits[1])],
+                                           measurement_keys=[measurement_key])
         circuit = measurer.get_measurement_circuit()
 
         initial_state = tensor(KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR)
