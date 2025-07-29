@@ -4,7 +4,7 @@ from cirq import Circuit, LineQubit
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
-from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):

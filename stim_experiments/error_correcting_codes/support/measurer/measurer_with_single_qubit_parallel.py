@@ -16,9 +16,9 @@ class MeasurerWithSingleQubitParallel(Measurer):
                 [
                     OperationsApplierUsingSingleQubitHadamardControl(
                         operations=operations,
-                        measurement_qubit=self._measurement_keys[i],
+                        measurement_qubit=measurement_qubit,
                     ).get_application_circuit()
-                    for i, (operations, measurement_key) in enumerate(zip(self._observables, self._measurement_keys))
+                    for operations, measurement_qubit in zip(self._observables, ancilla_qubits)
                 ],
                 [M(qubit, key=self._measurement_keys[i]) for i, qubit in enumerate(ancilla_qubits)],
                 ResetChannel().on_each(*ancilla_qubits),

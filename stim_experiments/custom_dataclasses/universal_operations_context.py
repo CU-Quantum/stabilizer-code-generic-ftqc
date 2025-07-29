@@ -4,7 +4,7 @@ from cirq import LineQubit
 
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
-from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 
 
 @dataclass

@@ -7,14 +7,12 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
-from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_stabilizers_sequential import \
+from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_stabilizers import \
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class CatParityCode(StabilizerCode):
