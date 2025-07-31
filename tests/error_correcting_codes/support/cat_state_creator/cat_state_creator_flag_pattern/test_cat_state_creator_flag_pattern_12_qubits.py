@@ -42,4 +42,3 @@ class TestCatStateCreatorFlagPattern12Qubits:
         circuit = get_circuit_with_x_error_on_first_n_qubits(qubits=self._qubits, n=multiple_of_3 + 1)
         expected_state = get_cat_state_with_x_error(num_qubits=self._num_qubits, qubit_index_with_error=multiple_of_3)
         assert circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)
-

@@ -46,7 +46,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                 FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
                     self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                     encodings_store.get_all_correction_circuits(),
-                    Moment(
+                    FrozenCircuit(
                         CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
                         CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
                     ),

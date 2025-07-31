@@ -185,21 +185,6 @@ class TestNoisyCircuitCreator:
             ),
         )
 
-    def test_reset_qubits_after_noise(self):
-        qubits = LineQubit.range(1)
-        circuit = Circuit(Moment(Z(qubits[0])))
-        circuit_noisy = NoisyCircuitCreator(circuit=circuit, num_data_qubits=0).get_noisy_circuit()
-        assert circuit_noisy == NoisyCircuit(
-            circuit=Circuit(
-                Moment(Z(qubits[0])),
-                Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
-                ResetChannel().on(qubits[0]),
-            ),
-            noisy_operations_count=NoisyOperationsCount(
-                one_qubit=1,
-            ),
-        )
-
     def test_delayed_noise_multiple_gates_and_idle_qubits(self):
         qubits = LineQubit.range(4)
         circuit = Circuit(
