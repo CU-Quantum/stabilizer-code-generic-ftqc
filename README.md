@@ -188,12 +188,10 @@ class MyCustomCode(ErrorCorrectingCode):
         circuit = Circuit()
         # FreshAncillasPool allows you to pull fresh or unused ancilla qubits. 
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancilla_quibts:
-            # You must ensure the ancilla qubits are reset after pulling, as decoherence could have affected them
+            # You must ensure the ancilla qubits are reset after pulling to ensure freshness
             Circuit.append(R(ancilla for ancilla in ancilla_quibts))
             # Add error correction operations
             Circuit.append(...)
-            # You must ensure the ancilla qubits return to the |0> state before exiting the FreshAncillasPool context.
-            Circuit.append(R(ancilla for ancilla in ancilla_quibts))
             return circuit
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:

@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, H, TaggedOperation
+from cirq import Circuit, CircuitOperation, H, R, TaggedOperation
 
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG, \
     OperationsApplier
@@ -7,6 +7,7 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 class OperationsApplierUsingSingleQubitHadamardControl(OperationsApplier):
     def _perform_get_application_circuit(self) -> Circuit:
         return Circuit(
+            R(self._measurement_qubit),
             H(self._measurement_qubit),
             TaggedOperation(
                 CircuitOperation(

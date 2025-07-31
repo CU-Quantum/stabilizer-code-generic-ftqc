@@ -4,7 +4,7 @@ from functools import cached_property
 from typing import Generator
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, Z
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Moment, OP_TREE, Operation, Z
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -25,13 +25,12 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
-                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
+                Moment(self._reset_ancilla_qubits(context=context)),
                 self._encode_three_cat(context=context),
                 self._cz_helpers_to_control(context=context),
                 self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.multiple_cat_code, qubit_index_relative=0)).get_hadamard_circuit(),
                 self._c_helpers_to_target(context=context),
                 self._measure_out_helper(context=context),
-                FrozenCircuit(self._reset_ancilla_qubits(context=context)), # FrozenCircuit in order to ensure separate moment from measurement
             )
 
     def _encode_three_cat(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:

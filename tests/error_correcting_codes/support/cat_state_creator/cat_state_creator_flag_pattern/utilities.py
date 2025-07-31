@@ -1,16 +1,17 @@
-from cirq import Circuit, I, LineQubit, Simulator, StateVectorTrialResult, X
+from cirq import Circuit, I, LineQubit, Simulator, X
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
     CatStateCreatorFlagPattern
+from stim_experiments.simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR, \
-    states_are_equal, trace_out_ancillas_in_zero_state
+    get_num_qubits_in_state, states_are_equal
 from tests.utilities_for_tests import get_cat_state_vector
 
 
 def circuit_results_in_expected_state(circuit: Circuit, expected_state: TYPE_STATE_VECTOR) -> bool:
-    simulation: StateVectorTrialResult = Simulator().simulate(circuit)
-    data_state = trace_out_ancillas_in_zero_state(state=simulation.final_state_vector, num_ancillas=1)
-    return states_are_equal(data_state, expected_state)
+    num_data_qubits = get_num_qubits_in_state(expected_state)
+    simulation = ErrorCorrectingSimulatorStateVector().run_simulation(circuit=circuit, num_data_qubits=num_data_qubits)
+    return states_are_equal(simulation.state, expected_state)
 
 def get_circuit_with_x_error_on_first_n_qubits(qubits: list[LineQubit], n: int) -> Circuit:
     control_qubit = qubits[0]

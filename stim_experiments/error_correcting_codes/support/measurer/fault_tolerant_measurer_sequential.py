@@ -27,7 +27,6 @@ class FaultTolerantMeasurerSequential(Measurer):
                     TaggedOperation(
                         CircuitOperation(
                             Circuit(
-                                R(measurement_qubit),
                                 applier.get_application_circuit(),
                                 M(measurement_qubit, key=condition.key),
                             ).freeze(),
@@ -38,5 +37,4 @@ class FaultTolerantMeasurerSequential(Measurer):
                     )
                     for applier, condition in zip(appliers, conditions)
                 ],
-                R(measurement_qubit)
             )

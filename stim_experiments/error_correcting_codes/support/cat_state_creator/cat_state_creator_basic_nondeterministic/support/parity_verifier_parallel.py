@@ -24,7 +24,6 @@ class ParityVerifierParallel(ParityVerifier):
                         M(verifier_ancilla, key=self._measurement_key),
                     ] for i, verifier_ancilla in enumerate(ancillas)
                 ],
-                ResetChannel().on_each(*ancillas),
             )
 
     @property

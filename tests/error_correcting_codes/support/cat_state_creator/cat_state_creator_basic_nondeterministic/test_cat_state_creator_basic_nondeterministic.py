@@ -25,22 +25,22 @@ class TestCatStateCreatorBasicNondeterministic:
 
     def test_creates_cat_state(self):
         circuit = self._circuit_constructing_and_verifying_3_qubit_cat_state
-        assert self._successfully_created_3_qubit_cat_state(circuit=circuit, noise_model=None)
+        assert self._successfully_created_3_qubit_cat_state(circuit=circuit)
         assert self._number_of_repetitions(circuit=circuit) == 1
 
     def test_retries_if_invalid(self):
         circuit = self._circuit_constructing_and_verifying_3_qubit_cat_state
-        assert self._successfully_created_3_qubit_cat_state(circuit=circuit, noise_model=BitFlipOnceNoiseModel())
+        circuit_noisy = circuit.with_noise(BitFlipOnceNoiseModel())
+        assert self._successfully_created_3_qubit_cat_state(circuit=circuit_noisy)
         assert self._number_of_repetitions(circuit=circuit) == 2
 
-    def _successfully_created_3_qubit_cat_state(self, circuit: Circuit, noise_model: Optional[NoiseModel]):
+    def _successfully_created_3_qubit_cat_state(self, circuit: Circuit):
         initial_state = tensor(*[KET_ZERO_STATE_VECTOR] * self._num_qubits)
         error_correction_utilities = get_error_correcting_simulator(state=initial_state)
 
         state = error_correction_utilities.run_simulation(circuit=circuit,
                                                           num_data_qubits=self._num_qubits,
-                                                          initial_data_state=initial_state,
-                                                          noise_model=noise_model)
+                                                          initial_data_state=initial_state)
 
         expected_target_qubits_state = get_cat_state_vector(num_qubits=self._num_qubits)
         return states_are_equal(state.state, tensor(expected_target_qubits_state))

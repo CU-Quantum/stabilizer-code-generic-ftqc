@@ -1,4 +1,4 @@
-from cirq import Circuit, CircuitOperation, M, ResetChannel, \
+from cirq import Circuit, CircuitOperation, FrozenCircuit, M, Moment, ResetChannel, \
     TaggedOperation
 
 from stim_experiments.conditions.majority_vote import \
@@ -26,20 +26,20 @@ class FaultTolerantMeasurerParallel(Measurer):
                 TaggedOperation(
                     CircuitOperation(
                         Circuit(
-                            ResetChannel().on_each(*ancilla_qubits),
                             [
                                 OperationsApplierUsingCatStateControl(operations=operations, measurement_qubit=measurement_qubit).get_application_circuit()
                                 for measurement_qubit, operations in zip(ancilla_qubits, self._observables)
                             ],
-                            [
-                                M(measurement_qubit, key=condition.key)
-                                for measurement_qubit, condition in zip(ancilla_qubits, conditions)
-                            ],
+                            Moment(
+                                [
+                                    M(measurement_qubit, key=condition.key)
+                                    for measurement_qubit, condition in zip(ancilla_qubits, conditions)
+                                ],
+                            ),
                         ).freeze(),
                         use_repetition_ids=False,
                         repeat_until=MultipleConditions(conditions)
                     ),
                     FAULT_TOLERANT_MEASURER_PARALLEL_TAG,
                 ),
-                ResetChannel().on_each(*ancilla_qubits),
             )

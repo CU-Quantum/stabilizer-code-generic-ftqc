@@ -35,7 +35,6 @@ class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
                     op.with_classical_controls(self._measurement_key)
                     for op in logical_z_control.all_operations()
                 ],
-                R(ancilla_qubit),
             )
             return circuit
 

@@ -53,7 +53,7 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         ]
 
     def _measure_flags(self) -> list[list[Operation]]:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits: # TODO parallelize option
             ancilla = ancilla_qubits[0]
             return [
                 R(ancilla),
@@ -74,7 +74,6 @@ class CatStateCreatorFlagPattern(CatStateCreator):
     def _get_measurement(self, ancilla: LineQubit) -> list[Operation]:
         return [
             M(ancilla, key=self._measurement_key),
-            R(ancilla),
         ]
 
     def _recover_from_errors(self) -> list[list[Operation]]:

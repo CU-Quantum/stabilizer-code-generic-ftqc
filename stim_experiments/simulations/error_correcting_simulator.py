@@ -3,7 +3,7 @@ from typing import Optional
 
 from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, \
     NOISE_MODEL_LIKE, \
-    Simulator, \
+    ResetChannel, Simulator, \
     StateVectorTrialResult
 from qsimcirq import QSimOptions, QSimSimulator
 
@@ -40,10 +40,18 @@ class ErrorCorrectingSimulator(ABC):
         if initial_data_state is None:
             initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
-        num_ancillas = len(qubits) - num_data_qubits
+        ancilla_qubits = LineQubit.range(num_data_qubits, len(qubits))
+        num_ancillas = len(ancilla_qubits)
         initial_state = tensor(initial_data_state, *[self.zero_state] * num_ancillas)
 
-        simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
+        circuit_with_reset_ancillas = Circuit(
+            circuit,
+            ResetChannel().on_each(*ancilla_qubits),
+        )
+        simulation = self._get_simulation_result(circuit=circuit_with_reset_ancillas,
+                                                 qubits=qubits,
+                                                 initial_state=initial_state,
+                                                 noise_model=noise_model)
         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
 
         return StateAndMeasurements(

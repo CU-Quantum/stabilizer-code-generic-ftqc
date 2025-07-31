@@ -24,7 +24,6 @@ class ParityVerifierSequential(ParityVerifier):
                         M(verifier_ancilla, key=self._measurement_key),
                     ]
                 )
-            operations.append(R(verifier_ancilla))
         return Circuit(operations)
 
     @property

@@ -23,7 +23,6 @@ class UniversalTSingleAncilla(UniversalT):
                 H(ancilla_qubit),
                 M(ancilla_qubit, key=self._measurement_key),
                 CircuitOperation(logical_z_control.freeze()).with_classical_controls(self._measurement_key),
-                R(ancilla_qubit),
             )
 
     @cached_property

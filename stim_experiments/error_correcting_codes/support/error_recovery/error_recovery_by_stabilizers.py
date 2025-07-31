@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from cirq import Circuit, FrozenCircuit, MeasurementKey, Operation
+from cirq import Circuit, FrozenCircuit, MeasurementKey, Moment, Operation
 
 from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation

@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Moment, Operation
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
@@ -24,7 +24,7 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
         generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return Circuit(
             self._measurer_type(observables=generators, measurement_keys=measurement_keys).get_measurement_circuit(),
-            FrozenCircuit(
+            FrozenCircuit(  # FrozenCircuit to avoid overlapping operations with noise
                 [
                     [
                         phase_correction.with_classical_controls(measurement_key)

@@ -5,7 +5,7 @@ from typing import Generator
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Moment, OP_TREE, Operation
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_hadamard_fault_tolerant_context import \
@@ -20,11 +20,10 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
     def get_hadamard_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
-                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
+                Moment(self._reset_ancilla_qubits(context=context)),
                 self._encode_three_cat(context=context),
                 self._czx_helpers_to_data(context=context),
                 self._measure_out_helper(context=context),
-                FrozenCircuit(self._reset_ancilla_qubits(context=context)),  # FrozenCircuit in order to ensure separate moment from measurement
             )
 
     def _encode_three_cat(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
@@ -47,7 +46,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                 FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
                     self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                     encodings_store.get_all_correction_circuits(),
-                    FrozenCircuit(  # FrozenCircuit in order to ensure separate moment from measurement
+                    Moment(
                         CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
                         CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
                     ),

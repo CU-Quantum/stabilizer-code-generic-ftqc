@@ -1,7 +1,7 @@
 from functools import cached_property
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, LineQubit, MeasurementKey, R, TaggedOperation, inverse
+from cirq import Circuit, CircuitOperation, LineQubit, MeasurementKey, R, ResetChannel, TaggedOperation, inverse
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.conditions.verification_is_zero import \
@@ -20,7 +20,7 @@ class CatStateCreatorBasicNondeterministic(CatStateCreator):
     def get_cat_state_circuit(self) -> Circuit:
         verification_condition = VerificationIsZero(key=MeasurementKey(f'VERIFICATION_{uuid4().hex}'))
         preparation_circuit = Circuit(
-            [R(qubit) for qubit in self._qubit_register.copy()],
+            ResetChannel().on_each(*self._qubit_register),
             self._state_propagation,
             self._parity_verifier(target_qubits=self._qubit_register, measurement_key=verification_condition.key).validate_parity(),
         )

@@ -26,9 +26,7 @@ class TestCatStateCreatorFlagPattern12Qubits:
 
     @pytest.mark.parametrize('num_qubits_with_error', [3, 6, 9, 12])
     def test_x_error_on_multiple_of_3(self, num_qubits_with_error: int):
-        assert self._run_multiple_of_3_qubits_affected(first_error_qubit_num=num_qubits_with_error)
-
-    def _run_multiple_of_3_qubits_affected(self, first_error_qubit_num: int) -> bool:
+        first_error_qubit_num = num_qubits_with_error
         circuit = get_circuit_with_x_error_on_first_n_qubits(qubits=self._qubits, n=first_error_qubit_num)
         expected_state = get_cat_state_vector(num_qubits=self._num_qubits)
         return circuit_results_in_expected_state(circuit=circuit, expected_state=expected_state)

@@ -22,4 +22,4 @@ class MeasurerWithSingleQubitSequential(Measurer):
                     M(measuring_qubit, key=measurement_key),
                 ] for operations, measurement_key in zip(self._observables, self._measurement_keys)
             ]
-            return Circuit(operations, R(measuring_qubit),)
+            return Circuit(operations)

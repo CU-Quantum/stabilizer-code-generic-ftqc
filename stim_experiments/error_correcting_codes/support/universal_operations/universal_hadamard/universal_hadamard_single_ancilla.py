@@ -41,7 +41,6 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
                     op.with_classical_controls(sympy.Eq(self._measurement_key_symbol, 0))
                     for op in logical_z.all_operations()
                 ],
-                R(ancilla_qubit),
             )
             return circuit
 

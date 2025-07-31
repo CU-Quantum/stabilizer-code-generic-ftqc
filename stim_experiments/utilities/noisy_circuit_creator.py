@@ -1,7 +1,6 @@
 from typing import Sequence
 
-from cirq import Circuit, CircuitOperation, LineQubit, Moment, Operation, Qid, ResetChannel, \
-    depolarize, map_moments
+from cirq import Circuit, CircuitOperation, Moment, Operation, Qid, depolarize, map_moments
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
@@ -18,16 +17,12 @@ class NoisyCircuitCreator:
 
     def get_noisy_circuit(self) -> NoisyCircuit:
         self._noisy_operations_count = NoisyOperationsCount()
-        ancilla_qubits = self._get_all_qubits_in_circuit() - set(LineQubit.range(self._num_data_qubits))
         noisy_moments = map_moments(circuit=self._circuit,
                                     map_func=self._add_noisy_moment,
                                     deep=True,
                                     tags_to_ignore=[DELAYED_NOISE_TAG])
         return NoisyCircuit(
-            circuit=Circuit(
-                noisy_moments,
-                ResetChannel().on_each(*ancilla_qubits)
-            ),
+            circuit=noisy_moments,
             noisy_operations_count=self._noisy_operations_count
         )
 
