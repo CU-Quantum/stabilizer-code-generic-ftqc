@@ -1,8 +1,11 @@
 from uuid import uuid4
 
-from cirq import Circuit
+from cirq import Circuit, CircuitOperation, FrozenCircuit, OP_TREE, TaggedOperation
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+
+
+CORRECTION_ROUND_TAG = 'CORRECTION_ROUND'
 
 
 class ActiveEncodingsStore:
@@ -18,9 +21,12 @@ class ActiveEncodingsStore:
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self._tracked_encodings[self._id]
 
-    def get_all_correction_circuits(self) -> Circuit:
-        return Circuit(
-            encoding.get_error_correction_circuit()
-            for encodings in self._tracked_encodings.values()
-            for encoding in encodings
+    def get_all_correction_circuits(self) -> OP_TREE:
+        return FrozenCircuit(
+            [
+                encoding.get_error_correction_circuit()
+                for encodings in self._tracked_encodings.values()
+                for encoding in encodings
+            ],
+            TaggedOperation(CircuitOperation(FrozenCircuit()), CORRECTION_ROUND_TAG),
         )

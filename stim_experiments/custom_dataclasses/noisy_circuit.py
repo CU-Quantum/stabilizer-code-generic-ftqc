@@ -8,4 +8,4 @@ from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOper
 @dataclass
 class NoisyCircuit:
     circuit: Circuit
-    noisy_operations_count: NoisyOperationsCount = field(default_factory=NoisyOperationsCount)
+    noisy_operations_count: list[NoisyOperationsCount] = field(default_factory=list)
