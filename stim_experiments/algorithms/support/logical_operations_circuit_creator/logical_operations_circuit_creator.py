@@ -32,20 +32,27 @@ class LogicalOperationsCircuitCreator:
             CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
             for simulation_operation in simulation_operations
         ]
-        encoding_circuits = [
-            encoding.encode_logical_qubit()
-            for encoding in self._encodings
-        ]
+        encoding_circuit = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
         with ActiveEncodingsStore(additional_tracked_encodings=self._encodings) as encodings_store:
             return Circuit(
-                encoding_circuits,
-                encodings_store.get_all_correction_circuits(),
+                encoding_circuit,
                 [
                     [
                         operation_circuit,
                         encodings_store.get_all_correction_circuits(),
                     ] for operation_circuit in operations_circuits
                 ],
+            )
+
+    def _get_snowballed_encodings_with_error_correction(self, encodings: list[ErrorCorrectingCode]) -> Circuit:
+        if not encodings:
+            return Circuit()
+        encoding = encodings[0]
+        with ActiveEncodingsStore(additional_tracked_encodings=[encoding]) as encodings_store:
+            return Circuit(
+                encoding.encode_logical_qubit(),
+                encodings_store.get_all_correction_circuits(),
+                self._get_snowballed_encodings_with_error_correction(encodings[1:])
             )
 
     def _ensure_enough_logical_qubits(self) -> None:
