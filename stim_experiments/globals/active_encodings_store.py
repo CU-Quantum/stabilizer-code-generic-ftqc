@@ -22,11 +22,17 @@ class ActiveEncodingsStore:
         del self._tracked_encodings[self._id]
 
     def get_all_correction_circuits(self) -> OP_TREE:
-        return FrozenCircuit(
-            [
-                encoding.get_error_correction_circuit()
-                for encodings in self._tracked_encodings.values()
-                for encoding in encodings
-            ],
-            TaggedOperation(CircuitOperation(FrozenCircuit()), CORRECTION_ROUND_TAG),
+        return Circuit(
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                    [
+                        encoding.get_error_correction_circuit()
+                        for encodings in self._tracked_encodings.values()
+                        for encoding in encodings
+                    ],
+                    )
+                ),
+                CORRECTION_ROUND_TAG
+            )
         )
