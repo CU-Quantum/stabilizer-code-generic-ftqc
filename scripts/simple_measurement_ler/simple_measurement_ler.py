@@ -2,10 +2,10 @@ import argparse
 from datetime import datetime
 
 import numpy as np
-from cirq import LineQubit
+from cirq import Circuit, LineQubit
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
-    LogicalOperationsCircuitCreator
+    LogicalOperationsCircuitCreator, NewShotLogger
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -49,8 +49,12 @@ class SimpleMeasurementLer:
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")
+        circuit_with_shot_logging = Circuit(
+            noisy_circuit.circuit,
+            NewShotLogger(counts=noisy_circuit.noisy_operations_count)(data_qubits[0])
+        )
+        result: Measurements = simulator.run_circuit(circuit_with_shot_logging, num_shots=self._num_shots)
         print(f"    {noisy_circuit.noisy_operations_count} noisy operations")
-        result: Measurements = simulator.run_circuit(noisy_circuit.circuit, num_shots=self._num_shots)
         print(f"    Time Taken: {datetime.now() - start_time}")
         sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)

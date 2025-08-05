@@ -3,7 +3,7 @@ from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Mom
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
-from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCount
+from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerShot
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
@@ -26,7 +26,7 @@ class TestNoisyCircuitCreator:
                 Moment(Z(qubits[0])),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=1,
             ),
         )
@@ -42,7 +42,7 @@ class TestNoisyCircuitCreator:
                 Moment(Z(qubits[0])),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0])),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=2,
             ),
         )
@@ -58,7 +58,7 @@ class TestNoisyCircuitCreator:
                     depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubit) for qubit in qubits
                 ),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=2,
             ),
         )
@@ -81,7 +81,7 @@ class TestNoisyCircuitCreator:
                     depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits)
                 ),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=4,
             ),
         )
@@ -105,7 +105,7 @@ class TestNoisyCircuitCreator:
                     depolarize(p=self._depolarization_noise_one_qubit_gate).on_each(*qubits[2:]),
                 ),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=4,
                 two_qubit=2,
             ),
@@ -128,7 +128,7 @@ class TestNoisyCircuitCreator:
                     ),
                 )
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=1,
             ),
         )
@@ -152,7 +152,7 @@ class TestNoisyCircuitCreator:
                 ),
                 Moment(depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[0]))
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=1,
             ),
         )
@@ -180,7 +180,7 @@ class TestNoisyCircuitCreator:
                     ),
                 ),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=1,
             ),
         )
@@ -218,7 +218,7 @@ class TestNoisyCircuitCreator:
                     depolarize(p=self._depolarization_noise_one_qubit_gate).on(qubits[3])
                 ),
             ),
-            noisy_operations_count=NoisyOperationsCount(
+            noisy_operations_count=NoisyOperationsCountPerShot(
                 one_qubit=5,
                 two_qubit=3
             ),

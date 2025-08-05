@@ -1,43 +1,55 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 
 
 @dataclass
-class NoisyOperationsCount:
+class NoisyOperationsCountPerShot:
     x_errors: int = 0
     z_errors: int = 0
     y_errors: int = 0
     one_qubit: int = 0
     two_qubit: int = 0
 
-    def modify(self, other: 'NoisyOperationsCount') -> None:
+    def modify(self, other: 'NoisyOperationsCountPerShot') -> None:
         self.x_errors += other.x_errors
         self.z_errors += other.z_errors
         self.y_errors += other.y_errors
         self.one_qubit += other.one_qubit
         self.two_qubit += other.two_qubit
 
+    def reset(self) -> None:
+        self.x_errors = 0
+        self.z_errors = 0
+        self.y_errors = 0
+        self.one_qubit = 0
+        self.two_qubit = 0
+
 
 @dataclass
-class NoisyOperationsCountPerGate:
-    count: list[NoisyOperationsCount] = field(default_factory=lambda: [NoisyOperationsCount()])
+class NoisyOperationsCountPerCorrectionRound:
+    count: list[list[NoisyOperationsCountPerShot]] = field(default_factory=lambda: [[NoisyOperationsCountPerShot()]])
 
-    def append_count(self) -> None:
-        self.count.append(NoisyOperationsCount())
+    def append_correction_round(self) -> None:
+        self.count.append([NoisyOperationsCountPerShot()])
 
-    def add_count_to_latest(self, operand: NoisyOperationsCount) -> None:
-        self.count[-1].modify(operand)
+    def append_shot(self) -> None:
+        for count in self.count:
+            count.insert(-1, NoisyOperationsCountPerShot(**asdict(count[-1])))
+            count[-1].reset()
 
-    def extend(self, new_counts: list[NoisyOperationsCount]) -> None:
+    def add_count_to_latest(self, operand: NoisyOperationsCountPerShot) -> None:
+        self.count[-1][-1].modify(operand)
+
+    def extend(self, new_counts: list[list[NoisyOperationsCountPerShot]]) -> None:
         self.count.extend(new_counts)
 
     @property
-    def first_count(self) -> NoisyOperationsCount:
-        return self.count[0]
+    def first_count(self) -> NoisyOperationsCountPerShot:
+        return self.count[0][-1]
 
     @property
-    def latest_count(self) -> NoisyOperationsCount:
-        return self.count[-1]
+    def latest_count(self) -> NoisyOperationsCountPerShot:
+        return self.count[-1][-1]
 
     @property
-    def tail(self) -> list[NoisyOperationsCount]:
+    def tail(self) -> list[list[NoisyOperationsCountPerShot]]:
         return self.count[1:]

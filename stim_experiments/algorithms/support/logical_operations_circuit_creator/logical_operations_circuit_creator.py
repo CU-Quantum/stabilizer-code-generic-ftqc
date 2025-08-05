@@ -1,15 +1,28 @@
-from cirq import Circuit, LineQubit
+from cirq import Circuit, Gate, I, LineQubit, unitary
 from proto.utils import cached_property
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
+from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerCorrectionRound
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+
+
+class NewShotLogger(Gate):
+    def __init__(self, counts: NoisyOperationsCountPerCorrectionRound):
+        self._counts = counts
+
+    def _unitary_(self):
+        self._counts.append_shot()
+        return unitary(I)
+
+    def _num_qubits_(self) -> int:
+        return 1
 
 
 class LogicalOperationsCircuitCreator:
