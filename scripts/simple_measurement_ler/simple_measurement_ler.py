@@ -45,20 +45,22 @@ class SimpleMeasurementLer:
         circuit_creator = LogicalOperationsCircuitCreator(encodings=logical_qubits, operations=operations)
         circuit = circuit_creator.get_simulation_circuit()
 
-        noisy_circuit = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(data_qubits)).get_noisy_circuit()
+        noisy_circuits = [NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(data_qubits)).get_noisy_circuit()
+                          for _ in range(self._num_shots)]
+        operation_counts = [noisy_circuit.noisy_operations_count for noisy_circuit in noisy_circuits]
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")
-        circuit_with_shot_logging = Circuit(
-            noisy_circuit.circuit,
-            NewShotLogger(counts=noisy_circuit.noisy_operations_count)(data_qubits[0])
-        )
-        result: Measurements = simulator.run_circuit(circuit_with_shot_logging, num_shots=self._num_shots)
-        print(f"    {noisy_circuit.noisy_operations_count} noisy operations")
-        print(f"    Time Taken: {datetime.now() - start_time}")
-        sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
+        print(f"    {operation_counts} noisy operations")
+        measurements_per_shot = []
+        for noisy_circuit in noisy_circuits:
+            result: Measurements = simulator.run_circuit(noisy_circuit.circuit)
+            measurements_per_shot.append(result.measurements_per_shot[0])
+        end_time = datetime.now()
+        print(f"    Time Taken: {end_time - start_time}")
+        sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1)
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
-        print(f"    Measurements per shot: {result.measurements_per_shot}")
+        print(f"    Measurements per shot: {measurements_per_shot}")
         print(f"    {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
 
     def _set_configuration(self) -> None:

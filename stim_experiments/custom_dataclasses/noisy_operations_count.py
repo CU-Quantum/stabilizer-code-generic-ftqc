@@ -3,13 +3,19 @@ from dataclasses import asdict, dataclass, field
 
 @dataclass
 class NoisyOperationsCountPerShot:
+    i_errors: int = 0
     x_errors: int = 0
     z_errors: int = 0
     y_errors: int = 0
     one_qubit: int = 0
     two_qubit: int = 0
 
+    @property
+    def num_non_identity(self) -> int:
+        return self.x_errors + self.y_errors + self.z_errors
+
     def modify(self, other: 'NoisyOperationsCountPerShot') -> None:
+        self.i_errors += other.i_errors
         self.x_errors += other.x_errors
         self.z_errors += other.z_errors
         self.y_errors += other.y_errors
@@ -17,6 +23,7 @@ class NoisyOperationsCountPerShot:
         self.two_qubit += other.two_qubit
 
     def reset(self) -> None:
+        self.i_errors = 0
         self.x_errors = 0
         self.z_errors = 0
         self.y_errors = 0

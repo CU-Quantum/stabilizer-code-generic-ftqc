@@ -3,8 +3,9 @@ from enum import Enum, auto
 from typing import Sequence
 
 import numpy
-from cirq import Circuit, CircuitOperation, Gate, I, Moment, OP_TREE, Operation, Qid, \
-    X, Y, map_moments, unitary
+from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, Moment, OP_TREE, Operation, Qid, \
+    TaggedOperation, X, Y, Z, map_moments, map_operations, unitary
+from sympy.stats.rv import probability
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
@@ -13,43 +14,47 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 from stim_experiments.globals.active_encodings_store import CORRECTION_ROUND_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
+NOISY_CHANNEL_TAG = 'NoisyChannel'
+NOISY_CHANNEL_ONE_QUBIT_TAG = 'NoisyChannel_OneQubit'
+NOISY_CHANNEL_TWO_QUBIT_TAG = 'NoisyChannel_TwoQubit'
+
 
 class NoisyChannelType(Enum):
     ONE = auto()
     TWO = auto()
-
-
-class NoisyChannel(Gate, ABC):
-    def __init__(self, noisy_channel_type: NoisyChannelType):
-        self.noisy_channel_type = noisy_channel_type
-        self._noisy_operations_count = NoisyOperationsCountPerShot()
-
-    def set_noisy_operations_count(self, noisy_operations_count: NoisyOperationsCountPerShot) -> None:
-        self._noisy_operations_count = noisy_operations_count
-
-
-class NoisyChannelDepolarizing(NoisyChannel):
-    def __init__(self, noisy_channel_type: NoisyChannelType, probability: float):
-        super().__init__(noisy_channel_type=noisy_channel_type)
-        self._probability = probability
-
-    def _unitary_(self):
-        error_happens = numpy.random.random()
-        error_gate = I
-        if error_happens < self._probability:
-            which_error = numpy.random.random()
-            if which_error < 1 / 3:
-                self._noisy_operations_count.x_errors += 1
-                error_gate = X
-            elif which_error < 2 / 3:
-                self._noisy_operations_count.y_errors += 1
-                error_gate = Y
-            else:
-                self._noisy_operations_count.z_errors += 1
-        return unitary(error_gate)
-
-    def _num_qubits_(self) -> int:
-        return 1
+#
+#
+# class NoisyChannel(Gate, ABC):
+#     def __init__(self, noisy_channel_type: NoisyChannelType):
+#         self.noisy_channel_type = noisy_channel_type
+#         self._noisy_operations_count = NoisyOperationsCountPerShot()
+#
+#     def set_noisy_operations_count(self, noisy_operations_count: NoisyOperationsCountPerShot) -> None:
+#         self._noisy_operations_count = noisy_operations_count
+#
+#
+# class NoisyChannelDepolarizing(NoisyChannel):
+#     def __init__(self, noisy_channel_type: NoisyChannelType, probability: float):
+#         super().__init__(noisy_channel_type=noisy_channel_type)
+#         self._probability = probability
+#
+#     def _unitary_(self):
+#         error_happens = numpy.random.random()
+#         error_gate = I
+#         if error_happens < self._probability:
+#             which_error = numpy.random.random()
+#             if which_error < 1 / 3:
+#                 self._noisy_operations_count.x_errors += 1
+#                 error_gate = X
+#             elif which_error < 2 / 3:
+#                 self._noisy_operations_count.y_errors += 1
+#                 error_gate = Y
+#             else:
+#                 self._noisy_operations_count.z_errors += 1
+#         return unitary(error_gate)
+#
+#     def _num_qubits_(self) -> int:
+#         return 1
 
 
 class NoisyCircuitCreator:
@@ -73,7 +78,7 @@ class NoisyCircuitCreator:
                                              for operation in moment.operations
                                              for noisy_operation in self._get_noisy_operation(operation)]
         noisy_operations_on_inactive_qubits = [
-            self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE).on(qubit)
+            self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE, qubit=qubit)
             for qubit in self._get_all_qubits_in_circuit() - set(moment.qubits)
         ]
         noise_steps = Circuit(
@@ -92,7 +97,7 @@ class NoisyCircuitCreator:
             return []
 
         noisy_channel_type = NoisyChannelType.ONE if len(operation.qubits) == 1 else NoisyChannelType.TWO
-        return [self._get_depolarization_gate(noisy_channel_type=noisy_channel_type).on(qubit) for qubit in operation.qubits]
+        return [self._get_depolarization_gate(noisy_channel_type=noisy_channel_type, qubit=qubit) for qubit in operation.qubits]
 
     def _get_delayed_noise(self, operation: Operation) -> list[Operation] | None:
         if DELAYED_NOISE_TAG in operation.tags:
@@ -103,8 +108,8 @@ class NoisyCircuitCreator:
                 elif len(op.qubits) == 2:
                     two_qubit.add(op.qubits[0])
                     two_qubit.add(op.qubits[1])
-            return self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE).on_each(*one_qubit) \
-                + self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.TWO).on_each(*two_qubit)
+            return [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE, qubit=qubit) for qubit in one_qubit] \
+                + [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.TWO, qubit=qubit) for qubit in two_qubit]
         return None
 
     def _count_noisy_ops_between_tags(self, op_tree: OP_TREE) -> NoisyOperationsCountPerCorrectionRound:
@@ -117,22 +122,43 @@ class NoisyCircuitCreator:
                 count.extend(subcount.tail)
             if CORRECTION_ROUND_TAG in op.tags:
                 count.append_correction_round()
-            elif isinstance(op.gate, NoisyChannel):
-                gate_with_type: NoisyChannel = op.gate
-                gate_with_type.set_noisy_operations_count(count.latest_count)
-                if gate_with_type.noisy_channel_type == NoisyChannelType.ONE:
+            elif NOISY_CHANNEL_TAG in op.tags:
+                if op.gate == X:
+                    count.latest_count.x_errors += 1
+                elif op.gate == Y:
+                    count.latest_count.y_errors += 1
+                elif op.gate == Z:
+                    count.latest_count.z_errors += 1
+                else:
+                    count.latest_count.i_errors += 1
+
+                if NOISY_CHANNEL_ONE_QUBIT_TAG in op.tags:
                     count.latest_count.one_qubit += 1
-                elif gate_with_type.noisy_channel_type == NoisyChannelType.TWO:
+                elif NOISY_CHANNEL_TWO_QUBIT_TAG in op.tags:
                     count.latest_count.two_qubit += 1
         return count
 
-    def _get_depolarization_gate(self, noisy_channel_type: NoisyChannelType) -> Gate:
+    def _get_depolarization_gate(self, noisy_channel_type: NoisyChannelType, qubit: Qid) -> Operation:
         probability = 0
+        tag = ''
         if noisy_channel_type == NoisyChannelType.ONE:
             probability = self._noise_parameters.depolarization_probability_one_qubit
+            tag = NOISY_CHANNEL_ONE_QUBIT_TAG
         elif noisy_channel_type == NoisyChannelType.TWO:
             probability = self._noise_parameters.depolarization_probability_two_qubit
-        return NoisyChannelDepolarizing(noisy_channel_type=noisy_channel_type, probability=probability)
+            tag = NOISY_CHANNEL_TWO_QUBIT_TAG
+
+        error_happens = numpy.random.random()
+        error_gate = I
+        if error_happens < probability:
+            which_error = numpy.random.random()
+            if which_error < 1 / 3:
+                error_gate = X
+            elif which_error < 2 / 3:
+                error_gate = Y
+            else:
+                error_gate = Z
+        return TaggedOperation(error_gate.on(qubit), NOISY_CHANNEL_TAG, tag)
 
     def _get_all_qubits_in_circuit(self) -> set[Qid]:
         return set(self._circuit.all_qubits())
