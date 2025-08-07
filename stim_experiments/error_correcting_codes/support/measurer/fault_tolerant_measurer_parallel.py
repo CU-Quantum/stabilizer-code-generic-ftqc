@@ -1,16 +1,12 @@
-from cirq import Circuit, CircuitOperation, FrozenCircuit, M, Moment, ResetChannel, \
-    TaggedOperation
+from cirq import Circuit, CircuitOperation, M, Moment, TaggedOperation
 
 from stim_experiments.conditions.majority_vote import \
     MajorityVote
 from stim_experiments.conditions.multiple_conditions import MultipleConditions
-from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
+from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG, Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-
-
-FAULT_TOLERANT_MEASURER_PARALLEL_TAG = 'FAULT_TOLERANT_MEASURER_PARALLEL'
 
 
 class FaultTolerantMeasurerParallel(Measurer):
@@ -40,6 +36,6 @@ class FaultTolerantMeasurerParallel(Measurer):
                         use_repetition_ids=False,
                         repeat_until=MultipleConditions(conditions)
                     ),
-                    FAULT_TOLERANT_MEASURER_PARALLEL_TAG,
+                    FAULT_TOLERANT_MEASURER_TAG,
                 ),
             )

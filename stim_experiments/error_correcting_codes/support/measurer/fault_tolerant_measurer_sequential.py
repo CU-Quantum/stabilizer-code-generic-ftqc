@@ -4,13 +4,10 @@ from cirq.protocols import json_serialization
 
 from stim_experiments.conditions.majority_vote import \
     MajorityVote
-from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
+from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG, Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-
-
-FAULT_TOLERANT_MEASURER_SEQUENTIAL_TAG = 'FAULT_TOLERANT_MEASURER_SEQUENTIAL'
 
 
 class FaultTolerantMeasurerSequential(Measurer):
@@ -33,7 +30,7 @@ class FaultTolerantMeasurerSequential(Measurer):
                             use_repetition_ids=False,
                             repeat_until=condition
                         ),
-                        FAULT_TOLERANT_MEASURER_SEQUENTIAL_TAG,
+                        FAULT_TOLERANT_MEASURER_TAG,
                     )
                     for applier, condition in zip(appliers, conditions)
                 ],

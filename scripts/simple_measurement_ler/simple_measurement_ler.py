@@ -1,13 +1,11 @@
 import argparse
 from datetime import datetime
-from multiprocessing import Pool
 
 import numpy as np
-from cirq import Circuit, LineQubit
+from cirq import LineQubit
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
-    LogicalOperationsCircuitCreator, NewShotLogger
-from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
+    LogicalOperationsCircuitCreator
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
@@ -48,28 +46,24 @@ class SimpleMeasurementLer:
 
         noisy_circuits_list = [NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(data_qubits)).get_noisy_circuit()
                                for _ in range(self._num_shots)]
-        noisy_circuits = [noisy_circuit.circuit
+        noisy_circuits = [noisy_circuit
                           for noisy_circuit in noisy_circuits_list
                           if noisy_circuit.noisy_operations_count.num_non_identity_errors]
         operation_counts = [noisy_circuit.noisy_operations_count for noisy_circuit in noisy_circuits_list]
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")
         print(f"    {operation_counts} noisy operations")
-        results = [ErrorCorrectingRunnerClifford().run_circuit(noisy_circuit)
-                   for noisy_circuit in noisy_circuits]
-        # with Pool(processes=1) as pool:
-        #     noisy_circuits = [noisy_circuit.circuit for noisy_circuit in noisy_circuits]
-            # results = pool.map(lambda x: ErrorCorrectingRunnerClifford().run_circuit(x), noisy_circuits_list[:1])
-        self._log_end_time(start_time=start_time)
+        results = [ErrorCorrectingRunnerClifford().run_circuit(noisy_circuit.circuit) for noisy_circuit in noisy_circuits]
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
         sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1)
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
         print(f"    Measurements per shot: {measurements_per_shot}")
         print(f"    {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
 
-    def _log_end_time(self, start_time: datetime) -> None:
+    def _log_end_time(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
         print(f"    Time Taken: {end_time - start_time}")
+        return end_time
 
     def _set_configuration(self) -> None:
         configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
@@ -82,7 +76,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='Simple Measurement Error Rate Calculator',
         description='Runs a measurement operation on surface code and calculates the percentage of zero measurements.')
-    parser.add_argument('-s', '--num-shots', type=int, default=100, help='Number of shots to run the algorithm for.')
+    parser.add_argument('-s', '--num-shots', type=int, default=1000, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
     parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-4, help='Probability of depolarization on one qubit gates.')

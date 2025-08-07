@@ -1,34 +1,44 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
+
+
+@dataclass
+class NoisyOperationsCount:
+    count: int = 0
+    paths: list[list[int]] = field(default_factory=list)
+
+    def modify(self, other):
+        self.count += other.count
+        self.paths.extend(other.paths)
 
 
 @dataclass
 class NoisyOperationsCountPerShot:
-    i_errors: int = 0
-    x_errors: int = 0
-    z_errors: int = 0
-    y_errors: int = 0
+    i_errors: NoisyOperationsCount = field(default_factory=NoisyOperationsCount)
+    x_errors: NoisyOperationsCount = field(default_factory=NoisyOperationsCount)
+    z_errors: NoisyOperationsCount = field(default_factory=NoisyOperationsCount)
+    y_errors: NoisyOperationsCount = field(default_factory=NoisyOperationsCount)
     one_qubit: int = 0
     two_qubit: int = 0
 
-    @property
-    def num_non_identity_errors(self) -> int:
-        return self.x_errors + self.y_errors + self.z_errors
-
-    def modify(self, other: 'NoisyOperationsCountPerShot') -> None:
-        self.i_errors += other.i_errors
-        self.x_errors += other.x_errors
-        self.z_errors += other.z_errors
-        self.y_errors += other.y_errors
-        self.one_qubit += other.one_qubit
-        self.two_qubit += other.two_qubit
-
     def reset(self) -> None:
-        self.i_errors = 0
-        self.x_errors = 0
-        self.z_errors = 0
-        self.y_errors = 0
+        self.i_errors = NoisyOperationsCount()
+        self.x_errors = NoisyOperationsCount()
+        self.z_errors = NoisyOperationsCount()
+        self.y_errors = NoisyOperationsCount()
         self.one_qubit = 0
         self.two_qubit = 0
+
+    @property
+    def num_non_identity_errors(self) -> int:
+        return self.x_errors.count + self.y_errors.count + self.z_errors.count
+
+    def modify(self, other: 'NoisyOperationsCountPerShot') -> None:
+        self.i_errors.modify(other.i_errors)
+        self.x_errors.modify(other.x_errors)
+        self.z_errors.modify(other.z_errors)
+        self.y_errors.modify(other.y_errors)
+        self.one_qubit += other.one_qubit
+        self.two_qubit += other.two_qubit
 
 
 @dataclass

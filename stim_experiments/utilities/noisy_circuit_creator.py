@@ -1,15 +1,14 @@
-from abc import ABC
 from enum import Enum, auto
-from typing import Sequence
+from typing import Optional, Sequence
 
 import numpy
-from cirq import Circuit, CircuitOperation, Gate, I, LineQubit, Moment, OP_TREE, Operation, Qid, \
-    TaggedOperation, X, Y, Z, map_moments, map_operations, unitary
-from sympy.stats.rv import probability
+from cirq import Circuit, CircuitOperation, I, Moment, OP_TREE, Operation, Qid, \
+    TaggedOperation, X, Y, Z, map_moments
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
-from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerShot, NoisyOperationsCountPerCorrectionRound
+from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerCorrectionRound
+from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.active_encodings_store import CORRECTION_ROUND_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -66,7 +65,7 @@ class NoisyCircuitCreator:
         noisy_moments = map_moments(circuit=self._circuit,
                                     map_func=self._add_noisy_moment,
                                     deep=True,
-                                    tags_to_ignore=[DELAYED_NOISE_TAG])
+                                    tags_to_ignore=[DELAYED_NOISE_TAG, FAULT_TOLERANT_MEASURER_TAG])  # FAULT_TOLERANT_MEASURER_TAG can cause infinite loop from nondeterminism
         noisy_operations_count = self._count_noisy_ops_between_tags(op_tree=noisy_moments)
         return NoisyCircuit(
             circuit=noisy_moments,
@@ -93,7 +92,7 @@ class NoisyCircuitCreator:
             return delayed_noise
 
         noise_was_added_recursively = isinstance(operation.untagged, CircuitOperation)
-        if len(operation.qubits) > 2 or noise_was_added_recursively:
+        if len(operation.qubits) > 2 or noise_was_added_recursively or FAULT_TOLERANT_MEASURER_TAG in operation.tags:
             return []
 
         noisy_channel_type = NoisyChannelType.ONE if len(operation.qubits) == 1 else NoisyChannelType.TWO
@@ -112,25 +111,34 @@ class NoisyCircuitCreator:
                 + [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.TWO, qubit=qubit) for qubit in two_qubit]
         return None
 
-    def _count_noisy_ops_between_tags(self, op_tree: OP_TREE) -> NoisyOperationsCountPerCorrectionRound:
+    def _count_noisy_ops_between_tags(self, op_tree: OP_TREE, path: Optional[list[int]] = None) -> NoisyOperationsCountPerCorrectionRound:
+        if path is None:
+            path = []
+        path.append(-1)
+
         circuit = Circuit(op_tree)
         count = NoisyOperationsCountPerCorrectionRound()
-        for op in circuit.all_operations():
+        for i, op in enumerate(circuit.all_operations()):
+            path[-1] = i
             if hasattr(op.untagged, 'circuit'):
-                subcount = self._count_noisy_ops_between_tags(op_tree=op.untagged.circuit)
+                subcount = self._count_noisy_ops_between_tags(op_tree=op.untagged.circuit, path=path)
                 count.add_count_to_latest(subcount.first_count)
                 count.extend(subcount.tail)
             if CORRECTION_ROUND_TAG in op.tags:
                 count.append_correction_round()
             elif NOISY_CHANNEL_TAG in op.tags:
                 if op.gate == X:
-                    count.latest_count.x_errors += 1
+                    count.latest_count.x_errors.count += 1
+                    count.latest_count.x_errors.paths.append(path)
                 elif op.gate == Y:
-                    count.latest_count.y_errors += 1
+                    count.latest_count.y_errors.count += 1
+                    count.latest_count.y_errors.paths.append(path)
                 elif op.gate == Z:
-                    count.latest_count.z_errors += 1
+                    count.latest_count.z_errors.count += 1
+                    count.latest_count.x_errors.paths.append(path)
                 else:
-                    count.latest_count.i_errors += 1
+                    count.latest_count.i_errors.count += 1
+                    count.latest_count.i_errors.paths.append(path)
 
                 if NOISY_CHANNEL_ONE_QUBIT_TAG in op.tags:
                     count.latest_count.one_qubit += 1
