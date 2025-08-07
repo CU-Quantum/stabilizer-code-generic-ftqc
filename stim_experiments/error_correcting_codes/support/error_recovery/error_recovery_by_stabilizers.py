@@ -1,10 +1,11 @@
 from uuid import uuid4
 
-from cirq import Circuit, FrozenCircuit, MeasurementKey, Moment, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Operation, TaggedOperation
 
 from stim_experiments.conditions.recovery_condition import RecoveryCondition
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 
@@ -27,7 +28,12 @@ class ErrorRecoveryByStabilizers:
 
         return Circuit(
             syndrome_operations,
-            FrozenCircuit(recovery_operations),  # FrozenCircuit in order to ensure separate moment from syndrome extraction
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(recovery_operations),
+                ),
+                DELAYED_NOISE_TAG
+            )
         )
 
     @property

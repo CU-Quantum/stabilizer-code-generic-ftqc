@@ -45,16 +45,17 @@ class LogicalOperationsCircuitCreator:
             CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
             for simulation_operation in simulation_operations
         ]
-        encoding_circuit = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
+        encoding_circuits = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
         with ActiveEncodingsStore(additional_tracked_encodings=self._encodings) as encodings_store:
             return Circuit(
-                encoding_circuit,
+                encoding_circuits,
                 [
                     [
                         operation_circuit,
                         encodings_store.get_all_correction_circuits(),
-                    ] for operation_circuit in operations_circuits
+                    ] for operation_circuit in operations_circuits[:-1]
                 ],
+                operations_circuits[-1]
             )
 
     def _get_snowballed_encodings_with_error_correction(self, encodings: list[ErrorCorrectingCode]) -> Circuit:

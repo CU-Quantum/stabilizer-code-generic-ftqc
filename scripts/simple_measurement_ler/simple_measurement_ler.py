@@ -60,11 +60,10 @@ class SimpleMeasurementLer:
         print(f"    Measurements per shot: {measurements_per_shot}")
         print(f"    {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
 
-        errored_circuits = np.array(noisy_circuits)[np.nonzero(sum_measurements_per_shot)[0]]
         noisy_operations_with_moment_indices = []
-        for errored_circuit in errored_circuits:
-            noisy_circuit = errored_circuit.circuit
+        for errored_circuit in noisy_circuits:
             noisy_operations_with_moment_indices.append([])
+            noisy_circuit = errored_circuit.circuit
             for correction_round in errored_circuit.noisy_operations_count.counts:
                 for non_identity_errors in (correction_round.x_errors, correction_round.y_errors, correction_round.z_errors):
                     for noisy_path in non_identity_errors.paths:
@@ -76,6 +75,7 @@ class SimpleMeasurementLer:
                             noisy_moment_indices.append(next(j for j, moment in enumerate(noisy_operations[i].untagged.circuit) if noisy_operation in moment))
                         a = 0
                         noisy_operations_with_moment_indices[-1].append([noisy_operations, noisy_moment_indices])
+        errored_circuits = [noisy_operations_with_moment_indices[i] for i in np.nonzero(sum_measurements_per_shot)[0]]
         a = 0
 
     def _log_end_time(self, start_time: datetime) -> datetime:
