@@ -129,21 +129,22 @@ class NoisyCircuitCreator:
             elif NOISY_CHANNEL_TAG in op.tags:
                 if op.gate == X:
                     count.latest_count.x_errors.count += 1
-                    count.latest_count.x_errors.paths.append(path)
+                    count.latest_count.x_errors.paths.append(path.copy())
                 elif op.gate == Y:
                     count.latest_count.y_errors.count += 1
-                    count.latest_count.y_errors.paths.append(path)
+                    count.latest_count.y_errors.paths.append(path.copy())
                 elif op.gate == Z:
                     count.latest_count.z_errors.count += 1
-                    count.latest_count.x_errors.paths.append(path)
+                    count.latest_count.x_errors.paths.append(path.copy())
                 else:
                     count.latest_count.i_errors.count += 1
-                    count.latest_count.i_errors.paths.append(path)
+                    count.latest_count.i_errors.paths.append(path.copy())
 
                 if NOISY_CHANNEL_ONE_QUBIT_TAG in op.tags:
                     count.latest_count.one_qubit += 1
                 elif NOISY_CHANNEL_TWO_QUBIT_TAG in op.tags:
                     count.latest_count.two_qubit += 1
+        path.pop()
         return count
 
     def _get_depolarization_gate(self, noisy_channel_type: NoisyChannelType, qubit: Qid) -> Operation:
