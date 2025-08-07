@@ -11,7 +11,7 @@ class NoisyOperationsCountPerShot:
     two_qubit: int = 0
 
     @property
-    def num_non_identity(self) -> int:
+    def num_non_identity_errors(self) -> int:
         return self.x_errors + self.y_errors + self.z_errors
 
     def modify(self, other: 'NoisyOperationsCountPerShot') -> None:
@@ -33,30 +33,29 @@ class NoisyOperationsCountPerShot:
 
 @dataclass
 class NoisyOperationsCountPerCorrectionRound:
-    count: list[list[NoisyOperationsCountPerShot]] = field(default_factory=lambda: [[NoisyOperationsCountPerShot()]])
+    counts: list[NoisyOperationsCountPerShot] = field(default_factory=lambda: [NoisyOperationsCountPerShot()])
 
     def append_correction_round(self) -> None:
-        self.count.append([NoisyOperationsCountPerShot()])
-
-    def append_shot(self) -> None:
-        for count in self.count:
-            count.insert(-1, NoisyOperationsCountPerShot(**asdict(count[-1])))
-            count[-1].reset()
+        self.counts.append(NoisyOperationsCountPerShot())
 
     def add_count_to_latest(self, operand: NoisyOperationsCountPerShot) -> None:
-        self.count[-1][-1].modify(operand)
+        self.counts[-1].modify(operand)
 
-    def extend(self, new_counts: list[list[NoisyOperationsCountPerShot]]) -> None:
-        self.count.extend(new_counts)
+    def extend(self, new_counts: list[NoisyOperationsCountPerShot]) -> None:
+        self.counts.extend(new_counts)
 
     @property
     def first_count(self) -> NoisyOperationsCountPerShot:
-        return self.count[0][-1]
+        return self.counts[0]
 
     @property
     def latest_count(self) -> NoisyOperationsCountPerShot:
-        return self.count[-1][-1]
+        return self.counts[-1]
 
     @property
-    def tail(self) -> list[list[NoisyOperationsCountPerShot]]:
-        return self.count[1:]
+    def num_non_identity_errors(self) -> int:
+        return sum(count.num_non_identity_errors for count in self.counts)
+
+    @property
+    def tail(self) -> list[NoisyOperationsCountPerShot]:
+        return self.counts[1:]
