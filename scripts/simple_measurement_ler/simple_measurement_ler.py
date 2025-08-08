@@ -54,8 +54,9 @@ class SimpleMeasurementLer:
         print(f"{start_time}: Start simulation")
         print(f"    {operation_counts} noisy operations")
         results = [ErrorCorrectingRunnerClifford().run_circuit(noisy_circuit.circuit) for noisy_circuit in noisy_circuits]
+        start_time = self._log_end_time(start_time)
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
-        sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1)
+        sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1) if measurements_per_shot else []
         nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
         print(f"    Measurements per shot: {measurements_per_shot}")
         print(f"    {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
@@ -94,11 +95,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='Simple Measurement Error Rate Calculator',
         description='Runs a measurement operation on surface code and calculates the percentage of zero measurements.')
-    parser.add_argument('-s', '--num-shots', type=int, default=1000, help='Number of shots to run the algorithm for.')
+    parser.add_argument('-s', '--num-shots', type=int, default=10, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
-    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-4, help='Probability of depolarization on one qubit gates.')
-    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-4, help='Probability of depolarization on two qubit gates.')
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-3, help='Probability of depolarization on one qubit gates.')
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
 
     SimpleMeasurementLer(

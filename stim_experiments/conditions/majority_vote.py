@@ -13,14 +13,14 @@ class MajorityVote(Condition):
         self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
         self.number_of_votes = ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
+        self._start_index = 0
 
     @property
     def keys(self):
         return (self.key,)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        self.key = replacement
-        return self
+        return MajorityVote(replacement) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
@@ -32,12 +32,14 @@ class MajorityVote(Condition):
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when majority voting.')
         measurements = self._get_measurements(classical_data=classical_data)
-        num_measurements = len(measurements)
+        latest_measurements = measurements[self._start_index:]
+        num_measurements = len(latest_measurements)
         if num_measurements == self.number_of_votes:
-            majority = int(bincount(measurements).argmax())
+            majority = int(bincount(latest_measurements).argmax())
             classical_data.record_measurement(key=self.desired_measurement_key,
                                               measurement=(majority,),
                                               qubits=classical_data.measured_qubits[self.key][0],)
+            self._start_index += self.number_of_votes
             return True
         return False
 
