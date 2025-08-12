@@ -16,7 +16,7 @@ from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
-class DeutschJoszaLerSurfaceCode:
+class DeutschJosza:
     def __init__(self,
                  num_shots: int,
                  num_input_qubits: int,
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
     args = parser.parse_args()
 
-    DeutschJoszaLerSurfaceCode(
+    DeutschJosza(
         num_shots=args.num_shots,
         num_input_qubits=args.num_input_qubits,
         surface_code_distance=args.surface_code_distance,

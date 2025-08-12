@@ -1,15 +1,18 @@
+from argparse import ArgumentParser
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
+from typing import Callable
 
 import numpy as np
 from cirq import Circuit, LineQubit, Operation
+from numpy._typing import NDArray
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
-from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
@@ -26,12 +29,27 @@ class RunnerConfiguration:
     depolarization_probability_two_qubit: float = 1e-4
 
 
+def add_runner_configuration_args(parser: ArgumentParser) -> None:
+    parser.add_argument('-s', '--num-shots', type=int, default=10,
+                        help='Number of shots to run the algorithm for.')
+    parser.add_argument('-d', '--surface-code-distance', type=int, default=3,
+                        help='Surface code distance.')
+    parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3,
+                        help='Number of times to measure for majority voting. Minimum is 3.')
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-3,
+                        help='Probability of depolarization on one qubit gates.')
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3,
+                        help='Probability of depolarization on two qubit gates.')
+
+
 class ScriptRunner:
     def __init__(self,
                  operations: list[TransformationOperation],
+                 was_successful_func: Callable[[list[NDArray[int]]], NDArray[bool]],
                  runner_configuration: RunnerConfiguration,
                  ):
         self._operations = operations
+        self._was_successful_func = was_successful_func
         self._runner_configuration = runner_configuration
 
         self._num_shots = self._runner_configuration.num_shots
@@ -52,17 +70,15 @@ class ScriptRunner:
         simulator = ErrorCorrectingRunnerClifford()
         results: list[Measurements] = []
         for i, noisy_circuit in enumerate(self._circuits_noisy):
-            print(f"    Start circuit {i}/{len(operation_counts)}")
+            print(f"    Start circuit {i + 1}/{len(operation_counts)}")
             result = simulator.run_circuit(noisy_circuit.circuit)
             start_time = self._log_time_period(start_time)
             results.append(result)
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
-        sum_measurements_per_shot = np.sum(measurements_per_shot, axis=1) if measurements_per_shot else []
-        nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
+        sum_measurements_per_shot = self._was_successful_func(measurements_per_shot)
+        num_successful_shots = np.count_nonzero(sum_measurements_per_shot)
         print()
         print(f"----MEASUREMENTS PER SHOT----: {measurements_per_shot}")
-        print()
-        print(f"----PERCENTAGE OF MEASUREMENTS READING ZERO----: {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}%")
 
         noisy_operations_with_moment_indices = self._find_noisy_operations_with_moment_indices()
         errored_circuits = [noisy_operations_with_moment_indices[i] for i in np.nonzero(sum_measurements_per_shot)[0]]
@@ -70,6 +86,8 @@ class ScriptRunner:
         print(f"-----noisy_operations_with_moment_indices----: {noisy_operations_with_moment_indices}")
         print()
         print(f"    ERRORED CIRCUITS: {errored_circuits}")
+        print()
+        print(f"----SUCCESS RATE----: {abs(num_successful_shots) / self._num_shots * 100:.1f}%")
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
