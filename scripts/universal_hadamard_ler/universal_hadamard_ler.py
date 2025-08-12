@@ -1,21 +1,7 @@
 import argparse
-from datetime import datetime
 
-import numpy as np
-from cirq import LineQubit
-
-from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
-    LogicalOperationsCircuitCreator
-from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
+from scripts.script_runner import RunnerConfiguration, ScriptRunner
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
-    CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_parallel import \
-    MeasurerWithSingleQubitParallel
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
-from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
 class UniversalHadamardLer:
@@ -33,57 +19,35 @@ class UniversalHadamardLer:
         self._depolarization_probability_two_qubit = depolarization_probability_two_qubit
 
     def run_main(self):
-        print(f"Running Universal Hadamard Logical Error Rate Calculator with arguments: {args}")
-        self._set_configuration()
-
-        num_logical_qubits = 1
-        encoding = MultipleCatCode(num_cats=self._surface_code_distance, num_qubits_per_cat=self._surface_code_distance)
-        num_qubits_per_encoding = len(encoding.data_qubits)
-        data_qubits = LineQubit.range(num_logical_qubits * num_qubits_per_encoding)
-        logical_qubits = [encoding.create_new(data_qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])
-                          for i in range(num_logical_qubits)]
-
         num_hadamard_repetitions = 2
         operations = [
             *[TransformationOperation(gate=TransformationGate.H, target_qubit_index=0)
               for _ in range(num_hadamard_repetitions)],
             TransformationOperation(gate=TransformationGate.M, target_qubit_index=0)
         ]
-        circuit_creator = LogicalOperationsCircuitCreator(encodings=logical_qubits, operations=operations)
-        circuit = circuit_creator.get_simulation_circuit()
-
-        noisy_circuit = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(data_qubits)).get_noisy_circuit()
-        simulator = ErrorCorrectingRunnerClifford()
-        start_time = datetime.now()
-        print(f"{start_time}: Start simulation")
-        print(f"    {noisy_circuit.noisy_operations_count} noisy operations")
-        result: Measurements = simulator.run_circuit(noisy_circuit.circuit, num_shots=self._num_shots)
-        print(f"    Time Taken: {datetime.now() - start_time}")
-        sum_measurements_per_shot = np.sum(result.measurements_per_shot, axis=1)
-        nonzero_shots = np.count_nonzero(sum_measurements_per_shot)
-        print(f"    Measurements per shot: {result.measurements_per_shot}")
-        print(f"    {abs(self._num_shots - nonzero_shots) / self._num_shots * 100:.1f}% success rate")
-
-    def _set_configuration(self) -> None:
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.majority_vote_repetitions = self._num_measurement_rounds
-        configuration.noise_parameters.depolarization_probability_one_qubit = self._depolarization_probability_one_qubit
-        configuration.noise_parameters.depolarization_probability_two_qubit = self._depolarization_probability_two_qubit
-
-        configuration.measurer_type = MeasurerWithSingleQubitParallel
-        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+        return ScriptRunner(
+            operations=operations,
+            runner_configuration=RunnerConfiguration(
+                num_shots=self._num_shots,
+                surface_code_distance=self._surface_code_distance,
+                num_measurement_rounds=self._num_measurement_rounds,
+                depolarization_probability_one_qubit=self._depolarization_probability_one_qubit,
+                depolarization_probability_two_qubit=self._depolarization_probability_two_qubit,
+            ),
+        ).run_main()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog='Hadamard Logical Error Rate Calculator',
         description='Runs the universal Hadamard operation twice using surface code and calculates the percentage of zero measurements.')
-    parser.add_argument('-s', '--num-shots', type=int, default=1, help='Number of shots to run the algorithm for.')
+    parser.add_argument('-s', '--num-shots', type=int, default=10, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
-    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-4, help='Probability of depolarization on one qubit gates.')
-    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-4, help='Probability of depolarization on two qubit gates.')
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-3, help='Probability of depolarization on one qubit gates.')
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
+    print(f"Running Universal Hadamard Logical Error Rate Calculator with arguments: {args}")
 
     UniversalHadamardLer(
         num_shots=args.num_shots,
