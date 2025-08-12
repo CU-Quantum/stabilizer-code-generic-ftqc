@@ -70,6 +70,7 @@ class ScriptRunner:
         simulator = ErrorCorrectingRunnerClifford()
         results: list[Measurements] = []
         for i, noisy_circuit in enumerate(self._circuits_noisy):
+            print()
             print(f"    Start circuit {i + 1}/{len(operation_counts)}")
             result = simulator.run_circuit(noisy_circuit.circuit)
             start_time = self._log_time_period(start_time)
@@ -91,7 +92,6 @@ class ScriptRunner:
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
-        print()
         print(f"    Time Taken: {end_time - start_time}")
         return end_time
 
