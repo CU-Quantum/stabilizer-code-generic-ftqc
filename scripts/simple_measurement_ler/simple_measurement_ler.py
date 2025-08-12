@@ -103,8 +103,8 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--num-shots', type=int, default=10, help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3, help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3, help='Number of times to measure for majority voting. Minimum is 3.')
-    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-3, help='Probability of depolarization on one qubit gates.')
-    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3, help='Probability of depolarization on two qubit gates.')
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=float, default=1e-3, help='Probability of depolarization on one qubit gates.')
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=float, default=2e-3, help='Probability of depolarization on two qubit gates.')
     args = parser.parse_args()
 
     SimpleMeasurementLer(

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --account=ucb685_asc1
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
