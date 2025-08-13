@@ -20,7 +20,7 @@ class SimpleMeasurement:
         ).run_main()
 
     def _was_successful(self, measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
-        return 1 - np.sum(measurements_per_shot, axis=1) if measurements_per_shot else np.array([])
+        return 1 - np.array(measurements_per_shot)[:,0] if measurements_per_shot else np.array([])
 
 
 if __name__ == "__main__":
