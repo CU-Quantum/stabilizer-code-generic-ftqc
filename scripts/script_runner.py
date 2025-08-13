@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
-from multiprocessing import Pool
+from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
@@ -15,8 +15,6 @@ from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
-    CatStateCreatorFlagPattern
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -28,11 +26,13 @@ class RunnerConfiguration:
     num_shots: int
     surface_code_distance: int
     num_measurement_rounds: int
-    depolarization_probability_one_qubit: float = 1e-4
-    depolarization_probability_two_qubit: float = 1e-4
+    depolarization_probability_one_qubit: float
+    depolarization_probability_two_qubit: float
+    num_processes: int
 
 
-def add_runner_configuration_args(parser: ArgumentParser) -> None:
+def get_runner_configuration_args() -> RunnerConfiguration:
+    parser = ArgumentParser()
     parser.add_argument('-s', '--num-shots', type=int, default=10,
                         help='Number of shots to run the algorithm for.')
     parser.add_argument('-d', '--surface-code-distance', type=int, default=3,
@@ -43,6 +43,18 @@ def add_runner_configuration_args(parser: ArgumentParser) -> None:
                         help='Probability of depolarization on one qubit gates.')
     parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3,
                         help='Probability of depolarization on two qubit gates.')
+    parser.add_argument('-p', '--num-processes', type=int, default=cpu_count(),
+                        help='The number of processes to run in parallel. Default is the number of CPUs available on the machine.')
+    args = parser.parse_args()
+    print(f"Running with arguments: {args}")
+    return RunnerConfiguration(
+        num_shots=args.num_shots,
+        surface_code_distance=args.surface_code_distance,
+        num_measurement_rounds=max(3, args.num_measurement_rounds),
+        depolarization_probability_one_qubit=args.prob_one_qubit_error,
+        depolarization_probability_two_qubit=args.prob_two_qubit_error,
+        num_processes=args.num_processes,
+    )
 
 
 def run_circuit(noisy_circuit: NoisyCircuit) -> Measurements:
@@ -59,12 +71,6 @@ class ScriptRunner:
         self._was_successful_func = was_successful_func
         self._runner_configuration = runner_configuration
 
-        self._num_shots = self._runner_configuration.num_shots
-        self._surface_code_distance = self._runner_configuration.surface_code_distance
-        self._num_measurement_rounds = self._runner_configuration.num_measurement_rounds
-        self._depolarization_probability_one_qubit = self._runner_configuration.depolarization_probability_one_qubit
-        self._depolarization_probability_two_qubit = self._runner_configuration.depolarization_probability_two_qubit
-
     def run_main(self):
         self._set_configuration()
         start_time = datetime.now()
@@ -76,24 +82,16 @@ class ScriptRunner:
 
         start_time = self._log_time_period(start_time)
         print()
-        print(f"    Starting {len(self._circuits_noisy)} circuit")
+        print(f"    Starting {len(self._circuits_noisy)} circuit(s)")
         results: list[Measurements] = []
 
-        with Pool(processes=1) as pool:
+        with Pool(processes=self._runner_configuration.num_processes) as pool:
             results = pool.map(run_circuit, self._circuits_noisy)
         start_time = self._log_time_period(start_time)
 
-        # simulator = ErrorCorrectingRunnerClifford()
-        # for i, noisy_circuit in enumerate(self._circuits_noisy):
-        #     print()
-        #     print(f"    Start circuit {i + 1}/{len(operation_counts)}")
-        #     result = simulator.run_circuit(noisy_circuit.circuit)
-        #     start_time = self._log_time_period(start_time)
-        #     results.append(result)
-
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
         sum_measurements_per_shot = self._was_successful_func(measurements_per_shot)
-        num_assumed_success = self._num_shots - len(self._circuits_noisy)
+        num_assumed_success = self._runner_configuration.num_shots - len(self._circuits_noisy)
         num_successful_shots = np.count_nonzero(sum_measurements_per_shot) + num_assumed_success
         print()
         print(f"----MEASUREMENTS PER SHOT----: {measurements_per_shot}")
@@ -105,7 +103,7 @@ class ScriptRunner:
         print()
         print(f"    ERRORED CIRCUITS: {errored_circuits}")
         print()
-        print(f"----SUCCESS RATE----: {abs(num_successful_shots) / self._num_shots * 100:.1f}%")
+        print(f"----SUCCESS RATE----: {abs(num_successful_shots) / self._runner_configuration.num_shots * 100:.1f}%")
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
@@ -114,9 +112,9 @@ class ScriptRunner:
 
     def _set_configuration(self) -> None:
         configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.majority_vote_repetitions = self._num_measurement_rounds
-        configuration.noise_parameters.depolarization_probability_one_qubit = self._depolarization_probability_one_qubit
-        configuration.noise_parameters.depolarization_probability_two_qubit = self._depolarization_probability_two_qubit
+        configuration.majority_vote_repetitions = self._runner_configuration.num_measurement_rounds
+        configuration.noise_parameters.depolarization_probability_one_qubit = self._runner_configuration.depolarization_probability_one_qubit
+        configuration.noise_parameters.depolarization_probability_two_qubit = self._runner_configuration.depolarization_probability_two_qubit
 
     def _find_noisy_operations_with_moment_indices(self) -> list[tuple[list[Operation], list[int]]]:
         noisy_operations_with_moment_indices = []
@@ -144,7 +142,7 @@ class ScriptRunner:
     def _circuits_noisy(self) -> list[NoisyCircuit]:
         noisy_circuits_list = [
             NoisyCircuitCreator(circuit=self._circuit_noiseless, num_data_qubits=self._num_data_qubits).get_noisy_circuit()
-            for _ in range(self._num_shots)]
+            for _ in range(self._runner_configuration.num_shots)]
         return [noisy_circuit
                 for noisy_circuit in noisy_circuits_list
                 if noisy_circuit.noisy_operations_count.num_non_identity_errors]
@@ -160,7 +158,8 @@ class ScriptRunner:
 
     @cached_property
     def _logical_qubits(self) -> list[ErrorCorrectingCode]:
-        encoding = MultipleCatCode(num_cats=self._surface_code_distance, num_qubits_per_cat=self._surface_code_distance)
+        encoding = MultipleCatCode(num_cats=self._runner_configuration.surface_code_distance,
+                                   num_qubits_per_cat=self._runner_configuration.surface_code_distance)
         num_qubits_per_encoding = len(encoding.data_qubits)
         data_qubits = LineQubit.range(self._num_logical_qubits * num_qubits_per_encoding)
         return [encoding.create_new(data_qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])
