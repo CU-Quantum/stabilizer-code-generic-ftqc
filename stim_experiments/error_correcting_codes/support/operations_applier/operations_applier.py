@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from cirq import Circuit, LineQubit, Operation
 
 
-DELAYED_NOISE_TAG = 'NO_NOISE_TAG'
+DELAYED_NOISE_TAG = 'DELAYED_NOISE_TAG'
 
 
 class OperationsApplier(ABC):

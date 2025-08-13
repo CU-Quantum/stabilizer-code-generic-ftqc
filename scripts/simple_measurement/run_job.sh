@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=16
 #SBATCH --qos=normal
 #SBATCH --job-name=simple_measurement
 #SBATCH --error=results/simple_measurement/simple_measurement_%j.err

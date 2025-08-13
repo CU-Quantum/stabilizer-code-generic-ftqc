@@ -76,7 +76,7 @@ class NoisyCircuitCreator:
             return [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE, qubit=qubit) for qubit in one_qubit] \
                 + [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.TWO, qubit=qubit) for qubit in two_qubit]
         return None
-
+# TODO during error correction, perform all recovery operations at the end instead of after each stabilizer measurement
     def _count_noisy_ops_between_tags(self, op_tree: OP_TREE, path: Optional[list[int]] = None) -> NoisyOperationsCountPerCorrectionRound:
         if path is None:
             path = []
@@ -86,12 +86,12 @@ class NoisyCircuitCreator:
         count = NoisyOperationsCountPerCorrectionRound()
         for i, op in enumerate(circuit.all_operations()):
             path[-1] = i
+            if CORRECTION_ROUND_TAG in op.tags:  # must come before recursion, since errors during the correction round may not be corrected until the next round
+                count.append_correction_round()
             if hasattr(op.untagged, 'circuit'):
                 subcount = self._count_noisy_ops_between_tags(op_tree=op.untagged.circuit, path=path)
                 count.add_count_to_latest(subcount.first_count)
                 count.extend(subcount.tail)
-            if CORRECTION_ROUND_TAG in op.tags:
-                count.append_correction_round()
             elif NOISY_CHANNEL_TAG in op.tags:
                 if op.gate == X:
                     count.latest_count.x_errors.count += 1
