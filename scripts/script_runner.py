@@ -93,7 +93,8 @@ class ScriptRunner:
 
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
         sum_measurements_per_shot = self._was_successful_func(measurements_per_shot)
-        num_successful_shots = np.count_nonzero(sum_measurements_per_shot)
+        num_assumed_success = self._num_shots - len(self._circuits_noisy)
+        num_successful_shots = np.count_nonzero(sum_measurements_per_shot) + num_assumed_success
         print()
         print(f"----MEASUREMENTS PER SHOT----: {measurements_per_shot}")
 
