@@ -5,10 +5,11 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
 #SBATCH --qos=normal
-#SBATCH --job-name=simple_measurement_ler
-#SBATCH --error=results/simple_measurement_ler/simple_measurement_ler_%j.err
-#SBATCH --output=results/simple_measurement_ler/simple_measurement_ler_%j.out
+#SBATCH --job-name=simple_measurement
+#SBATCH --error=results/simple_measurement/simple_measurement_%j.err
+#SBATCH --output=results/simple_measurement/simple_measurement_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -25,4 +26,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/simple_measurement_ler/simple_measurement_ler.py
+python ~/workspace/stim-experiments/scripts/simple_measurement/simple_measurement.py

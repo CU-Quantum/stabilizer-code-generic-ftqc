@@ -1,14 +1,15 @@
 #!/bin/bash
 
 #SBATCH --account=ucb685_asc1
-#SBATCH --time=01:00:00
+#SBATCH --time=10:00:00
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
+#SBATCH --cpus-per-task=64
 #SBATCH --qos=normal
-#SBATCH --job-name=hadamard_ler
-#SBATCH --error=results/hadamard_ler/hadamard_ler_%j.err
-#SBATCH --output=results/hadamard_ler/hadamard_ler_%j.out
+#SBATCH --job-name=universal_hadamard
+#SBATCH --error=results/universal_hadamard/universal_hadamard_%j.err
+#SBATCH --output=results/universal_hadamard/universal_hadamard_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -25,4 +26,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/universal_hadamard_ler/universal_hadamard_ler.py
+python ~/workspace/stim-experiments/scripts/universal_hadamard/universal_hadamard.py
