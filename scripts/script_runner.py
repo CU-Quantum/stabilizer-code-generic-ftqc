@@ -1,13 +1,13 @@
 import json
 from argparse import ArgumentParser
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from functools import cached_property
 from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
-from cirq import Circuit, LineQubit, Operation, to_json
+from cirq import Circuit, LineQubit, Operation, dataclass_json_dict, to_json
 from numpy._typing import NDArray
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
@@ -114,7 +114,7 @@ class ScriptRunner:
             with open('errored_circuit_operations.json', 'w') as f:
                 to_json(errored_circuit_operations, f)
             with open('errored_circuit_counts.json', 'w') as f:
-                to_json(errored_circuit_noisy_operations_count, f)
+                to_json(asdict(errored_circuit_noisy_operations_count), f)
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
