@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from cirq import LineQubit, Operation
+from cirq import LineQubit, MeasurementKey, Operation
 
 from stim_experiments.custom_dataclasses.cat_state_flag_info import CatStateFlagInfo
 
@@ -9,7 +9,7 @@ class FlagMeasurer(ABC):
     def __init__(self,
                  qubit_register: list[LineQubit],
                  parity_check_infos: list[CatStateFlagInfo],
-                 measurement_key: str):
+                 measurement_key: MeasurementKey):
         self._qubit_register = qubit_register
         self._parity_check_infos = parity_check_infos
         self._measurement_key = measurement_key

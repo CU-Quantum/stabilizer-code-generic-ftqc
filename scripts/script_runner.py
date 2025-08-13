@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property
+from multiprocessing import Pool
 from typing import Callable
 
 import numpy as np
@@ -14,6 +15,8 @@ from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.cat_state_creator_flag_pattern import \
+    CatStateCreatorFlagPattern
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -42,6 +45,10 @@ def add_runner_configuration_args(parser: ArgumentParser) -> None:
                         help='Probability of depolarization on two qubit gates.')
 
 
+def run_circuit(noisy_circuit: NoisyCircuit) -> Measurements:
+    return ErrorCorrectingRunnerClifford().run_circuit(noisy_circuit.circuit)
+
+
 class ScriptRunner:
     def __init__(self,
                  operations: list[TransformationOperation],
@@ -63,18 +70,27 @@ class ScriptRunner:
         start_time = datetime.now()
         print(f"{start_time}: Start runner")
         operation_counts = [noisy_circuit.noisy_operations_count for noisy_circuit in self._circuits_noisy]
-        start_time = self._log_time_period(start_time)
         print(f"    {len(operation_counts)} noisy circuit")
         print()
         print(f"    {operation_counts}")
-        simulator = ErrorCorrectingRunnerClifford()
+
+        start_time = self._log_time_period(start_time)
+        print()
+        print(f"    Starting {len(self._circuits_noisy)} circuit")
         results: list[Measurements] = []
-        for i, noisy_circuit in enumerate(self._circuits_noisy):
-            print()
-            print(f"    Start circuit {i + 1}/{len(operation_counts)}")
-            result = simulator.run_circuit(noisy_circuit.circuit)
-            start_time = self._log_time_period(start_time)
-            results.append(result)
+
+        with Pool(processes=1) as pool:
+            results = pool.map(run_circuit, self._circuits_noisy)
+        start_time = self._log_time_period(start_time)
+
+        # simulator = ErrorCorrectingRunnerClifford()
+        # for i, noisy_circuit in enumerate(self._circuits_noisy):
+        #     print()
+        #     print(f"    Start circuit {i + 1}/{len(operation_counts)}")
+        #     result = simulator.run_circuit(noisy_circuit.circuit)
+        #     start_time = self._log_time_period(start_time)
+        #     results.append(result)
+
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
         sum_measurements_per_shot = self._was_successful_func(measurements_per_shot)
         num_successful_shots = np.count_nonzero(sum_measurements_per_shot)

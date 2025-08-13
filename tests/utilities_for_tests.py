@@ -16,7 +16,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalControlledOperationSingleAncilla
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_single_ancilla import \
     UniversalTSingleAncilla
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator

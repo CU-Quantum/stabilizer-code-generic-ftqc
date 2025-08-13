@@ -1,4 +1,4 @@
-from cirq import Circuit, H, LineQubit
+from cirq import Circuit, H, LineQubit, inverse
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_from_first
@@ -16,3 +16,6 @@ class CatStateCreatorCxFromFirstQubit(CatStateCreator):
             H(self._qubit_register[0]),
             cx_sequentially_further_qubits_from_first(qubits=self._qubit_register),
         )
+
+    def decode_state(self) -> Circuit:
+        return inverse(self.get_cat_state_circuit())

@@ -1,4 +1,4 @@
-from functools import cached_property
+from functools import cached_property, partial
 
 from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey
 
@@ -14,6 +14,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class CircuitFromOperationCreator:
@@ -39,7 +40,7 @@ class CircuitFromOperationCreator:
             qubit_index=self._operation.control_encoding.qubit_index_relative
         )
         logical_z_on_control = self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
-        majority_vote = MajorityVote(desired_measurement_key=MeasurementKey(str(self._operation.control_encoding.qubit_index_logical)))
+        majority_vote = MajorityVote(desired_measurement_key=MeasurementKeyWithStableHash(str(self._operation.control_encoding.qubit_index_logical)))
         measurer = self._measurer_type(
             observables=[list(logical_z_on_control.all_operations())],
             measurement_keys=[majority_vote.key],
@@ -49,45 +50,8 @@ class CircuitFromOperationCreator:
                 measurer.get_measurement_circuit(),
                 encodings_store.get_all_correction_circuits()
             )
-            circuit_operation = self._get_hacked_circuit_operation(subcircuit=subcircuit, majority_vote=majority_vote)
+            circuit_operation = get_hacked_circuit_operation(subcircuit=subcircuit, majority_vote=majority_vote)
             return Circuit(circuit_operation)
-
-    def _get_hacked_circuit_operation(self, subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> CircuitOperation:
-        self._hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
-        circuit_operation = CircuitOperation(
-            subcircuit,
-            use_repetition_ids=False,
-            repeat_until=majority_vote
-        )
-        replace = circuit_operation.replace
-
-        def _replace(**changes) -> CircuitOperation:
-            subcircuit = changes['circuit']
-            self._hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
-            return replace(**changes)
-
-        circuit_operation.replace = _replace
-        return circuit_operation
-
-    def _hack_to_add_desired_key_to_list_of_modified_keys(self, subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> None:
-        """must hack this because CircuitOperation does not recognize that nested MajorityVotes modify the 'desired_key'"""
-        measurement_keys = set(subcircuit._measurement_key_objs_())
-        measurement_keys.add(majority_vote.key)
-        unfreeze = subcircuit.unfreeze
-
-        def _unfreeze(copy: bool = True) -> Circuit:
-            unfrozen = unfreeze(copy=copy)
-            with_rescoped_keys = unfrozen._with_rescoped_keys_
-
-            def _with_rescoped_keys(path: tuple[str, ...], bindable_keys: frozenset[MeasurementKey]):
-                unmodified = with_rescoped_keys(path, bindable_keys)
-                unmodified._measurement_key_objs_ = lambda: frozenset(measurement_keys)
-                return unmodified
-
-            unfrozen._with_rescoped_keys_ = _with_rescoped_keys
-            return unfrozen
-
-        subcircuit.unfreeze = _unfreeze
 
     @cached_property
     def _logical_operation_on_target(self) -> Circuit:
@@ -125,3 +89,39 @@ class CircuitFromOperationCreator:
     @property
     def _configuration(self) -> ConfigurationErrorCorrectingCode:
         return ConfigurationErrorCorrectingCodeManager().get_configuration()
+
+
+def get_hacked_circuit_operation(subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> CircuitOperation:
+    """must hack this because CircuitOperation does not recognize that nested MajorityVotes modify the 'desired_key'"""
+    hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
+    circuit_operation = CircuitOperation(
+        subcircuit,
+        use_repetition_ids=False,
+        repeat_until=majority_vote
+    )
+    circuit_operation.replace = partial(replace_hacked, majority_vote=majority_vote, replace_unhacked=circuit_operation.replace)
+    return circuit_operation
+
+def hack_to_add_desired_key_to_list_of_modified_keys(subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> None:
+    measurement_keys = set(subcircuit._measurement_key_objs_())
+    measurement_keys.add(majority_vote.key)
+    subcircuit.unfreeze = partial(unfreeze_hacked, measurement_keys=measurement_keys, unfreeze_unhacked=subcircuit.unfreeze)
+
+def unfreeze_hacked(copy: bool = True, measurement_keys: set = None, unfreeze_unhacked: callable = None) -> Circuit:
+    unfrozen = unfreeze_unhacked(copy=copy)
+    unfrozen._with_rescoped_keys_ = partial(with_rescoped_keys_hacked, measurement_keys=measurement_keys, with_rescoped_keys_unhacked=unfrozen._with_rescoped_keys_)
+    return unfrozen
+
+def with_rescoped_keys_hacked(path: tuple[str, ...],
+                              bindable_keys: frozenset[MeasurementKey],
+                              measurement_keys: set[MeasurementKey],
+                              with_rescoped_keys_unhacked: callable,
+                              ):
+    unmodified = with_rescoped_keys_unhacked(path, bindable_keys)
+    unmodified._measurement_key_objs_ = lambda: frozenset(measurement_keys)
+    return unmodified
+
+def replace_hacked(majority_vote: MajorityVote, replace_unhacked: callable, **changes) -> CircuitOperation:
+        subcircuit = changes['circuit']
+        hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
+        return replace_unhacked(**changes)

@@ -4,7 +4,7 @@ from functools import cached_property
 from typing import Generator
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Moment, OP_TREE, Operation, Z
+from cirq import Circuit, CircuitOperation, FrozenCircuit, Moment, OP_TREE, Operation, Z
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -20,6 +20,8 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalOperationsUtilities
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
+
 
 class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def get_controlled_operation_circuit(self) -> Circuit:
@@ -59,7 +61,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         ]
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        measurement_key = MeasurementKey(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
+        measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
             return [
                 FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen

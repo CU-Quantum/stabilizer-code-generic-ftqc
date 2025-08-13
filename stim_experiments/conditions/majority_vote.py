@@ -6,11 +6,12 @@ from numpy import array, bincount
 from numpy._typing import NDArray
 
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class MajorityVote(Condition):
     def __init__(self, desired_measurement_key: MeasurementKey):
-        self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
+        self.key = MeasurementKeyWithStableHash(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
         self.desired_measurement_key = desired_measurement_key
         self.number_of_votes = ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
         self._start_index = 0

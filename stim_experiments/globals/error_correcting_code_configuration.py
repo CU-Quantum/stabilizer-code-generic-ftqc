@@ -34,7 +34,7 @@ class ConfigurationErrorCorrectingCodeManager:
                 depolarization_probability_two_qubit=2e-4,
             ),
             num_cat_states=3,
-            parity_verifier=ParityVerifierParallel,
+            parity_verifier_type=ParityVerifierParallel,
             seed=None,
             universal_hadamard_type=UniversalHadamardFaultTolerant,
             universal_controlled_operation_type=UniversalControlledFlipFaultTolerant,

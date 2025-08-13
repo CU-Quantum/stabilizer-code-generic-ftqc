@@ -5,7 +5,7 @@ from typing import Generator
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, Moment, OP_TREE, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, Moment, OP_TREE, Operation
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_hadamard_fault_tolerant_context import \
@@ -14,6 +14,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class UniversalHadamardFaultTolerant(UniversalHadamard):
@@ -39,7 +40,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
         ]
 
     def _measure_out_helper(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
-        measurement_key = MeasurementKey(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
+        measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
         measurement_key_symbol = sympy.symbols(measurement_key.name)
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
             return [

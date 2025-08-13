@@ -1,12 +1,13 @@
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, MeasurementKey, Moment, Operation
+from cirq import Circuit, FrozenCircuit, LineQubit, Operation
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder import StateEncoder
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class StateEncoderByGeneratorMeasurement(StateEncoder):
@@ -20,7 +21,7 @@ class StateEncoderByGeneratorMeasurement(StateEncoder):
         self._qubits = qubits
 
     def encode_state(self) -> Circuit:
-        measurement_keys = [MeasurementKey(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._check_matrix.matrix))]
+        measurement_keys = [MeasurementKeyWithStableHash(f'STATE_ENCODER_{i}_{uuid4()}') for i in range(len(self._check_matrix.matrix))]
         generators = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return Circuit(
             self._measurer_type(observables=generators, measurement_keys=measurement_keys).get_measurement_circuit(),

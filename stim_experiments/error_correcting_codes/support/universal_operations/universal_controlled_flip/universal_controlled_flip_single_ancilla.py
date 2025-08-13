@@ -7,6 +7,7 @@ from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLab
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
     UniversalControlledOperation
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
@@ -40,4 +41,4 @@ class UniversalControlledOperationSingleAncilla(UniversalControlledOperation):
 
     @cached_property
     def _measurement_key(self) -> MeasurementKey:
-        return MeasurementKey(f"UNIVERSAL_CONTROLLED_OPERATION_SINGLE_ANCILLA_{uuid4().hex}")
+        return MeasurementKeyWithStableHash(f"UNIVERSAL_CONTROLLED_OPERATION_SINGLE_ANCILLA_{uuid4().hex}")

@@ -10,3 +10,7 @@ class CatStateCreator(ABC):
     @abstractmethod
     def get_cat_state_circuit(self) -> Circuit:
         pass
+
+    @abstractmethod
+    def decode_state(self) -> Circuit:
+        pass

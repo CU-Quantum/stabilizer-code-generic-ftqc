@@ -10,7 +10,7 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalT
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_fault_tolerant import \
     UniversalTFaultTolerant
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import \
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_single_ancilla import \
     UniversalTSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator

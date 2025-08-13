@@ -1,7 +1,7 @@
 from functools import cached_property
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, LineQubit, MeasurementKey, R, ResetChannel, TaggedOperation, inverse
+from cirq import Circuit, CircuitOperation, LineQubit, ResetChannel, TaggedOperation, inverse
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.conditions.verification_is_zero import \
@@ -11,6 +11,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class CatStateCreatorBasicNondeterministic(CatStateCreator):
@@ -18,7 +19,7 @@ class CatStateCreatorBasicNondeterministic(CatStateCreator):
         super().__init__(qubit_register=qubit_register)
 
     def get_cat_state_circuit(self) -> Circuit:
-        verification_condition = VerificationIsZero(key=MeasurementKey(f'VERIFICATION_{uuid4().hex}'))
+        verification_condition = VerificationIsZero(key=MeasurementKeyWithStableHash(f'VERIFICATION_{uuid4().hex}'))
         preparation_circuit = Circuit(
             ResetChannel().on_each(*self._qubit_register),
             self._state_propagation,
@@ -42,4 +43,4 @@ class CatStateCreatorBasicNondeterministic(CatStateCreator):
 
     @property
     def _parity_verifier(self) -> type[ParityVerifier]:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().parity_verifier
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().parity_verifier_type

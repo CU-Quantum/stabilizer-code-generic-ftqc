@@ -2,8 +2,7 @@ from functools import cached_property
 from uuid import uuid4
 
 import numpy as np
-from cirq import Circuit, H, LineQubit, MeasurementKey, \
-    Operation, X
+from cirq import Circuit, H, LineQubit, MeasurementKey, Operation, X, inverse
 from numpy._typing import NDArray
 from numpy.ma.extras import average
 
@@ -16,6 +15,7 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
     FlagMeasurerParallel
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 from stim_experiments.utilities.utilities import cx_sequentially_closer_qubits_from_first
 
 
@@ -41,6 +41,13 @@ class CatStateCreatorFlagPattern(CatStateCreator):
             self._recover_from_errors(),
         )
 
+    def decode_state(self) -> Circuit:
+        if not self._num_data_qubits:
+            return Circuit()
+        return Circuit(
+            inverse(self._create_cat_state()),
+        )
+
     def _create_cat_state(self) -> list[list[Operation]]:
         return [
             [H(self._control_qubit)],
@@ -55,7 +62,7 @@ class CatStateCreatorFlagPattern(CatStateCreator):
 
     def _recover_from_errors(self) -> list[list[Operation]]:
         return [
-            [X(qubit).with_classical_controls(FlagIndexLimit(key=MeasurementKey(self._measurement_key),
+            [X(qubit).with_classical_controls(FlagIndexLimit(key=self._measurement_key,
                                                              parity_check_index=parity_check_index - 1,
                                                              flag_sequence=self._flag_sequence)
                                               )
@@ -64,8 +71,8 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         ]
 
     @cached_property
-    def _measurement_key(self) -> str:
-        return f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}"
+    def _measurement_key(self) -> MeasurementKey:
+        return MeasurementKeyWithStableHash(f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}")
 
     @cached_property
     def _parity_check_infos(self) -> list[CatStateFlagInfo]:

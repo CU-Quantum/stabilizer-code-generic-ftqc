@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Tuple
-from uuid import uuid4
 
 import numpy as np
 from cirq import ClassicalDataStoreReader, Condition, MeasurementKey
