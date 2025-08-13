@@ -1,16 +1,18 @@
-from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey
+from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey, json_cirq_type, obj_to_dict_helper
+
+from stim_experiments.conditions.custom_condition import CustomCondition
 
 
-class MultipleConditions(Condition):
+class MultipleConditions(CustomCondition):
     def __init__(self, conditions: list[Condition]):
-        self._conditions = conditions
+        self.conditions = conditions
 
     @property
     def keys(self):
-        return tuple(key for condition in self._conditions for key in condition.keys)
+        return tuple(key for condition in self.conditions for key in condition.keys)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        for condition in self._conditions:
+        for condition in self.conditions:
             if current in condition.keys:
                 condition.replace_key(current, replacement)
         return self
@@ -19,10 +21,17 @@ class MultipleConditions(Condition):
         return str(self.keys)
 
     def __repr__(self):
-        return f'MultipleConditions({self.keys!r})'
+        return f'{json_cirq_type(type(self))}({self.conditions})'
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
-        return all(condition.resolve(classical_data=classical_data) for condition in self._conditions)
+        return all(condition.resolve(classical_data=classical_data) for condition in self.conditions)
+
+    def _json_dict_(self):
+        return obj_to_dict_helper(self, ['conditions'])
+
+    @classmethod
+    def _from_json_dict_(cls, conditions, **kwargs):
+        return cls(conditions=conditions)
 
     @property
     def qasm(self):

@@ -1,3 +1,4 @@
+import json
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from datetime import datetime
@@ -6,7 +7,7 @@ from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
-from cirq import Circuit, LineQubit, Operation
+from cirq import Circuit, LineQubit, Operation, to_json
 from numpy._typing import NDArray
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
@@ -95,7 +96,6 @@ class ScriptRunner:
             [all(count.num_non_identity_errors <= np.floor((self._runner_configuration.surface_code_distance - 1) / 2)
                  for count in circuit_noisy.noisy_operations_count.counts)
              for circuit_noisy in errored_circuits]
-        noisy_operations_with_moment_indices = self._find_noisy_operations_with_moment_indices()
 
         num_successful_shots = np.count_nonzero(successful_or_not_shots) + num_assumed_success
         print()
@@ -105,15 +105,16 @@ class ScriptRunner:
         if not any(errored_circuits_should_have_been_corrected):
             print("----SUCCESS----: All circuits that failed had an uncorrectable amount of errors with some correction round.")
         else:
+            noisy_operations_with_moment_indices = self._find_noisy_operations_with_moment_indices()
             first_errored_circuit_index = errored_circuit_indices[np.argmax(errored_circuits_should_have_been_corrected)]
             errored_circuit_operations = noisy_operations_with_moment_indices[first_errored_circuit_index]
             errored_circuit_noisy_operations_count = self._circuits_noisy[first_errored_circuit_index].noisy_operations_count
             print(f"----ERROR----: {len(errored_circuits_should_have_been_corrected)} circuits that failed should have been corrected. "
-                  f"Printing first one.")
-            print()
-            print(f"    1st ERRORED CIRCUIT NOISY OPERATIONS WITH MOMENT INDICES: {errored_circuit_operations}")
-            print()
-            print(f"    1st ERRORED CIRCUIT COUNTS: {errored_circuit_noisy_operations_count}")
+                  f"Storing first one.")
+            with open('errored_circuit_operations.json', 'w') as f:
+                to_json(errored_circuit_operations, f)
+            with open('errored_circuit_counts.json', 'w') as f:
+                to_json(errored_circuit_noisy_operations_count, f)
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
@@ -135,15 +136,15 @@ class ScriptRunner:
                 for non_identity_errors in (correction_round.x_errors, correction_round.y_errors,
                                             correction_round.z_errors):
                     for noisy_path in non_identity_errors.paths:
-                        noisy_operations = [list(noisy_circuit.all_operations()).__getitem__(noisy_path[0])]
+                        noisy_operations = [noisy_circuit, list(noisy_circuit.all_operations()).__getitem__(noisy_path[0])]
                         for i in noisy_path[1:]:
                             noisy_operations.append(
                                 list(noisy_operations[-1].untagged.circuit.all_operations()).__getitem__(i))
                         noisy_moment_indices = [
-                            next(j for j, moment in enumerate(noisy_circuit) if noisy_operations[0] in moment)]
-                        for i, noisy_operation in enumerate(noisy_operations[1:]):
+                            next(j for j, moment in enumerate(noisy_circuit) if noisy_operations[1] in moment)]
+                        for i, noisy_operation in enumerate(noisy_operations[2:]):
                             noisy_moment_indices.append(next(
-                                j for j, moment in enumerate(noisy_operations[i].untagged.circuit) if
+                                j for j, moment in enumerate(noisy_operations[i + 1].untagged.circuit) if
                                 noisy_operation in moment))
                         noisy_operations_with_moment_indices[-1].append((noisy_operations, noisy_moment_indices))
         return noisy_operations_with_moment_indices

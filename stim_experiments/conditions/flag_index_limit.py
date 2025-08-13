@@ -2,13 +2,14 @@ from dataclasses import dataclass
 from typing import Tuple
 
 import numpy as np
-from cirq import ClassicalDataStoreReader, Condition, MeasurementKey
-from cirq.protocols import json_serialization
+from cirq import ClassicalDataStoreReader, MeasurementKey, dataclass_json_dict, json_cirq_type
 from numpy._typing import NDArray
+
+from stim_experiments.conditions.custom_condition import CustomCondition
 
 
 @dataclass(frozen=True)
-class FlagIndexLimit(Condition):
+class FlagIndexLimit(CustomCondition):
     key: MeasurementKey
     parity_check_index: int
     flag_sequence: NDArray[int]
@@ -24,7 +25,7 @@ class FlagIndexLimit(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'ParityCheckIndexLimit({self.key!r}, f{self.parity_check_index})'
+        return f'{json_cirq_type(type(self))}({self.key!r}, {self.parity_check_index}, {self.flag_sequence})'
 
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
@@ -40,7 +41,7 @@ class FlagIndexLimit(Condition):
         return self.parity_check_index <= flag_nums_found[0] if len(flag_nums_found) else False
 
     def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
+        return dataclass_json_dict(self)
 
     @classmethod
     def _from_json_dict_(cls, key, parity_check_index, flag_sequence, **kwargs):

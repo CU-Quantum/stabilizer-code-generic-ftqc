@@ -10,7 +10,7 @@ class TestRecoveryCondition:
         self._store = ClassicalDataDictionaryStore()
         self._key = MeasurementKey('test_key')
         self._symptom = [1, 0, 1]
-        self._condition = RecoveryCondition(key=self._key, symptom=self._symptom)
+        self._condition = RecoveryCondition(key=self._key, symptom=tuple(self._symptom))
         self._qubit = LineQubit(0)
 
     def test_missing_key(self):
@@ -34,7 +34,7 @@ class TestRecoveryCondition:
             self._store.record_measurement(key=self._key, measurement=(measurement,), qubits=(self._qubit,))
 
     def test_empty_symptom(self):
-        condition = RecoveryCondition(key=self._key, symptom=[])
+        condition = RecoveryCondition(key=self._key, symptom=())
         self._store.record_measurement(key=self._key, measurement=(0,), qubits=(self._qubit,))
         with pytest.raises(ValueError, match='^No symptom was given for key "test_key"$'):
             condition.resolve(classical_data=self._store)

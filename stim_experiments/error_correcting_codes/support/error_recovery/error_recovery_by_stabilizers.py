@@ -23,7 +23,7 @@ class ErrorRecoveryByStabilizers:
         ).get_measurement_circuit()
 
         recovery_operations = [
-            recovery.operation.with_classical_controls(RecoveryCondition(key=measurement_key, symptom=recovery.symptom))
+            recovery.operation.with_classical_controls(RecoveryCondition(key=measurement_key, symptom=tuple(recovery.symptom)))
             for recovery in self._recoveries
         ]
 
