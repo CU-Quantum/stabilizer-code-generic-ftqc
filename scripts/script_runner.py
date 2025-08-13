@@ -75,39 +75,49 @@ class ScriptRunner:
         self._set_configuration()
         start_time = datetime.now()
         print(f"{start_time}: Start runner")
-        operation_counts = [noisy_circuit.noisy_operations_count for noisy_circuit in self._circuits_noisy]
-        print(f"    {len(operation_counts)} noisy circuit")
-        print()
-        print(f"    {operation_counts}")
-
+        print(f"----NUMBER OF NOISY CIRCUITS----: {len(self._circuits_noisy)}")
         start_time = self._log_time_period(start_time)
-        print()
-        print(f"    Starting {len(self._circuits_noisy)} circuit(s)")
-        results: list[Measurements] = []
 
+        results: list[Measurements] = []
         with Pool(processes=self._runner_configuration.num_processes) as pool:
             results = pool.map(run_circuit, self._circuits_noisy)
         start_time = self._log_time_period(start_time)
 
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]
-        sum_measurements_per_shot = self._was_successful_func(measurements_per_shot)
+        successful_or_not_shots = self._was_successful_func(measurements_per_shot)
         num_assumed_success = self._runner_configuration.num_shots - len(self._circuits_noisy)
-        num_successful_shots = np.count_nonzero(sum_measurements_per_shot) + num_assumed_success
+        errored_circuit_indices = np.nonzero(1 - successful_or_not_shots)[0]
         print()
-        print(f"----MEASUREMENTS PER SHOT----: {measurements_per_shot}")
+        print(f"----NUMBER OF ERRORED CIRCUITS----: {len(errored_circuit_indices)}")
 
+        errored_circuits = np.array(self._circuits_noisy)[errored_circuit_indices]
+        errored_circuits_should_have_been_corrected = \
+            [all(count.num_non_identity_errors <= np.floor((self._runner_configuration.surface_code_distance - 1) / 2)
+                 for count in circuit_noisy.noisy_operations_count.counts)
+             for circuit_noisy in errored_circuits]
         noisy_operations_with_moment_indices = self._find_noisy_operations_with_moment_indices()
-        errored_circuits = [noisy_operations_with_moment_indices[i] for i in np.nonzero(sum_measurements_per_shot)[0]]
-        print()
-        print(f"-----noisy_operations_with_moment_indices----: {noisy_operations_with_moment_indices}")
-        print()
-        print(f"    ERRORED CIRCUITS: {errored_circuits}")
+
+        num_successful_shots = np.count_nonzero(successful_or_not_shots) + num_assumed_success
         print()
         print(f"----SUCCESS RATE----: {abs(num_successful_shots) / self._runner_configuration.num_shots * 100:.1f}%")
 
+        print()
+        if not any(errored_circuits_should_have_been_corrected):
+            print("----SUCCESS----: All circuits that failed had an uncorrectable amount of errors with some correction round.")
+        else:
+            first_errored_circuit_index = errored_circuit_indices[np.argmax(errored_circuits_should_have_been_corrected)]
+            errored_circuit_operations = noisy_operations_with_moment_indices[first_errored_circuit_index]
+            errored_circuit_noisy_operations_count = self._circuits_noisy[first_errored_circuit_index].noisy_operations_count
+            print(f"----ERROR----: {len(errored_circuits_should_have_been_corrected)} circuits that failed should have been corrected."
+                  f"Printing first one.")
+            print()
+            print(f"    1st ERRORED CIRCUIT NOISY OPERATIONS WITH MOMENT INDICES: {errored_circuit_operations}")
+            print()
+            print(f"    1st ERRORED CIRCUIT COUNTS: {errored_circuit_noisy_operations_count}")
+
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
-        print(f"    Time Taken: {end_time - start_time}")
+        print(f"    Time since last timestamp: {end_time - start_time}")
         return end_time
 
     def _set_configuration(self) -> None:
@@ -140,16 +150,14 @@ class ScriptRunner:
 
     @cached_property
     def _circuits_noisy(self) -> list[NoisyCircuit]:
-        noisy_circuits_list = [
-            NoisyCircuitCreator(circuit=self._circuit_noiseless, num_data_qubits=self._num_data_qubits).get_noisy_circuit()
-            for _ in range(self._runner_configuration.num_shots)]
+        with Pool(processes=self._runner_configuration.num_processes) as pool:
+            noisy_circuits_list = pool.map(self._get_noisy_circuit, [()] * self._runner_configuration.num_shots)
         return [noisy_circuit
                 for noisy_circuit in noisy_circuits_list
                 if noisy_circuit.noisy_operations_count.num_non_identity_errors]
 
-    @cached_property
-    def _num_data_qubits(self) -> int:
-        return sum(len(logical_qubit.data_qubits) for logical_qubit in self._logical_qubits)
+    def _get_noisy_circuit(self, *args, **kwargs) -> NoisyCircuit:
+        return NoisyCircuitCreator(circuit=self._circuit_noiseless).get_noisy_circuit()
 
     @cached_property
     def _circuit_noiseless(self) -> Circuit:

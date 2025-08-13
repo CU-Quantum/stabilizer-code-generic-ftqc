@@ -21,45 +21,11 @@ NOISY_CHANNEL_TWO_QUBIT_TAG = 'NoisyChannel_TwoQubit'
 class NoisyChannelType(Enum):
     ONE = auto()
     TWO = auto()
-#
-#
-# class NoisyChannel(Gate, ABC):
-#     def __init__(self, noisy_channel_type: NoisyChannelType):
-#         self.noisy_channel_type = noisy_channel_type
-#         self._noisy_operations_count = NoisyOperationsCountPerShot()
-#
-#     def set_noisy_operations_count(self, noisy_operations_count: NoisyOperationsCountPerShot) -> None:
-#         self._noisy_operations_count = noisy_operations_count
-#
-#
-# class NoisyChannelDepolarizing(NoisyChannel):
-#     def __init__(self, noisy_channel_type: NoisyChannelType, probability: float):
-#         super().__init__(noisy_channel_type=noisy_channel_type)
-#         self._probability = probability
-#
-#     def _unitary_(self):
-#         error_happens = numpy.random.random()
-#         error_gate = I
-#         if error_happens < self._probability:
-#             which_error = numpy.random.random()
-#             if which_error < 1 / 3:
-#                 self._noisy_operations_count.x_errors += 1
-#                 error_gate = X
-#             elif which_error < 2 / 3:
-#                 self._noisy_operations_count.y_errors += 1
-#                 error_gate = Y
-#             else:
-#                 self._noisy_operations_count.z_errors += 1
-#         return unitary(error_gate)
-#
-#     def _num_qubits_(self) -> int:
-#         return 1
 
 
 class NoisyCircuitCreator:
-    def __init__(self, circuit: Circuit, num_data_qubits: int):
+    def __init__(self, circuit: Circuit):
         self._circuit = circuit
-        self._num_data_qubits = num_data_qubits
 
     def get_noisy_circuit(self) -> NoisyCircuit:
         noisy_moments = map_moments(circuit=self._circuit,

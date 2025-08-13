@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=64
+#SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
 #SBATCH --job-name=universal_hadamard
 #SBATCH --error=results/universal_hadamard/universal_hadamard_%j.err

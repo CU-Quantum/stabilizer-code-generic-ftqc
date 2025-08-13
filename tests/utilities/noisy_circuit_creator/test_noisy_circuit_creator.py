@@ -1,4 +1,4 @@
-from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Moment, ResetChannel, TaggedOperation, Z, \
+from cirq import CZ, Circuit, CircuitOperation, FrozenCircuit, I, LineQubit, Moment, TaggedOperation, Z, \
     depolarize
 
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
