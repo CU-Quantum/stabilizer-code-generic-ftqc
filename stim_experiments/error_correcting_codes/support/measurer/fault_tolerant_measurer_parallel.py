@@ -1,8 +1,6 @@
-from cirq import Circuit, CircuitOperation, M, Moment, TaggedOperation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, M, Moment, TaggedOperation
 
-from stim_experiments.conditions.majority_vote import \
-    MajorityVote
-from stim_experiments.conditions.multiple_conditions import MultipleConditions
+from stim_experiments.conditions import MajorityVote, MultipleConditions
 from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG, Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
@@ -13,15 +11,16 @@ class FaultTolerantMeasurerParallel(Measurer):
     def get_measurement_circuit(self) -> Circuit:
         if not self._measurement_keys:
             return Circuit()
+
+        conditions = [
+            MajorityVote(desired_measurement_key=measurement_key)
+            for measurement_key in self._measurement_keys
+        ]
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._observables)) as ancilla_qubits:
-            conditions = [
-                MajorityVote(desired_measurement_key=measurement_key)
-                for measurement_key in self._measurement_keys
-            ]
             return Circuit(
                 TaggedOperation(
                     CircuitOperation(
-                        Circuit(
+                        FrozenCircuit(
                             [
                                 OperationsApplierUsingCatStateControl(operations=operations, measurement_qubit=measurement_qubit).get_application_circuit()
                                 for measurement_qubit, operations in zip(ancilla_qubits, self._observables)
@@ -32,9 +31,9 @@ class FaultTolerantMeasurerParallel(Measurer):
                                     for measurement_qubit, condition in zip(ancilla_qubits, conditions)
                                 ],
                             ),
-                        ).freeze(),
+                        ),
                         use_repetition_ids=False,
-                        repeat_until=MultipleConditions(conditions)
+                        repeat_until=MultipleConditions(conditions),
                     ),
                     FAULT_TOLERANT_MEASURER_TAG,
                 ),

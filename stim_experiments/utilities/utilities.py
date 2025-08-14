@@ -1,7 +1,9 @@
 from dataclasses import is_dataclass
+from functools import reduce
 
 import numpy as np
-from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, Operation, X, \
+import sympy
+from cirq import KET_MINUS, KET_ONE, KET_PLUS, KET_ZERO, LineQubit, MeasurementKey, Operation, X, \
     density_matrix_from_state_vector, kron
 from numpy import allclose, array, log2, trace
 from numpy._typing import NDArray
@@ -92,11 +94,7 @@ def states_are_equal(state1: TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, state2: TYPE_S
     global_phase = no_nans[0] if has_global_phase else 1
     return allclose(state1 / global_phase, state2, atol=1e-7)
 
-def dataclass_from_dict(dataclass_type: type, **kwargs):
-    if is_dataclass(dataclass_type):
-        attrs = dataclass_type.__d
-    if not is_dataclass(dataclass_type):
-        return dataclass_type
-        raise ValueError(f"The provided dataclass_type {dataclass_type.__name__} is not a dataclass.")
 
-    inflated = {}
+def get_sympy_condition_all_equal(measurement_keys: list[MeasurementKey], values: list[int]) -> sympy.And:
+    measurement_symbols = sympy.symbols([measurement_key.name for measurement_key in measurement_keys])
+    return reduce(sympy.And, [sympy.Eq(measurement_symbol, bit) for measurement_symbol, bit in zip(measurement_symbols, values)])

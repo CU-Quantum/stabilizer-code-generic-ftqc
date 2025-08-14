@@ -76,7 +76,7 @@ class NoisyCircuitCreator:
             return [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.ONE, qubit=qubit) for qubit in one_qubit] \
                 + [self._get_depolarization_gate(noisy_channel_type=NoisyChannelType.TWO, qubit=qubit) for qubit in two_qubit]
         return None
-# TODO during error correction, perform all recovery operations at the end instead of after each stabilizer measurement
+
     def _count_noisy_ops_between_tags(self, op_tree: OP_TREE, path: Optional[list[int]] = None) -> NoisyOperationsCountPerCorrectionRound:
         if path is None:
             path = []

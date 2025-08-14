@@ -1,5 +1,5 @@
 from cirq import LineQubit, MeasurementKey, Simulator, Z
-from numpy.ma.core import allequal, array
+from numpy.ma.core import allequal
 
 from stim_experiments.error_correcting_codes.support.measurer.fault_tolerant_measurer_sequential import \
     FaultTolerantMeasurerSequential

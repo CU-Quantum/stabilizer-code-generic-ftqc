@@ -1,9 +1,6 @@
-from cirq import Circuit, CircuitOperation, ClassicalDataDictionaryStore, Condition, M, MeasurementKey, R, \
-    TaggedOperation
-from cirq.protocols import json_serialization
+from cirq import Circuit, CircuitOperation, FrozenCircuit, M, TaggedOperation
 
-from stim_experiments.conditions.majority_vote import \
-    MajorityVote
+from stim_experiments.conditions import MajorityVote, MultipleConditions
 from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG, Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
@@ -18,20 +15,23 @@ class FaultTolerantMeasurerSequential(Measurer):
                 OperationsApplierUsingCatStateControl(operations=operations, measurement_qubit=measurement_qubit)
                 for operations in self._observables
             ]
-            conditions = [MajorityVote(desired_measurement_key=measurement_key) for measurement_key in self._measurement_keys]
+            conditions = [
+                MajorityVote(desired_measurement_key=measurement_key)
+                for measurement_key in self._measurement_keys
+            ]
             return Circuit(
-                [
-                    TaggedOperation(
-                        CircuitOperation(
-                            Circuit(
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            [
                                 applier.get_application_circuit(),
                                 M(measurement_qubit, key=condition.key),
-                            ).freeze(),
-                            use_repetition_ids=False,
-                            repeat_until=condition
+                            ]
+                            for applier, condition in zip(appliers, conditions)
                         ),
-                        FAULT_TOLERANT_MEASURER_TAG,
-                    )
-                    for applier, condition in zip(appliers, conditions)
-                ],
+                        use_repetition_ids=False,
+                        repeat_until=MultipleConditions(conditions),
+                    ),
+                    FAULT_TOLERANT_MEASURER_TAG,
+                )
             )
