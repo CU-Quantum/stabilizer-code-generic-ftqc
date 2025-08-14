@@ -1,5 +1,6 @@
 from typing import Optional
 
+import sympy
 from cirq import DEFAULT_RESOLVERS, JsonResolver
 from cirq.protocols.json_serialization import ObjectFactory, ObjectHook
 
@@ -20,8 +21,8 @@ class CustomJsonResolver(JsonResolver):
     def __call__(self, cirq_type: str) -> Optional[ObjectFactory]:
         if 'stim_experiments.conditions' in cirq_type:
             return getattr(conditions, cirq_type.split('.')[-1])
-        elif 'CircuitOperation' in cirq_type:
-          return self.circuit_operation_factory
         return {
+            'CircuitOperation': self.circuit_operation_factory,
             'stim_experiments.utilities.measurement_key_with_stable_hash.MeasurementKeyWithStableHash': MeasurementKeyWithStableHash,
+            'sympy.And': sympy.Add,
         }.get(cirq_type, None)

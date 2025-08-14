@@ -13,8 +13,8 @@ class UniversalCnot:
         operations = [
             TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
             TransformationOperation(gate=TransformationGate.CX, control_qubit_index=0, target_qubit_index=1),
-            TransformationOperation(gate=TransformationGate.M, target_qubit_index=1),
             TransformationOperation(gate=TransformationGate.M, target_qubit_index=0),
+            TransformationOperation(gate=TransformationGate.M, target_qubit_index=1),
         ]
         return ScriptRunner(
             operations=operations,
