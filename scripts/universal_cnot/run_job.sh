@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
 #SBATCH --job-name=universal_cnot
 #SBATCH --error=results/universal_cnot/universal_cnot_%j.err

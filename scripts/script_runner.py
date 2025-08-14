@@ -17,6 +17,7 @@ from stim_experiments.custom_dataclasses.state_and_measurements import Measureme
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.serialization.custom_json_encoder import CustomJsonEncoder
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
@@ -112,9 +113,9 @@ class ScriptRunner:
             print(f"----ERROR----: {len(errored_circuits_should_have_been_corrected)} circuits that failed should have been corrected. "
                   f"Storing first one.")
             with open('errored_circuit_operations.json', 'w') as f:
-                to_json(errored_circuit_operations, f)
+                to_json(errored_circuit_operations, f, cls=CustomJsonEncoder)
             with open('errored_circuit_counts.json', 'w') as f:
-                to_json(asdict(errored_circuit_noisy_operations_count), f)
+                to_json(asdict(errored_circuit_noisy_operations_count), f, cls=CustomJsonEncoder)
 
     def _log_time_period(self, start_time: datetime) -> datetime:
         end_time = datetime.now()
