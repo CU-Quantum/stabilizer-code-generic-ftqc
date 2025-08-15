@@ -5,6 +5,7 @@ from cirq import Circuit, H, I, X, Z, LineQubit
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import \
@@ -31,8 +32,8 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         return Circuit([ENCODING_OPERATION_MARK(qubit) for qubit in self.data_qubits])
 
-    def get_error_correction_circuit(self) -> Circuit:
-        return Circuit()
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
+        return CorrectionCircuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         gates = []

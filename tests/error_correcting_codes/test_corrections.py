@@ -140,7 +140,7 @@ class TestCorrections:
         simulation_state = utilities.run_simulation(
             circuit=Circuit(
                 error_operations,
-                code.get_error_correction_circuit(),
+                code.get_error_correction_circuit().full_circuit,
             ),
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_state,

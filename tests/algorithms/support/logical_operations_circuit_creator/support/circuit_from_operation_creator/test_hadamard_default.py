@@ -5,6 +5,7 @@ from numpy import array
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -74,7 +75,7 @@ class ErrorCorrectingCodeStubWithBadHadamard(ErrorCorrectingCodeStubNoHadamard):
     def encode_logical_qubit(self):
         pass
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         pass
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation):

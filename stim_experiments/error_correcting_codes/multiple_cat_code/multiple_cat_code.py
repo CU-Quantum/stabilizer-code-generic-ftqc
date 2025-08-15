@@ -15,7 +15,7 @@ class MultipleCatCode(CatParityCode):
                 self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
                 for subregister in self.subregisters
             ],
-            self.get_error_correction_circuit()
+            self.get_error_correction_circuit().full_circuit
         )
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:

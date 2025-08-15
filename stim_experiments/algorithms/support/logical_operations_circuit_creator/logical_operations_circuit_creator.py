@@ -1,11 +1,10 @@
-from cirq import Circuit, Gate, I, LineQubit, unitary
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, TaggedOperation
 from proto.utils import cached_property
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
-    CircuitFromOperationCreator
+    CircuitFromOperationCreator, LOGICAL_QUBIT_INDEX_TAG
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
-from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerCorrectionRound
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
@@ -13,16 +12,7 @@ from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
-class NewShotLogger(Gate):
-    def __init__(self, counts: NoisyOperationsCountPerCorrectionRound):
-        self._counts = counts
-
-    def _unitary_(self):
-        self._counts.append_shot()
-        return unitary(I)
-
-    def _num_qubits_(self) -> int:
-        return 1
+LOGICAL_QUBIT_ENCODING_TAG = 'LOGICAL_QUBIT_ENCODING'
 
 
 class LogicalOperationsCircuitCreator:
@@ -64,9 +54,16 @@ class LogicalOperationsCircuitCreator:
         encoding = encodings[0]
         with ActiveEncodingsStore(additional_tracked_encodings=[encoding]) as encodings_store:
             return Circuit(
-                encoding.encode_logical_qubit(),
-                encodings_store.get_all_correction_circuits(),
-                self._get_snowballed_encodings_with_error_correction(encodings[1:])
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            encoding.encode_logical_qubit(),
+                            encodings_store.get_all_correction_circuits(),
+                            self._get_snowballed_encodings_with_error_correction(encodings[1:])
+                        ),
+                    ),
+                    LOGICAL_QUBIT_ENCODING_TAG, f'{LOGICAL_QUBIT_INDEX_TAG}_{len(self._encodings) - len(encodings)}'
+                )
             )
 
     def _ensure_enough_logical_qubits(self) -> None:

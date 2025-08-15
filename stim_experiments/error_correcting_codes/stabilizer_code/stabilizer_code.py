@@ -4,6 +4,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit, Operation
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_check_matrix import \
@@ -45,7 +46,7 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
             qubits=self.data_qubits,
         ).encode_state()
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         return ErrorRecoveryByCheckMatrix(
             check_matrix=self._check_matrix,
             qubits=self.data_qubits,

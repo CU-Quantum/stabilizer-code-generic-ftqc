@@ -3,6 +3,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit, Operation, X, Z
 from numpy import array
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
@@ -60,7 +61,7 @@ class CatParityCode(StabilizerCode):
 
     def get_modified_stabilizers_error_correction_circuit(self,
                                                           subregister_control_index: int,
-                                                          target_operations: list[Operation]) -> Circuit:
+                                                          target_operations: list[Operation]) -> CorrectionCircuit:
         stabilizers = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self.data_qubits).get_operations()
         if subregister_control_index < len(self.subregisters) - 1:
             stabilizers[-self._num_x_stabilizers + subregister_control_index] += target_operations

@@ -3,6 +3,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_stabilizers import \
@@ -20,7 +21,7 @@ class ErrorRecoveryByCheckMatrix:
         self._qubits = qubits
         self._recovery_combinations_finder = recovery_combinations_finder
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         generator_operations = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self._qubits).get_operations()
         return ErrorRecoveryByStabilizers(
             stabilizers=generator_operations,

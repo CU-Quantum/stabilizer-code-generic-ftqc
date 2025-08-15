@@ -55,7 +55,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
                 context.cat_parity_code.get_modified_stabilizers_error_correction_circuit(
                     subregister_control_index=i,
                     target_operations=context.target_operations,
-                )
+                ).full_circuit  # TODO perform syndromes and recoveries alongside other active encodings
             ]
             for i, subregister_operation in enumerate(subregister_operations)
         ]

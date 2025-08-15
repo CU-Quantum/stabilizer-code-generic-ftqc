@@ -2,6 +2,7 @@ from typing import Optional
 
 from cirq import Circuit, LineQubit
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
 from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
@@ -23,5 +24,5 @@ class ShorsRepetitionCode(ErrorCorrectingCode):
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> None:
         pass
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         return self._alias.get_error_correction_circuit()

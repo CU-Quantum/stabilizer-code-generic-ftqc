@@ -24,5 +24,5 @@ class CustomJsonResolver(JsonResolver):
         return {
             'CircuitOperation': self.circuit_operation_factory,
             'stim_experiments.utilities.measurement_key_with_stable_hash.MeasurementKeyWithStableHash': MeasurementKeyWithStableHash,
-            'sympy.And': sympy.Add,
+            'sympy.And': sympy.And,
         }.get(cirq_type, None)

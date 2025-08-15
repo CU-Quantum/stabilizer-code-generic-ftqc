@@ -130,7 +130,7 @@ class TestUniversalHadamardSingleAncilla:
                 code.encode_logical_qubit(),
                 hadamard_circuit,
                 arbitrary_error,
-                code.get_error_correction_circuit(),
+                code.get_error_correction_circuit().full_circuit,
             ),
             num_data_qubits=len(code.data_qubits),
             initial_data_state=initial_data_state

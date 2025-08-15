@@ -3,6 +3,7 @@ from uuid import uuid4
 from cirq import Circuit, CircuitOperation, FrozenCircuit, Operation, TaggedOperation
 
 from stim_experiments.conditions import MajorityVote, MultipleConditions
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
@@ -16,7 +17,7 @@ class ErrorRecoveryByStabilizers:
         self._stabilizers = stabilizers
         self._recoveries = recoveries
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         measurement_keys = [MeasurementKeyWithStableHash(f'ERROR_RECOVERY_{uuid4().hex}') for _ in range(len(self._stabilizers))]
 
         syndrome_operations = self._measurer_type(
@@ -33,14 +34,9 @@ class ErrorRecoveryByStabilizers:
             for recovery, condition in zip(self._recoveries, recovery_conditions)
         ]
 
-        return Circuit(
-            syndrome_operations,
-            TaggedOperation(
-                CircuitOperation(
-                    FrozenCircuit(recovery_operations),
-                ),
-                DELAYED_NOISE_TAG
-            )
+        return CorrectionCircuit(
+            syndrome_circuit=Circuit(syndrome_operations),
+            recovery_circuit=Circuit(recovery_operations),
         )
 
     @property

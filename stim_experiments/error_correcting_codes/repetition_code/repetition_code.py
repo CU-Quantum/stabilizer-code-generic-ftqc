@@ -4,6 +4,7 @@ from cirq import Circuit, I, LineQubit, Operation, X, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
@@ -43,9 +44,12 @@ class RepetitionCodeOneLogical(ErrorCorrectingCode):
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
         return [X(self.data_qubits[qubit_index]) for qubit_index in range(generator_index + 1)]
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         if self._check_matrix is None:
-            return self._empty_circuit
+            return CorrectionCircuit(
+                syndrome_circuit=self._empty_circuit,
+                recovery_circuit=self._empty_circuit,
+            )
         return ErrorRecoveryByCheckMatrix(
             check_matrix=self._check_matrix,
             qubits=self.data_qubits,

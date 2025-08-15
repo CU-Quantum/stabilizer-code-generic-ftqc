@@ -160,6 +160,7 @@ from cirq import Circuit, LineQubit, R, X, Z
 from typing import Optional
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
@@ -182,16 +183,17 @@ class MyCustomCode(ErrorCorrectingCode):
             ])
         return circuit
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         # Implement error correction for your code
         # For a 3-qubit repetition code, we would use majority voting
-        circuit = Circuit()
+        circuit = CorrectionCircuit()
         # FreshAncillasPool allows you to pull fresh or unused ancilla qubits. 
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancilla_quibts:
             # You must ensure the ancilla qubits are reset after pulling to ensure freshness
-            Circuit.append(R(ancilla for ancilla in ancilla_quibts))
+            circuit.syndrome_circuit.append(R(ancilla for ancilla in ancilla_quibts))
             # Add error correction operations
-            Circuit.append(...)
+            circuit.syndrome_circuit.append(...)
+            circuit.recovery_circuit.append(...)
             return circuit
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
