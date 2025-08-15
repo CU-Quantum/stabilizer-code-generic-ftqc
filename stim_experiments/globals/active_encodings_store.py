@@ -1,14 +1,17 @@
+from typing import Optional
 from uuid import uuid4
 
 from cirq import Circuit, CircuitOperation, FrozenCircuit, OP_TREE, TaggedOperation
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
+from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+
 
 CORRECTION_ROUND_TAG = 'CORRECTION_ROUND'
 CORRECTION_ROUND_SYNDROMES_TAG = 'CORRECTION_ROUND_SYNDROMES'
 CORRECTION_ROUND_RECOVERIES_TAG = 'CORRECTION_ROUND_RECOVERIES'
-ENCODING_NUM_TAG = 'ENCODING_NUM'
 
 
 class ActiveEncodingsStore:
@@ -24,10 +27,12 @@ class ActiveEncodingsStore:
     def __exit__(self, exc_type, exc_val, exc_tb):
         del self._tracked_encodings[self._id]
 
-    def get_all_correction_circuits(self) -> OP_TREE:
-        correction_circuits = [encoding.get_error_correction_circuit()  # TODO make sure syndromes use parallel ancillas
+    def get_all_correction_circuits(self, additional_correction_circuits: Optional[list[CorrectionCircuit]] = None) -> OP_TREE:
+        correction_circuits = [encoding.get_error_correction_circuit()
                                for encodings in self._tracked_encodings.values()
                                for encoding in encodings]
+        if additional_correction_circuits:
+            correction_circuits.extend(additional_correction_circuits)
         syndrome_circuits = [correction_circuit.syndrome_circuit for correction_circuit in correction_circuits]
         recovery_circuits = [correction_circuit.recovery_circuit for correction_circuit in correction_circuits]
         return Circuit(
@@ -36,25 +41,13 @@ class ActiveEncodingsStore:
                     FrozenCircuit(
                         TaggedOperation(
                             CircuitOperation(
-                                FrozenCircuit(
-                                    TaggedOperation(
-                                        CircuitOperation(syndrome_circuit.freeze()),
-                                        f'{ENCODING_NUM_TAG}_{i}',
-                                    )
-                                    for i, syndrome_circuit in enumerate(syndrome_circuits)
-                                ),
+                                FrozenCircuit(syndrome_circuits),
                             ),
-                            CORRECTION_ROUND_SYNDROMES_TAG
+                            CORRECTION_ROUND_SYNDROMES_TAG, DELAYED_NOISE_TAG
                         ),
                         TaggedOperation(
                             CircuitOperation(
-                                FrozenCircuit(
-                                    TaggedOperation(
-                                        CircuitOperation(recovery_circuit.freeze()),
-                                        f'{ENCODING_NUM_TAG}_{i}',
-                                    )
-                                    for i, recovery_circuit in enumerate(recovery_circuits)
-                                ),
+                                FrozenCircuit(recovery_circuits),
                             ),
                             CORRECTION_ROUND_RECOVERIES_TAG, DELAYED_NOISE_TAG
                         )

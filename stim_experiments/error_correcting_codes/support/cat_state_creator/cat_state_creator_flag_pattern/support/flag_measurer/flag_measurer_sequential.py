@@ -18,15 +18,15 @@ class FlagMeasurerSequential(FlagMeasurer):
                         for previous_parity_check_index, parity_check_info in enumerate(self._parity_check_infos[1:-1])
                         if parity_check_info.flags_outcome[flag_index]
                            != self._parity_check_infos[previous_parity_check_index].flags_outcome[flag_index]
-                    ] + (self._get_measurement_and_reset(ancilla=ancilla) if flag_index < self._num_measurements - 1 else [])
+                    ] + (self._get_measurement_and_reset(ancilla=ancilla, flag_index=flag_index) if flag_index < self._num_measurements - 1 else [])
                     for flag_index in range(self._num_measurements)
                 ],
                 X(ancilla).controlled_by(self._qubit_register[self._parity_check_infos[-1].control_qubit_index]),
-                M(ancilla, key=self._measurement_key),
+                M(ancilla, key=self._measurement_keys[-1]),
             ]
 
-    def _get_measurement_and_reset(self, ancilla: LineQubit) -> list[Operation]:
+    def _get_measurement_and_reset(self, ancilla: LineQubit, flag_index: int) -> list[Operation]:
         return [
-            M(ancilla, key=self._measurement_key),
+            M(ancilla, key=self._measurement_keys[flag_index]),
             R(ancilla),
         ]

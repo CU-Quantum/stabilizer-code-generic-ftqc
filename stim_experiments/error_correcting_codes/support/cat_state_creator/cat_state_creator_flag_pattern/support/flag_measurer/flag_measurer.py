@@ -9,10 +9,14 @@ class FlagMeasurer(ABC):
     def __init__(self,
                  qubit_register: list[LineQubit],
                  parity_check_infos: list[CatStateFlagInfo],
-                 measurement_key: MeasurementKey):
+                 measurement_keys: list[MeasurementKey]):
         self._qubit_register = qubit_register
         self._parity_check_infos = parity_check_infos
-        self._measurement_key = measurement_key
+        self._measurement_keys = measurement_keys
+
+    def __post_init__(self):
+        if len(self._measurement_keys) != self._num_measurements:
+            raise ValueError(f"The number of measurement keys ({len(self._measurement_keys)}) must be equal to the number of flags ({self._num_measurements}).")
 
     @abstractmethod
     def measure_flags(self) -> list[list[Operation]]:

@@ -10,15 +10,16 @@ class MeasurerWithSingleQubitParallel(Measurer):
     def get_measurement_circuit(self) -> Circuit:
         if not self._observables:
             return Circuit()
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._observables)) as ancilla_qubits:
-            operations = [
-                [
-                    OperationsApplierUsingSingleQubitHadamardControl(
-                        operations=operations,
-                        measurement_qubit=measurement_qubit,
-                    ).get_application_circuit()
-                    for operations, measurement_qubit in zip(self._observables, ancilla_qubits)
-                ],
-                [M(qubit, key=self._measurement_keys[i]) for i, qubit in enumerate(ancilla_qubits)],
-            ]
-            return Circuit(operations)
+        with FreshAncillasPool().parallel(use_parallel=True):
+            with FreshAncillasPool().use_fresh_ancillas(num_ancillas=len(self._observables)) as ancilla_qubits:
+                operations = [
+                    [
+                        OperationsApplierUsingSingleQubitHadamardControl(
+                            operations=operations,
+                            measurement_qubit=measurement_qubit,
+                        ).get_application_circuit()
+                        for operations, measurement_qubit in zip(self._observables, ancilla_qubits)
+                    ],
+                    [M(qubit, key=self._measurement_keys[i]) for i, qubit in enumerate(ancilla_qubits)],
+                ]
+                return Circuit(operations)

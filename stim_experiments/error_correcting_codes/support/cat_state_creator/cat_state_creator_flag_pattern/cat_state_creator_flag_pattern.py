@@ -57,12 +57,12 @@ class CatStateCreatorFlagPattern(CatStateCreator):
     def _measure_flags(self) -> list[list[Operation]]:
         return self._flag_measurer_type(qubit_register=self._qubit_register,
                                         parity_check_infos=self._parity_check_infos,
-                                        measurement_key=self._measurement_key,
+                                        measurement_keys=self._measurement_keys,
                                         ).measure_flags()
 
     def _recover_from_errors(self) -> list[list[Operation]]:
         return [
-            [X(qubit).with_classical_controls(FlagIndexLimit(key=self._measurement_key,
+            [X(qubit).with_classical_controls(FlagIndexLimit(measurement_keys=tuple(self._measurement_keys),
                                                              parity_check_index=parity_check_index - 1,
                                                              flag_sequence=self._flag_sequence)
                                               )
@@ -71,8 +71,8 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         ]
 
     @cached_property
-    def _measurement_key(self) -> MeasurementKey:
-        return MeasurementKeyWithStableHash(f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}")
+    def _measurement_keys(self) -> list[MeasurementKey]:
+        return [MeasurementKeyWithStableHash(f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}") for _ in range(self._num_measurements)]
 
     @cached_property
     def _parity_check_infos(self) -> list[CatStateFlagInfo]:

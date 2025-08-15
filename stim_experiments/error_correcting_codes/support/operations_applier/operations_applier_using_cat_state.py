@@ -1,10 +1,13 @@
 from cirq import Circuit
 
+from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.cat_state_creator_basic_nondeterministic import \
     CatStateCreatorBasicNondeterministic
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import OperationsApplier
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
@@ -18,3 +21,11 @@ class OperationsApplierUsingCatStateControl(OperationsApplier):
                 ControlledSingleQubitGatesApplier(operations=self._operations, controls=control_qubits).get_circuit(),
                 cat_state_creator.decode_state(),
             )
+
+    @property
+    def _cat_state_creator_type(self) -> type[CatStateCreator]:
+        return self._configuration.cat_state_creator_type
+
+    @property
+    def _configuration(self) -> ConfigurationErrorCorrectingCode:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration()

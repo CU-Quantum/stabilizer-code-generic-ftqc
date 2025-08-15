@@ -1,12 +1,10 @@
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, Operation, TaggedOperation
+from cirq import Circuit, Operation
 
-from stim_experiments.conditions import MajorityVote, MultipleConditions
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 from stim_experiments.utilities.utilities import get_sympy_condition_all_equal
