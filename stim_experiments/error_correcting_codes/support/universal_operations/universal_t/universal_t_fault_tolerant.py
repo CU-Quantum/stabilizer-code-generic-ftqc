@@ -28,9 +28,9 @@ class UniversalTFaultTolerant(UniversalT):
             return Circuit(
                 Moment(self._reset_ancilla_qubits(context=context)),
                 self._encode_tetrahedral(context=context),
-                self._cx_code_to_tetrahedral(context=context),
+                self._cx_code_to_tetrahedral(context=context, perform_correction_round=True),
                 self._perform_t_on_tetrahedral(context=context),
-                self._cx_code_to_tetrahedral(context=context),
+                self._cx_code_to_tetrahedral(context=context, perform_correction_round=False),
             )
 
     def _encode_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:
@@ -40,13 +40,13 @@ class UniversalTFaultTolerant(UniversalT):
                 encodings_store.get_all_correction_circuits(),
             ]
 
-    def _cx_code_to_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:
+    def _cx_code_to_tetrahedral(self, context: UniversalTFaultTolerantContext, perform_correction_round: bool) -> OP_TREE:
         target_encoding = TargetEncoding(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0),
                                          encoding=context.tetrahedral)
         with ActiveEncodingsStore(additional_tracked_encodings=[context.tetrahedral]) as encodings_store:
             return [
                 self._universal_controlled_operation_type(control=self._encoding, target=target_encoding).get_controlled_operation_circuit(),
-                encodings_store.get_all_correction_circuits(),
+                encodings_store.get_all_correction_circuits() if perform_correction_round else [],
             ]
 
     def _perform_t_on_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:

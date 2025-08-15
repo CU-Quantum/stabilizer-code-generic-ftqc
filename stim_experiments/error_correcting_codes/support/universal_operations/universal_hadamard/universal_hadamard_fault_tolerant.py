@@ -43,17 +43,14 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
         measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
         measurement_key_symbol = sympy.symbols(measurement_key.name)
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            return [
-                FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
-                    self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
-                    encodings_store.get_all_correction_circuits(),
-                    FrozenCircuit(
-                        CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
-                        CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
-                    ),
-                ),
+            return FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
+                self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                 encodings_store.get_all_correction_circuits(),
-            ]
+                FrozenCircuit(
+                    CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
+                    CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
+                ),
+            )
 
     def _reset_ancilla_qubits(self, context: UniversalHadamardFaultTolerantContext):
         return self._universal_operations_utilities.reset_ancilla_qubits(context=context)

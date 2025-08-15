@@ -63,14 +63,11 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            return [
-                FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
-                    self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
-                    encodings_store.get_all_correction_circuits(),
-                    CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(measurement_key),
-                ),
+            return FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
+                self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                 encodings_store.get_all_correction_circuits(),
-            ]
+                CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(measurement_key),
+            )
 
     def _reset_ancilla_qubits(self, context: UniversalControlledOperationFaultTolerantContext):
         return self._universal_operations_utilities.reset_ancilla_qubits(context=context)
