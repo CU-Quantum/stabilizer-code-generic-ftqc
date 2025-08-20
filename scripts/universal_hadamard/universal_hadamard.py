@@ -18,11 +18,12 @@ class UniversalHadamard:
         ]
         return ScriptRunner(
             operations=operations,
-            was_successful_func=self._was_successful,
+            was_successful_func=self.was_successful,
             runner_configuration=self._run_configuration,
         ).run_main()
 
-    def _was_successful(self, measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
+    @staticmethod
+    def was_successful(measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
         return np.array(measurements_per_shot)[:,0] if measurements_per_shot else np.array([])
 
 

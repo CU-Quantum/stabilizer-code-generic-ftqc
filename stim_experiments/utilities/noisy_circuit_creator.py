@@ -10,7 +10,7 @@ from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.noisy_operations_count import NoisyOperationsCountPerCorrectionRound
 from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
-from stim_experiments.globals.active_encodings_store import CORRECTION_ROUND_TAG
+from stim_experiments.globals.active_encodings_store import CORRECTION_ROUND_SYNDROMES_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 NOISY_CHANNEL_TAG = 'NoisyChannel'
@@ -86,12 +86,12 @@ class NoisyCircuitCreator:
         count = NoisyOperationsCountPerCorrectionRound()
         for i, op in enumerate(circuit.all_operations()):
             path[-1] = i
-            if CORRECTION_ROUND_TAG in op.tags:  # must come before recursion, since errors during the correction round may not be corrected until the next round
-                count.append_correction_round()
             if hasattr(op.untagged, 'circuit'):
                 subcount = self._count_noisy_ops_between_tags(op_tree=op.untagged.circuit, path=path)
                 count.add_count_to_latest(subcount.first_count)
                 count.extend(subcount.tail)
+            if CORRECTION_ROUND_SYNDROMES_TAG in op.tags:  # must come after recursion since errors during the measurement round would double up, causing incorrect syndrome
+                count.append_correction_round()
             elif NOISY_CHANNEL_TAG in op.tags:
                 if op.gate == X:
                     count.latest_count.x_errors.count += 1

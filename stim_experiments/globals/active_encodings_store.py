@@ -6,7 +6,6 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, OP_TREE, TaggedOperat
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 CORRECTION_ROUND_TAG = 'CORRECTION_ROUND'

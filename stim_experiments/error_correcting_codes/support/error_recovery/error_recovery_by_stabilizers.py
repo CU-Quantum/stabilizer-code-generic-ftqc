@@ -7,7 +7,7 @@ from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
-from stim_experiments.utilities.utilities import get_sympy_condition_all_equal
+from stim_experiments.utilities.utilities import get_sympy_conditions_all_equal
 
 
 class ErrorRecoveryByStabilizers:
@@ -24,12 +24,12 @@ class ErrorRecoveryByStabilizers:
         ).get_measurement_circuit()
 
         recovery_conditions = [
-            get_sympy_condition_all_equal(measurement_keys, recovery.symptom)
+            get_sympy_conditions_all_equal(measurement_keys, recovery.symptom)
             for recovery in self._recoveries
         ]
         recovery_operations = [
-            recovery.operation.with_classical_controls(condition)
-            for recovery, condition in zip(self._recoveries, recovery_conditions)
+            recovery.operation.with_classical_controls(*conditions)
+            for recovery, conditions in zip(self._recoveries, recovery_conditions)
         ]
 
         return CorrectionCircuit(
