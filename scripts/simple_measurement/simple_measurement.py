@@ -15,12 +15,13 @@ class SimpleMeasurement:
         ]
         return ScriptRunner(
             operations=operations,
-            was_successful_func=self._was_successful,
+            was_successful_func=self.was_successful,
             runner_configuration=self._run_configuration,
         ).run_main()
 
-    def _was_successful(self, measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
-        return 1 - np.array(measurements_per_shot)[:,0] if measurements_per_shot else np.array([])
+    @staticmethod
+    def was_successful(measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
+        return 1 - np.array(measurements_per_shot)[:,0] if len(measurements_per_shot) else np.array([])
 
 
 if __name__ == "__main__":

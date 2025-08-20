@@ -33,7 +33,7 @@ class Analyzer:
                 for i, moment in enumerate(circuit)
             )
             results = ErrorCorrectingRunnerClifford().run_circuit(circuit_without_operation)
-            success = self._was_successful(measurements_per_shot=results.measurements_per_shot)
+            success = self._was_successful(measurements_per_shot=results.measurements_per_shot)[0]
             did_not_fail_when_error_was_removed = success
             if did_not_fail_when_error_was_removed:
                 print(f"Noise at index {i} caused a failure.")
@@ -56,7 +56,7 @@ class Analyzer:
                     FrozenCircuit(
                         self.remove_operation(
                             moment=moment,
-                            moments_path=moments_path,
+                            moments_path=moments_path[1:],
                             operation_to_remove=operation_to_remove)
                         if i == moments_path[0] else moment
                         for i, moment in enumerate(circuit)

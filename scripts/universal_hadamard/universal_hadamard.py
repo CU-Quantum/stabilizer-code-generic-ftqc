@@ -24,7 +24,7 @@ class UniversalHadamard:
 
     @staticmethod
     def was_successful(measurements_per_shot: list[NDArray[int]]) -> NDArray[bool]:
-        return np.array(measurements_per_shot)[:,0] if measurements_per_shot else np.array([])
+        return np.array(measurements_per_shot)[:,0] if len(measurements_per_shot) else np.array([])
 
 
 if __name__ == "__main__":
