@@ -1,4 +1,3 @@
-import json
 from argparse import ArgumentParser
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -7,7 +6,7 @@ from multiprocessing import Pool, cpu_count
 from typing import Callable
 
 import numpy as np
-from cirq import Circuit, LineQubit, Operation, dataclass_json_dict, to_json
+from cirq import Circuit, LineQubit, Operation, to_json
 from numpy._typing import NDArray
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
@@ -82,7 +81,7 @@ class ScriptRunner:
         start_time = self._log_time_period(start_time)
 
         results: list[Measurements] = []
-        with Pool(processes=self._runner_configuration.num_processes) as pool:
+        with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
             results = pool.map(run_circuit, self._circuits_noisy)
         start_time = self._log_time_period(start_time)
 
@@ -123,12 +122,6 @@ class ScriptRunner:
         print(f"    Time since last timestamp: {end_time - start_time}")
         return end_time
 
-    def _set_configuration(self) -> None:
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.majority_vote_repetitions = self._runner_configuration.num_measurement_rounds
-        configuration.noise_parameters.depolarization_probability_one_qubit = self._runner_configuration.depolarization_probability_one_qubit
-        configuration.noise_parameters.depolarization_probability_two_qubit = self._runner_configuration.depolarization_probability_two_qubit
-
     def _find_noisy_operations_with_moment_indices(self) -> list[tuple[list[Operation], list[int]]]:
         noisy_operations_with_moment_indices = []
         for errored_circuit in self._circuits_noisy:
@@ -153,7 +146,7 @@ class ScriptRunner:
 
     @cached_property
     def _circuits_noisy(self) -> list[NoisyCircuit]:
-        with Pool(processes=self._runner_configuration.num_processes) as pool:
+        with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
             noisy_circuits_list = pool.map(self._get_noisy_circuit, [()] * self._runner_configuration.num_shots)
         return [noisy_circuit
                 for noisy_circuit in noisy_circuits_list
@@ -181,3 +174,9 @@ class ScriptRunner:
         max_qubit_index = max(max(operation.target_qubit_index, operation.control_qubit_index or 0) for operation in self._operations)
         max_qubit_num = max_qubit_index + 1
         return max_qubit_num
+
+    def _set_configuration(self) -> None:
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        configuration.majority_vote_repetitions = self._runner_configuration.num_measurement_rounds
+        configuration.noise_parameters.depolarization_probability_one_qubit = self._runner_configuration.depolarization_probability_one_qubit
+        configuration.noise_parameters.depolarization_probability_two_qubit = self._runner_configuration.depolarization_probability_two_qubit
