@@ -41,12 +41,13 @@ def get_runner_configuration_args() -> RunnerConfiguration:
                         help='Surface code distance.')
     parser.add_argument('-r', '--num-measurement-rounds', type=int, default=3,
                         help='Number of times to measure for majority voting. Minimum is 3.')
-    parser.add_argument('-p1', '--prob-one-qubit-error', type=int, default=1e-3,
+    parser.add_argument('-p1', '--prob-one-qubit-error', type=float, default=1e-3,
                         help='Probability of depolarization on one qubit gates.')
-    parser.add_argument('-p2', '--prob-two-qubit-error', type=int, default=2e-3,
+    parser.add_argument('-p2', '--prob-two-qubit-error', type=float, default=2e-3,
                         help='Probability of depolarization on two qubit gates.')
     parser.add_argument('-p', '--num-processes', type=int, default=cpu_count(),
-                        help='The number of processes to run in parallel. Default is the number of CPUs available on the machine.')
+                        help='The number of processes to run in parallel.'
+                             ' Default is the number of CPUs available on the machine.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")
     return RunnerConfiguration(
