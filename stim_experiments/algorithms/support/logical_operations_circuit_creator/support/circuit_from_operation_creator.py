@@ -1,8 +1,5 @@
-from functools import cached_property
-
 from cirq import Circuit, CircuitOperation, FrozenCircuit, TaggedOperation
 
-from stim_experiments.conditions.majority_vote import MajorityVote
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import \
     LogicalEncodingIndex, SimulationOperation
@@ -14,7 +11,6 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
-from stim_experiments.utilities.circuit_operation_hacks import get_hacked_circuit_operation
 from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
@@ -56,20 +52,19 @@ class CircuitFromOperationCreator:
             qubit_index=self._operation.control_encoding.qubit_index_relative
         )
         logical_z_on_control = self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
-        majority_vote = MajorityVote(desired_measurement_key=MeasurementKeyWithStableHash(str(self._operation.control_encoding.qubit_index_logical)))
         measurer = self._measurer_type(
             observables=[list(logical_z_on_control.all_operations())],
-            measurement_keys=[majority_vote.key],
+            measurement_keys=[MeasurementKeyWithStableHash(str(self._operation.control_encoding.qubit_index_logical))],
         )
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            subcircuit = FrozenCircuit(
-                measurer.get_measurement_circuit(),
-                encodings_store.get_all_correction_circuits()
-            )
-            circuit_operation = get_hacked_circuit_operation(subcircuit=subcircuit, majority_vote=majority_vote)
             return Circuit(
                 TaggedOperation(
-                    circuit_operation,
+                    CircuitOperation(
+                        FrozenCircuit(
+                            measurer.get_measurement_circuit(),
+                            encodings_store.get_all_correction_circuits()
+                        ),
+                    ),
                     MEASUREMENT_OPERATION_TAG, f'{LOGICAL_QUBIT_INDEX_TAG}_{self._operation.control_encoding.qubit_index_logical}'
                 )
             )

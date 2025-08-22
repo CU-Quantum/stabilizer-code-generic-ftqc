@@ -110,7 +110,7 @@ class ScriptRunner:
             first_errored_circuit_index = errored_circuit_indices[np.argmax(errored_circuits_should_have_been_corrected)]
             errored_circuit_operations = noisy_operations_with_moment_indices[first_errored_circuit_index]
             errored_circuit_noisy_operations_count = self._circuits_noisy[first_errored_circuit_index].noisy_operations_count
-            print(f"----ERROR----: {len(errored_circuits_should_have_been_corrected)} circuits that failed should have been corrected. "
+            print(f"----ERROR----: {np.count_nonzero(errored_circuits_should_have_been_corrected)} circuits that failed should have been corrected. "
                   f"Storing first one.")
             with open('errored_circuit_operations.json', 'w') as f:
                 to_json(errored_circuit_operations, f, cls=CustomJsonEncoder)

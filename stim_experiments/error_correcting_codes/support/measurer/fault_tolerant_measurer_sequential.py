@@ -1,9 +1,11 @@
-from cirq import Circuit, CircuitOperation, FrozenCircuit, M, TaggedOperation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, M, OP_TREE, TaggedOperation
 
 from stim_experiments.conditions import MajorityVote, MultipleConditions
 from stim_experiments.error_correcting_codes.support.measurer.measurer import FAULT_TOLERANT_MEASURER_TAG, Measurer
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
+from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
+from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
@@ -19,19 +21,35 @@ class FaultTolerantMeasurerSequential(Measurer):
                 MajorityVote(desired_measurement_key=measurement_key)
                 for measurement_key in self._measurement_keys
             ]
+            one_repetition = [
+                [
+                    applier.get_application_circuit(),
+                    M(measurement_qubit, key=condition.key),
+                ] for applier, condition in zip(appliers, conditions)
+            ]
+            all_repetitions = [one_repetition for _ in range(self._majority_vote_repetitions)]
+            if self._correction_between_repetitions:
+                all_repetitions = self._add_correction_circuits_between_elements(all_repetitions=all_repetitions)
+
             return Circuit(
                 TaggedOperation(
                     CircuitOperation(
-                        FrozenCircuit(
-                            [
-                                applier.get_application_circuit(),
-                                M(measurement_qubit, key=condition.key),
-                            ]
-                            for applier, condition in zip(appliers, conditions)
-                        ),
+                        FrozenCircuit(all_repetitions),
                         use_repetition_ids=False,
                         repeat_until=MultipleConditions(conditions),
                     ),
                     FAULT_TOLERANT_MEASURER_TAG,
                 )
             )
+
+    def _add_correction_circuits_between_elements(self, all_repetitions: list[OP_TREE]) -> OP_TREE:
+        with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
+            interspersed = [encodings_store.get_all_correction_circuits()
+                            for _ in range(len(all_repetitions) * 2 - 1)]
+            for i, repetition in enumerate(all_repetitions):
+                interspersed[i * 2] = repetition
+            return interspersed
+
+    @property
+    def _majority_vote_repetitions(self) -> int:
+        return ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions

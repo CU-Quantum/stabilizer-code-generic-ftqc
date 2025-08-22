@@ -21,6 +21,7 @@ class ErrorRecoveryByStabilizers:
         syndrome_operations = self._measurer_type(
             observables=self._stabilizers,
             measurement_keys=measurement_keys,
+            correction_between_repetitions=False
         ).get_measurement_circuit()
 
         recovery_conditions = [

@@ -6,6 +6,7 @@ from stim_experiments.conditions import MajorityVote
 
 
 def get_hacked_circuit_operation(subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> CircuitOperation:
+    # TODO remove this
     """must hack this because CircuitOperation does not recognize that nested MajorityVotes modify the 'desired_key'"""
     hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
     circuit_operation = CircuitOperation(
