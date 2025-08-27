@@ -30,15 +30,20 @@ class UniversalOperationsUtilities:
             ]
 
     def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
-        repetition_codes = [RepetitionCodeOneLogical(num_qubits=len(subregister), qubits=subregister)
-                            for subregister in context.cat_parity_code.subregisters]
-        with ActiveEncodingsStore(additional_tracked_encodings=repetition_codes) as encodings_store:
+        with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
             return [
                 [
                     ControlledSingleQubitGatesApplier(operations=operations, controls=subregister[:len(operations)]).get_circuit(),
-                    encodings_store.get_all_correction_circuits(),
+                    encodings_store.get_all_correction_circuits(
+                        additional_correction_circuits=[
+                            context.cat_parity_code.get_modified_stabilizers_error_correction_circuit(
+                                subregister_control_index=i,
+                                target_operations=operations,
+                            )
+                        ]
+                    ),
                 ]
-                for subregister in context.multiple_cat_code.subregisters
+                for i, subregister in enumerate(context.multiple_cat_code.subregisters)
             ]
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:

@@ -45,25 +45,10 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         )
 
     def _c_helpers_to_target(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        subregister_operations = self._universal_operations_utilities.c_operations_helpers_to_data(
+        return self._universal_operations_utilities.c_operations_helpers_to_data(
             operations=context.target_operations,
             context=context
         )
-        with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            return [
-                [
-                    subregister_operation,
-                    encodings_store.get_all_correction_circuits(
-                        additional_correction_circuits=[
-                            context.cat_parity_code.get_modified_stabilizers_error_correction_circuit(
-                                subregister_control_index=i,
-                                target_operations=context.target_operations,
-                            )
-                        ]
-                    ),
-                ]
-                for i, subregister_operation in enumerate(subregister_operations)
-            ]
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')
