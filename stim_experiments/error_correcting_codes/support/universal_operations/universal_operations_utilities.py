@@ -22,14 +22,16 @@ class UniversalOperationsUtilities:
     def __init__(self, num_qubits_for_logical_operations: int):
         self._num_qubits_for_logical_operations = num_qubits_for_logical_operations
 
-    def encode_multiple_cat(self, context: UniversalOperationsContext) -> OP_TREE:
+    @staticmethod
+    def encode_multiple_cat(context: UniversalOperationsContext) -> OP_TREE:
         with ActiveEncodingsStore(additional_tracked_encodings=[context.multiple_cat_code]) as encodings_store:
             return [
                 context.multiple_cat_code.encode_logical_qubit(),
                 encodings_store.get_all_correction_circuits()
             ]
 
-    def c_operations_helpers_to_data(self, operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
+    @staticmethod
+    def c_operations_helpers_to_data(operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
             return [
                 [

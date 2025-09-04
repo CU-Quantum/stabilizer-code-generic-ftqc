@@ -20,9 +20,7 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
                  recovery_combinations_finder: Optional[RecoveryCombinationsFinder] = None,
                  qubits: Optional[list[LineQubit]] = None):
         self._check_matrix = check_matrix
-        self._recovery_combinations_finder = recovery_combinations_finder
-        if self._recovery_combinations_finder is None:
-            self._recovery_combinations_finder = RecoveryCombinationsFinder(max_num_errors=1)
+        self._recovery_combinations_finder = recovery_combinations_finder or RecoveryCombinationsFinder(max_num_errors=1)
         super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
                          num_logical_qubits=self._check_matrix.num_logical_qubits,
                          qubits=qubits)

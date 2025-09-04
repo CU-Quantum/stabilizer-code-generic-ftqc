@@ -11,6 +11,7 @@ from stim_experiments.error_correcting_codes.support.operations_applier.operatio
 CORRECTION_ROUND_TAG = 'CORRECTION_ROUND'
 CORRECTION_ROUND_SYNDROMES_TAG = 'CORRECTION_ROUND_SYNDROMES'
 CORRECTION_ROUND_RECOVERIES_TAG = 'CORRECTION_ROUND_RECOVERIES'
+ENCODING_TAG = 'ENCODING'
 
 
 class ActiveEncodingsStore:
@@ -32,8 +33,24 @@ class ActiveEncodingsStore:
                                for encoding in encodings]
         if additional_correction_circuits:
             correction_circuits.extend(additional_correction_circuits)
-        syndrome_circuits = [correction_circuit.syndrome_circuit for correction_circuit in correction_circuits]
-        recovery_circuits = [correction_circuit.recovery_circuit for correction_circuit in correction_circuits]
+        syndrome_circuits = [
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(correction_circuit.syndrome_circuit),
+                ),
+                f'{ENCODING_TAG}_{i}'
+            )
+            for i, correction_circuit in enumerate(correction_circuits)
+        ]
+        recovery_circuits = [
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(correction_circuit.recovery_circuit),
+                ),
+                f'{ENCODING_TAG}_{i}'
+            )
+            for i, correction_circuit in enumerate(correction_circuits)
+        ]
         return Circuit(
             TaggedOperation(
                 CircuitOperation(
