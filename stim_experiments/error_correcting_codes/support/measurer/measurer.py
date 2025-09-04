@@ -5,6 +5,7 @@ from cirq import Circuit, MeasurementKey, Operation
 
 
 FAULT_TOLERANT_MEASURER_TAG = 'FAULT_TOLERANT_MEASURER'
+MEASURER_WITH_SINGLE_QUBIT_TAG = 'MEASURER_WITH_SINGLE_QUBIT'
 
 
 class Measurer(ABC):

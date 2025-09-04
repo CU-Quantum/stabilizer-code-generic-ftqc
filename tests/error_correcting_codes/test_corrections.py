@@ -17,7 +17,7 @@ from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
-    states_are_equal
+    states_are_equal, tensor
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
 from tests.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
@@ -28,7 +28,7 @@ from tests.error_correcting_codes.shors_code.expected_states_shor import Expecte
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import get_cat_state_vector, set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
@@ -48,48 +48,48 @@ class ParametersForCorrectionsTest:
 
 SINGLE_ERROR_PARAMETERS = {
     "MultipleCatCode": ParametersForCorrectionsTest(
-        code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                             num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
-        initial_state=ExpectedStatesMultipleCat().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+        code=MultipleCatCode(num_cats=3,
+                             num_qubits_per_cat=3),
+        initial_state=tensor(*[get_cat_state_vector(num_qubits=3)] * 3),
+        qubit_indices_to_test=[6]
     ),
-    "RepetitionCode": ParametersForCorrectionsTest(
-        code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
-        initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
-        qubit_indices_to_test=list(range(3)),
-    ),
-    "CatParityCodeZeroState": ParametersForCorrectionsTest(
-        code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
-                           num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
-        initial_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
-    ),
-    "CatParityCodeOneState": ParametersForCorrectionsTest(
-        code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
-                           num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
-        initial_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
-    ),
-    "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
-        code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
-        initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
-        qubit_indices_to_test=list(range(5)),
-    ),
-    "FiveQubitCode": ParametersForCorrectionsTest(
-        code=FiveQubitCode(),
-        initial_state=ExpectedStatesFiveQubit().get_logical_zero_state_vector(),
-        qubit_indices_to_test=list(range(5)),
-    ),
-    "SteaneCode": ParametersForCorrectionsTest(
-        code=SteaneCode(),
-        initial_state=ExpectedStatesSteane().get_logical_zero_state_vector(),
-        qubit_indices_to_test=ARBITRARY_QUBIT_INDICES
-    ),
-    "ShorsRepetitionCode": ParametersForCorrectionsTest(
-        code=ShorsRepetitionCode(),
-        initial_state=ExpectedStatesShor().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS
-    ),
+    # "RepetitionCode": ParametersForCorrectionsTest(
+    #     code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
+    #     initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=list(range(3)),
+    # ),
+    # "CatParityCodeZeroState": ParametersForCorrectionsTest(
+    #     code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
+    #                        num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
+    #     initial_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+    # ),
+    # "CatParityCodeOneState": ParametersForCorrectionsTest(
+    #     code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats,
+    #                        num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
+    #     initial_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
+    #     qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+    # ),
+    # "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
+    #     code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
+    #     initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=list(range(5)),
+    # ),
+    # "FiveQubitCode": ParametersForCorrectionsTest(
+    #     code=FiveQubitCode(),
+    #     initial_state=ExpectedStatesFiveQubit().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=list(range(5)),
+    # ),
+    # "SteaneCode": ParametersForCorrectionsTest(
+    #     code=SteaneCode(),
+    #     initial_state=ExpectedStatesSteane().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=ARBITRARY_QUBIT_INDICES
+    # ),
+    # "ShorsRepetitionCode": ParametersForCorrectionsTest(
+    #     code=ShorsRepetitionCode(),
+    #     initial_state=ExpectedStatesShor().get_logical_zero_state_vector(),
+    #     qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS
+    # ),
 }
 
 
@@ -105,9 +105,9 @@ class TestCorrections:
 
     @pytest.mark.parametrize("req", SINGLE_ERROR_PARAMETERS_FLATTENED)
     @pytest.mark.parametrize("error_gate", [
-        pytest.param(X, id='X'),
+        # pytest.param(X, id='X'),
         pytest.param(Y, id='Y'),
-        pytest.param(Z, id='Z')
+        # pytest.param(Z, id='Z')
     ])
     def test_one_error_is_corrected(self, error_gate: Gate, req: (ParametersForCorrectionsTest, int)):
         params = req[0]

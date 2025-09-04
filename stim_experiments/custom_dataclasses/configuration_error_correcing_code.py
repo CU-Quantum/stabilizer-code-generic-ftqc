@@ -15,13 +15,14 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 
 @dataclass
 class ConfigurationErrorCorrectingCode:
-    cat_state_creator_type: type[CatStateCreator]
     majority_vote_repetitions: int
-    measurer_type: type[Measurer]
     noise_parameters: NoiseParameters
     num_cat_states: int
-    parity_verifier_type: type[ParityVerifier]
     seed: Optional[int]
+
+    cat_state_creator_type: type[CatStateCreator]
+    measurer_type: type[Measurer]
+    parity_verifier_type: type[ParityVerifier]
     universal_hadamard_type: type[UniversalHadamard]
     universal_controlled_operation_type: type[UniversalControlledOperation]
     universal_t_type: type[UniversalT]

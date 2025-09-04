@@ -1,7 +1,7 @@
 from contextlib import contextmanager
 from typing import Generator
 
-from cirq import MeasurementKey, OP_TREE, Operation, R, TaggedOperation
+from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R, TaggedOperation
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -53,9 +53,15 @@ class UniversalOperationsUtilities:
         return self._measurer_type(observables=[logical_z], measurement_keys=[measurement_key]).get_measurement_circuit()
 
     @staticmethod
-    def reset_ancilla_qubits(context: UniversalOperationsContext):
-        return [TaggedOperation(R(qubit), f'RESET_HELPER_QUBITS_{context.__class__.__name__}')
-                for qubit in context.ancilla_qubits]
+    def reset_ancilla_qubits(context: UniversalOperationsContext) -> OP_TREE:
+        return TaggedOperation(
+            CircuitOperation(
+                FrozenCircuit(
+                    R(qubit) for qubit in context.ancilla_qubits
+                ),
+            ),
+            f'RESET_HELPER_QUBITS_{context.__class__.__name__}'
+        )
 
     @contextmanager
     def use_fresh_ancilla_qubits(self) -> Generator[UniversalOperationsContext, None, None]:

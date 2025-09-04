@@ -1,21 +1,60 @@
 from typing import Optional
 
-from cirq import Circuit, X, Z
+from cirq import Circuit, CircuitOperation, FrozenCircuit, TaggedOperation, X, Z
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import CatParityCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+
+
+GENERALIZED_SHOR_ENCODING_TAG = 'GENERALIZED_SHOR_ENCODING'
+GENERALIZED_SHOR_CAT_CREATING_TAG = 'GENERALIZED_SHOR_CAT_CREATING'
+
+
+SYNDROME_TAG = 'SYNDROME'
+RECOVERY_TAG = 'RECOVERY'
+
+
+def syndrome_then_recovery_circuit(correction_circuit: CorrectionCircuit) -> Circuit:
+    return Circuit(
+        TaggedOperation(
+            CircuitOperation(
+                FrozenCircuit(correction_circuit.syndrome_circuit),
+            ),
+            SYNDROME_TAG, DELAYED_NOISE_TAG
+        ),
+        TaggedOperation(
+            CircuitOperation(
+                FrozenCircuit(correction_circuit.recovery_circuit),
+            ),
+            RECOVERY_TAG, DELAYED_NOISE_TAG
+        ),
+    )
 
 
 class MultipleCatCode(CatParityCode):
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(
-            [
-                self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
-                for subregister in self.subregisters
-            ],
-            self.get_error_correction_circuit().full_circuit
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        TaggedOperation(
+                            CircuitOperation(
+                                FrozenCircuit(
+                                    self._cat_state_creator_type(qubit_register=subregister).get_cat_state_circuit()
+                                    for subregister in self.subregisters
+                                )
+                            ),
+                            GENERALIZED_SHOR_CAT_CREATING_TAG,
+                        ),
+                        syndrome_then_recovery_circuit(correction_circuit=self.get_error_correction_circuit()),
+                    ),
+                ),
+                GENERALIZED_SHOR_ENCODING_TAG
+            ),
         )
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:

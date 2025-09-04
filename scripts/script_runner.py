@@ -15,6 +15,12 @@ from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
 from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_sequential import \
+    ParityVerifierSequential
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
+    CatStateCreatorCxFromFirstQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import \
+    MeasurerWithSingleQubitSequential
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.serialization.custom_json_encoder import CustomJsonEncoder
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
@@ -146,6 +152,7 @@ class ScriptRunner:
 
     @cached_property
     def _circuits_noisy(self) -> list[NoisyCircuit]:
+        _get_cache_outside_processes = self._circuit_noiseless
         with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
             noisy_circuits_list = pool.map(self._get_noisy_circuit, [()] * self._runner_configuration.num_shots)
         return [noisy_circuit
@@ -180,3 +187,6 @@ class ScriptRunner:
         configuration.majority_vote_repetitions = self._runner_configuration.num_measurement_rounds
         configuration.noise_parameters.depolarization_probability_one_qubit = self._runner_configuration.depolarization_probability_one_qubit
         configuration.noise_parameters.depolarization_probability_two_qubit = self._runner_configuration.depolarization_probability_two_qubit
+
+        configuration.measurer_type = MeasurerWithSingleQubitSequential
+        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit

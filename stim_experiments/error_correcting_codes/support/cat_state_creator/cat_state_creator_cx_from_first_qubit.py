@@ -1,7 +1,10 @@
-from cirq import Circuit, H, LineQubit, inverse
+from cirq import Circuit, CircuitOperation, FrozenCircuit, H, LineQubit, TaggedOperation, inverse
 
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.utilities.utilities import cx_sequentially_further_qubits_from_first
+
+CAT_STATE_CREATOR_CX_FROM_FIRST_QUBIT_TAG = 'CAT_STATE_CREATOR_CX_FROM_FIRST_QUBIT'
 
 
 class CatStateCreatorCxFromFirstQubit(CatStateCreator):
@@ -13,8 +16,15 @@ class CatStateCreatorCxFromFirstQubit(CatStateCreator):
         if not self._qubit_register:
             return Circuit()
         return Circuit(
-            H(self._qubit_register[0]),
-            cx_sequentially_further_qubits_from_first(qubits=self._qubit_register),
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        H(self._qubit_register[0]),
+                        cx_sequentially_further_qubits_from_first(qubits=self._qubit_register),
+                    )
+                ),
+                CAT_STATE_CREATOR_CX_FROM_FIRST_QUBIT_TAG, DELAYED_NOISE_TAG
+            )
         )
 
     def decode_state(self) -> Circuit:

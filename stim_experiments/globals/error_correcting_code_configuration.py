@@ -23,8 +23,8 @@ class ConfigurationErrorCorrectingCodeManager:
             UniversalHadamardFaultTolerant
         from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_fault_tolerant import \
             UniversalTFaultTolerant
-        from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_parallel import \
-            ParityVerifierParallel
+        from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_sequential import \
+            ParityVerifierSequential
         cls._configuration = ConfigurationErrorCorrectingCode(
             cat_state_creator_type=CatStateCreatorFlagPattern,
             majority_vote_repetitions=3,
@@ -34,7 +34,7 @@ class ConfigurationErrorCorrectingCodeManager:
                 depolarization_probability_two_qubit=2e-4,
             ),
             num_cat_states=3,
-            parity_verifier_type=ParityVerifierParallel,
+            parity_verifier_type=ParityVerifierSequential,
             seed=None,
             universal_hadamard_type=UniversalHadamardFaultTolerant,
             universal_controlled_operation_type=UniversalControlledFlipFaultTolerant,
