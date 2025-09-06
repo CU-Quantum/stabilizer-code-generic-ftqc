@@ -69,6 +69,6 @@ class ActiveEncodingsStore:
                         )
                     )
                 ),
-                CORRECTION_ROUND_TAG
+                CORRECTION_ROUND_TAG,
             )
         )

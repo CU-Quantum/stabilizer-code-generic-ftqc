@@ -65,7 +65,7 @@ class NoisyCircuitCreator:
         return [self._get_depolarization_gate(noisy_channel_type=noisy_channel_type, qubit=qubit) for qubit in operation.qubits]
 
     def _get_delayed_noise(self, operation: Operation) -> list[Operation] | None:
-        if DELAYED_NOISE_TAG in operation.tags:
+        if DELAYED_NOISE_TAG in operation.tags:  # TODO does this handle nested noise delays?
             one_qubit, two_qubit = set(), set()
             for op in operation.sub_operation.circuit.all_operations():
                 if len(op.qubits) == 1:

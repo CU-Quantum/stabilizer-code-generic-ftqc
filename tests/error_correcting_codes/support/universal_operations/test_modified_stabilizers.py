@@ -1,5 +1,5 @@
 import pytest
-from cirq import Circuit, LineQubit, Y, Z
+from cirq import Circuit, LineQubit, X, Y, Z
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
@@ -24,6 +24,18 @@ class TestModifiedStabilizers:
         error_circuit = Circuit()
         assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
 
+    def test_x_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
+        error_circuit = Circuit(
+            X(LineQubit(15))
+        )
+        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+
+    def test_z_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
+        error_circuit = Circuit(
+            Z(LineQubit(15))
+        )
+        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+
     def test_y_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
         error_circuit = Circuit(
             Y(LineQubit(15))
@@ -33,6 +45,12 @@ class TestModifiedStabilizers:
     def test_z_error_on_first_qubit_ghch_3_3(self):
         error_circuit = Circuit(
             Z(LineQubit(0))
+        )
+        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+
+    def test_z_error_on_first_cat_state_ghch_3_3(self):
+        error_circuit = Circuit(
+            Z(LineQubit(9))
         )
         assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
 
