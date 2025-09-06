@@ -33,6 +33,9 @@ class ActiveEncodingsStore:
                                for encoding in encodings]
         if additional_correction_circuits:
             correction_circuits.extend(additional_correction_circuits)
+        if not correction_circuits:
+            return Circuit()
+
         syndrome_circuits = [
             TaggedOperation(
                 CircuitOperation(

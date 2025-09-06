@@ -61,7 +61,7 @@ class TestLogicalOperationsCircuitCreator:
         operations = []
         simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
         circuit = simulator.get_simulation_circuit()
-        encoding_operation_exists = list(circuit.findall_operations_with_gate_type(ENCODING_OPERATION_MARK.__class__))
+        encoding_operation_exists = list(circuit[0].operations[0].untagged.circuit.findall_operations_with_gate_type(ENCODING_OPERATION_MARK.__class__))
         assert encoding_operation_exists
 
     def test_entanglement(self):

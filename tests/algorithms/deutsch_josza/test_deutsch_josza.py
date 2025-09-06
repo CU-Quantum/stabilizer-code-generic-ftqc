@@ -9,6 +9,7 @@ from stim_experiments.simulations.error_correcting_runner import ErrorCorrecting
 from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
+@pytest.mark.slow
 class TestDeutschJosza:
     @pytest.fixture(autouse=True, params=range(3))
     def _setup(self, request):

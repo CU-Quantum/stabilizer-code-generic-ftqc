@@ -45,7 +45,7 @@ class LogicalOperationsCircuitCreator:
                         encodings_store.get_all_correction_circuits(),
                     ] for operation_circuit in operations_circuits[:-1]
                 ],
-                operations_circuits[-1]
+                operations_circuits[-1] if operations_circuits else []
             )
 
     def _get_snowballed_encodings_with_error_correction(self, encodings: list[ErrorCorrectingCode]) -> Circuit:

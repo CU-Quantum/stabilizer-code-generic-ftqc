@@ -51,7 +51,7 @@ class UniversalOperationsUtilities:
             measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
             final_correction = [
                 encodings_store.get_all_correction_circuits(),
-                measurer_type(observables=[list(x_on_gsch.all_operations())], measurement_keys=[measurement_key]).get_measurement_circuit(),
+                measurer_type(observables=[list(x_on_gsch.all_operations()) + operations], measurement_keys=[measurement_key]).get_measurement_circuit(),
                 encodings_store.get_all_correction_circuits(),
                 CircuitOperation(
                     FrozenCircuit(z_on_gsch),
