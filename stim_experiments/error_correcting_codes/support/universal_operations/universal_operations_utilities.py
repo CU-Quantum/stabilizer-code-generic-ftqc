@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from typing import Generator
 from uuid import uuid4
 
+import sympy
 from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R, TaggedOperation, Y
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
@@ -33,7 +34,7 @@ class UniversalOperationsUtilities:
     @staticmethod
     def c_operations_helpers_to_data(operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            subregister_flips = [
+            return [
                 [
                     ControlledSingleQubitGatesApplier(operations=operations, controls=subregister[:len(operations)]).get_circuit(),
                     encodings_store.get_all_correction_circuits(
@@ -44,24 +45,28 @@ class UniversalOperationsUtilities:
                 ]
                 for i, subregister in enumerate(context.multiple_cat_code.subregisters)
             ]
+
+    @staticmethod
+    def fix_sign_flip_after_subregister_controlled_flips(operations: list[Operation], context: UniversalOperationsContext, measurement_trigger: int = 1):
+        measurer_type = ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type
+        measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
+        measurement_symbol = sympy.symbols(measurement_key.name)
+
         with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
-            measurer_type = ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type
-            x_on_gsch = context.cat_parity_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
-            z_on_gsch = context.cat_parity_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
-            measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
-            final_correction = [
+            x_on_gsch = context.cat_parity_code.get_operation_circuit(
+                operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
+            z_on_gsch = context.cat_parity_code.get_operation_circuit(
+                operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+            return [
                 encodings_store.get_all_correction_circuits(),
-                measurer_type(observables=[list(x_on_gsch.all_operations()) + operations], measurement_keys=[measurement_key]).get_measurement_circuit(),
+                measurer_type(observables=[list(x_on_gsch.all_operations()) + operations],
+                              measurement_keys=[measurement_key]).get_measurement_circuit(),
                 encodings_store.get_all_correction_circuits(),
                 CircuitOperation(
                     FrozenCircuit(z_on_gsch),
-                ).with_classical_controls(measurement_key),
+                ).with_classical_controls(sympy.Eq(measurement_symbol, measurement_trigger)),
                 encodings_store.get_all_correction_circuits(),
             ]
-        return [
-            subregister_flips,
-            final_correction,
-        ]
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:
         logical_z = list(context.multiple_cat_code.get_operation_circuit(
@@ -82,7 +87,9 @@ class UniversalOperationsUtilities:
 
     @contextmanager
     def use_fresh_ancilla_qubits(self) -> Generator[UniversalOperationsContext, None, None]:
-        num_qubits_for_subregister_parity_code = self._num_qubits_for_logical_operations * self._num_cat_states
+        minimum_qubits_per_subregister = 3
+        num_qubits_per_subregister = max(minimum_qubits_per_subregister, self._num_qubits_for_logical_operations)
+        num_qubits_for_subregister_parity_code = num_qubits_per_subregister * self._num_cat_states
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
             multiple_cat_code = MultipleCatCode(num_cats=self._num_cat_states,
                                                 num_qubits_per_cat=self._num_qubits_for_logical_operations,

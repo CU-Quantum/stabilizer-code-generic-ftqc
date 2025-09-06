@@ -38,19 +38,33 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
 
     def _czx_helpers_to_data(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
         return [
+            [
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            self._universal_operations_utilities.c_operations_helpers_to_data(
+                                operations=operations,
+                                context=context
+                            )
+                        )
+                    ),
+                    tag
+                )
+                for operations, tag in zip((context.data_code_logical_x, context.data_code_logical_z),
+                                           (UNIVERSAL_HADAMARD_CX_TAG, UNIVERSAL_HADAMARD_CZ_TAG))
+            ],
             TaggedOperation(
                 CircuitOperation(
                     FrozenCircuit(
-                        self._universal_operations_utilities.c_operations_helpers_to_data(
-                            operations=operations,
-                            context=context
+                        self._universal_operations_utilities.fix_sign_flip_after_subregister_controlled_flips(
+                            operations=context.data_code_logical_x + context.data_code_logical_z,
+                            context=context,
+                            measurement_trigger=0,
                         )
                     )
                 ),
-                tag
-            )
-            for operations, tag in zip((context.data_code_logical_x, context.data_code_logical_z),
-                                       (UNIVERSAL_HADAMARD_CX_TAG, UNIVERSAL_HADAMARD_CZ_TAG))
+
+            ),
         ]
 
     def _measure_out_helper(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:

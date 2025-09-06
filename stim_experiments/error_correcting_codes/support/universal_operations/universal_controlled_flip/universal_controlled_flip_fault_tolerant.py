@@ -76,9 +76,7 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._control.qubit_index_relative)
         ).all_operations())
         target_logical_operations = list(self._target.encoding.get_operation_circuit(self._target.operation).all_operations())
-
-        minimum_qubits_per_subregister = 3
-        num_qubits_for_logical_operations = max(len(control_logical_z), len(target_logical_operations), minimum_qubits_per_subregister)
+        num_qubits_for_logical_operations = max(len(control_logical_z), len(target_logical_operations))
         return UniversalOperationsUtilities(num_qubits_for_logical_operations=num_qubits_for_logical_operations)
 
     def _get_control_logical_operations(self, gate_label: LogicalGateLabel) -> list[Operation]:
