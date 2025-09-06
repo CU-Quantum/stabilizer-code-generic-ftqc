@@ -47,19 +47,21 @@ class UniversalOperationsUtilities:
             ]
 
     @staticmethod
-    def fix_sign_flip_after_subregister_controlled_flips(operations: list[Operation], context: UniversalOperationsContext, measurement_trigger: int = 1):
+    def fix_sign_flip_after_subregister_controlled_flips(
+            observable: list[Operation],
+            context: UniversalOperationsContext,
+            measurement_trigger: int = 1
+    ):
         measurer_type = ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type
         measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
         measurement_symbol = sympy.symbols(measurement_key.name)
 
         with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
-            x_on_gsch = context.cat_parity_code.get_operation_circuit(
-                operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
             z_on_gsch = context.cat_parity_code.get_operation_circuit(
                 operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
             return [
                 encodings_store.get_all_correction_circuits(),
-                measurer_type(observables=[list(x_on_gsch.all_operations()) + operations],
+                measurer_type(observables=[observable],
                               measurement_keys=[measurement_key]).get_measurement_circuit(),
                 encodings_store.get_all_correction_circuits(),
                 CircuitOperation(

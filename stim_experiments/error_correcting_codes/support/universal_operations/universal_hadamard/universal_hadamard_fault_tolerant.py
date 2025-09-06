@@ -37,6 +37,12 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
         return self._universal_operations_utilities.encode_multiple_cat(context=context)
 
     def _czx_helpers_to_data(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
+        operations_on_target = context.data_code_logical_x + context.data_code_logical_z
+        operations_on_control = sum([
+            list(context.cat_parity_code.get_operation_circuit(
+                operation=LogicalOperation(gate=gate_label, qubit_index=0)).all_operations())
+            for gate_label in (LogicalGateLabel.X, LogicalGateLabel.Z)
+        ], [])
         return [
             [
                 TaggedOperation(
@@ -57,7 +63,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                 CircuitOperation(
                     FrozenCircuit(
                         self._universal_operations_utilities.fix_sign_flip_after_subregister_controlled_flips(
-                            operations=context.data_code_logical_x + context.data_code_logical_z,
+                            observable=operations_on_control + operations_on_target,
                             context=context,
                             measurement_trigger=0,
                         )
