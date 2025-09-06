@@ -1,12 +1,12 @@
 from contextlib import contextmanager
 from typing import Generator
+from uuid import uuid4
 
-from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R, TaggedOperation
+from cirq import CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation, R, TaggedOperation, Y
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
-from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from stim_experiments.error_correcting_codes.support.measurer.measurer import Measurer
@@ -33,20 +33,35 @@ class UniversalOperationsUtilities:
     @staticmethod
     def c_operations_helpers_to_data(operations: list[Operation], context: UniversalOperationsContext) -> list[OP_TREE]:
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            return [
+            subregister_flips = [
                 [
                     ControlledSingleQubitGatesApplier(operations=operations, controls=subregister[:len(operations)]).get_circuit(),
                     encodings_store.get_all_correction_circuits(
                         additional_correction_circuits=[
-                            context.cat_parity_code.get_modified_stabilizers_error_correction_circuit(
-                                subregister_control_index=i,
-                                target_operations=operations,
-                            )
+                            context.multiple_cat_code.get_z_stabilizers_error_correction_circuit()
                         ]
-                    ),
+                    ) if i < len(context.multiple_cat_code.subregisters) - 1 else [],
                 ]
                 for i, subregister in enumerate(context.multiple_cat_code.subregisters)
             ]
+        with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
+            measurer_type = ConfigurationErrorCorrectingCodeManager().get_configuration().measurer_type
+            x_on_gsch = context.cat_parity_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
+            z_on_gsch = context.cat_parity_code.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+            measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
+            final_correction = [
+                encodings_store.get_all_correction_circuits(),
+                measurer_type(observables=[list(x_on_gsch.all_operations())], measurement_keys=[measurement_key]).get_measurement_circuit(),
+                encodings_store.get_all_correction_circuits(),
+                CircuitOperation(
+                    FrozenCircuit(z_on_gsch),
+                ).with_classical_controls(measurement_key),
+                encodings_store.get_all_correction_circuits(),
+            ]
+        return [
+            subregister_flips,
+            final_correction,
+        ]
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:
         logical_z = list(context.multiple_cat_code.get_operation_circuit(

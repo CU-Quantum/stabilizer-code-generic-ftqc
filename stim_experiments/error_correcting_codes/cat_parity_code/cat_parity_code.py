@@ -59,13 +59,10 @@ class CatParityCode(StabilizerCode):
             )
         return None
 
-    def get_modified_stabilizers_error_correction_circuit(self,
-                                                          subregister_control_index: int,
-                                                          target_operations: list[Operation]) -> CorrectionCircuit:
-        stabilizers = CheckMatrixToOperations(check_matrix=self._check_matrix, qubits=self.data_qubits).get_operations()
-        if subregister_control_index < len(self.subregisters) - 1:
-            stabilizers[-self._num_x_stabilizers + subregister_control_index] += target_operations
-        recoveries = RecoveryFinder(check_matrix=self._check_matrix).find_recovery_operations(qubits=self._qubits)
+    def get_z_stabilizers_error_correction_circuit(self) -> CorrectionCircuit:
+        z_stabilizers_symplectic = CheckMatrix(matrix=self._check_matrix.matrix[:-self._num_x_stabilizers])
+        stabilizers = CheckMatrixToOperations(check_matrix=z_stabilizers_symplectic, qubits=self.data_qubits).get_operations()
+        recoveries = RecoveryFinder(check_matrix=z_stabilizers_symplectic).find_recovery_operations(qubits=self.data_qubits)
         return ErrorRecoveryByStabilizers(
             stabilizers=stabilizers,
             recoveries=recoveries,

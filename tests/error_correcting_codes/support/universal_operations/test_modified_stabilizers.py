@@ -59,34 +59,37 @@ class TestModifiedStabilizers:
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         simulator = ErrorCorrectingSimulatorStateVector()
 
-        control = CatParityCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[:9])
+        control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[:9])
         target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[9:])
         x_operation_target = target.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
+        target_operations = list(x_operation_target.all_operations())
 
         with ActiveEncodingsStore(additional_tracked_encodings=[target]):
             encoding_circuit = Circuit(
                 control.encode_logical_qubit(),
                 target.encode_logical_qubit(),
             )
-            initial_state = simulator.run_simulation(encoding_circuit, num_data_qubits=len(qubits))
-
-            target_operations = list(x_operation_target.all_operations())
-            correction_circuit = UniversalOperationsUtilities.c_operations_helpers_to_data(
+            flip_circuit = UniversalOperationsUtilities.c_operations_helpers_to_data(
                 operations=target_operations,
                 context=UniversalOperationsContext(
                     ancilla_qubits=[],
-                    cat_parity_code=control,
-                    multiple_cat_code=MultipleCatCode(
-                        num_cats=len(control.subregisters),
-                        num_qubits_per_cat=len(control.subregisters[0]),
-                        qubits=control.data_qubits),
+                    cat_parity_code=CatParityCode(num_cats=len(control.subregisters),
+                                                  num_qubits_per_cat=len(control.subregisters[0]),
+                                                  qubits=control.data_qubits,),
+                    multiple_cat_code=control,
                 )
             )
+            no_errors_state = simulator.run_simulation(
+                circuit=Circuit(
+                    encoding_circuit,
+                    flip_circuit,
+                ),
+                num_data_qubits=len(qubits))
 
-            full_circuit = Circuit(
+            circuit_with_error = Circuit(
                 encoding_circuit,
                 error_circuit,
-                correction_circuit,
+                flip_circuit,
             )
-            result = simulator.run_simulation(full_circuit, num_data_qubits=len(qubits))
-            return states_are_equal(result.state, initial_state.state)
+            result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(qubits))
+            return states_are_equal(result.state, no_errors_state.state)
