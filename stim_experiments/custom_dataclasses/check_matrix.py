@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 from numpy._typing import NDArray
 from numpy.linalg import matrix_rank
+from numpy.ma.core import allequal
 
 TYPE_CHECK_MATRIX = NDArray[NDArray[bool]]
 
@@ -65,3 +66,6 @@ class CheckMatrix:
     def swap_xs_and_zs(self) -> None:
         mid = self.num_physical_qubits
         self.matrix[:, :mid], self.matrix[:, mid:] = self.matrix[:, mid:], self.matrix[:, :mid].copy()
+
+    def __eq__(self, other):
+        return allequal(self.matrix, other.matrix) and self.qubit_order == other.qubit_order

@@ -7,7 +7,7 @@ from stim_experiments.algorithms.support.logical_operations_circuit_creator.supp
     TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
-from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
@@ -16,7 +16,7 @@ LOGICAL_QUBIT_ENCODING_TAG = 'LOGICAL_QUBIT_ENCODING'
 
 
 class LogicalOperationsCircuitCreator:
-    def __init__(self, encodings: list[ErrorCorrectingCode], operations: list[TransformationOperation]):
+    def __init__(self, encodings: list[StabilizerCode], operations: list[TransformationOperation]):
         self._encodings = encodings
         self._operations = operations
 
@@ -48,7 +48,7 @@ class LogicalOperationsCircuitCreator:
                 operations_circuits[-1] if operations_circuits else []
             )
 
-    def _get_snowballed_encodings_with_error_correction(self, encodings: list[ErrorCorrectingCode]) -> Circuit:
+    def _get_snowballed_encodings_with_error_correction(self, encodings: list[StabilizerCode]) -> Circuit:
         if not encodings:
             return Circuit()
         encoding = encodings[0]

@@ -42,13 +42,12 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         return self._universal_operations_utilities.encode_multiple_cat(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        operations_on_target = context.data_code_logical_z
         return [
             TaggedOperation(
                 CircuitOperation(
                     FrozenCircuit(
                         self._universal_operations_utilities.c_operations_helpers_to_data(
-                            operations=operations_on_target,
+                            operations=context.data_code_logical_z,
                             context=context
                         )
                     )
@@ -58,27 +57,17 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         ]
 
     def _c_helpers_to_target(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        operations_on_target = context.target_operations
-        operations_on_control = list(context.cat_parity_code.get_operation_circuit(
-            operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
-        ).all_operations())
-        return [
-            TaggedOperation(
-                CircuitOperation(
-                    FrozenCircuit(
-                        self._universal_operations_utilities.c_operations_helpers_to_data(
-                            operations=operations_on_target,
-                            context=context
-                        )
+        return TaggedOperation(
+            CircuitOperation(
+                FrozenCircuit(
+                    self._universal_operations_utilities.c_operations_helpers_to_data(
+                        operations=context.target_operations,
+                        context=context
                     )
-                ),
-                UNIVERSAL_CONTROLLED_FLIP_C_TAG
+                )
             ),
-            self._universal_operations_utilities.fix_sign_flip_after_subregister_controlled_flips(
-                observable=operations_on_control + operations_on_target,
-                context=context,
-            )
-        ]
+            UNIVERSAL_CONTROLLED_FLIP_C_TAG
+        )
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')

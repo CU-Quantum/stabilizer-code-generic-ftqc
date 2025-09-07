@@ -1,7 +1,7 @@
 from typing import Optional
 
 from cirq import Circuit, LineQubit, Operation, X, Z
-from numpy import array
+from numpy import array, concatenate
 
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -12,6 +12,7 @@ from stim_experiments.error_correcting_codes.support.error_recovery.error_recove
     ErrorRecoveryByStabilizers
 from stim_experiments.error_correcting_codes.support.multiple_cat_code_generators import \
     MultipleCatCodeGenerators
+from stim_experiments.error_correcting_codes.support.operations_to_check_matrix import OperationsToCheckMatrix
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.recovery_finder import RecoveryFinder
 
@@ -26,8 +27,8 @@ class CatParityCode(StabilizerCode):
         z_stabilizers = generator.get_z_generators()
         x_stabilizers = generator.get_x_generators()
 
-        self._check_matrix = CheckMatrix(matrix=array(z_stabilizers + x_stabilizers))
-        super().__init__(check_matrix=self._check_matrix,
+        self.check_matrix = CheckMatrix(matrix=array(z_stabilizers + x_stabilizers))
+        super().__init__(check_matrix=self.check_matrix,
                          recovery_combinations_finder=RecoveryCombinationsFinder(max_num_x_errors=(self._num_qubits_per_cat - 1) // 2,
                                                                                  max_num_z_errors=(self._num_cats - 1) // 2),
                          qubits=qubits)
@@ -59,14 +60,32 @@ class CatParityCode(StabilizerCode):
             )
         return None
 
-    def get_z_stabilizers_error_correction_circuit(self) -> CorrectionCircuit:
-        z_stabilizers_symplectic = CheckMatrix(matrix=self._check_matrix.matrix[:-self._num_x_stabilizers])
-        stabilizers = CheckMatrixToOperations(check_matrix=z_stabilizers_symplectic, qubits=self.data_qubits).get_operations()
-        recoveries = RecoveryFinder(check_matrix=z_stabilizers_symplectic).find_recovery_operations(qubits=self.data_qubits)
+    def get_modified_stabilizers_error_correction_circuit(self,
+                                                          subregister_index: int,
+                                                          target_operations: list[Operation],
+                                                          target_code: StabilizerCode) -> CorrectionCircuit:
+        target_stabilizers = CheckMatrixToOperations(check_matrix=target_code.check_matrix, qubits=target_code.data_qubits).get_operations() \
+            if target_code.check_matrix is not None else []
+        control_stabilizers = CheckMatrixToOperations(check_matrix=self.check_matrix, qubits=self.data_qubits).get_operations()
+        if subregister_index < self._num_x_stabilizers - 1:
+            control_stabilizers[-self._num_x_stabilizers + subregister_index].extend(target_operations)
+        all_stabilizers = target_stabilizers + control_stabilizers
+        all_qubits = target_code.data_qubits + self.data_qubits
+        combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
+        recoveries = RecoveryFinder(check_matrix=combined_check_matrix).find_recovery_operations(qubits=all_qubits)
         return ErrorRecoveryByStabilizers(
-            stabilizers=stabilizers,
+            stabilizers=all_stabilizers,
             recoveries=recoveries,
         ).get_error_correction_circuit()
+
+    # def get_z_stabilizers_error_correction_circuit(self) -> CorrectionCircuit:
+    #     z_stabilizers_symplectic = CheckMatrix(matrix=self.check_matrix.matrix[:-self._num_x_stabilizers])
+    #     stabilizers = CheckMatrixToOperations(check_matrix=z_stabilizers_symplectic, qubits=self.data_qubits).get_operations()
+    #     recoveries = RecoveryFinder(check_matrix=z_stabilizers_symplectic).find_recovery_operations(qubits=self.data_qubits)
+    #     return ErrorRecoveryByStabilizers(
+    #         stabilizers=stabilizers,
+    #         recoveries=recoveries,
+    #     ).get_error_correction_circuit()
 
     @property
     def subregisters(self) -> list[list[LineQubit]]:
@@ -75,7 +94,7 @@ class CatParityCode(StabilizerCode):
 
     @property
     def _num_generators(self) -> int:
-        return len(self._check_matrix.matrix)
+        return len(self.check_matrix.matrix)
 
     @property
     def _num_x_stabilizers(self) -> int:

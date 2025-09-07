@@ -18,7 +18,7 @@ class StabilizerStandardizedCode(StabilizerCode):
     def __init__(self,
                  generators: TYPE_CHECK_MATRIX,
                  qubits: Optional[list[LineQubit]] = None):
-        self._check_matrix = CheckMatrix(matrix=generators)
+        self._check_matrix_unstandardized = CheckMatrix(matrix=generators)
         super().__init__(check_matrix=self._check_matrix_standardized, qubits=qubits)
 
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
@@ -43,12 +43,12 @@ class StabilizerStandardizedCode(StabilizerCode):
 
     @cached_property
     def _check_matrix_standardized(self) -> CheckMatrixStandardized:
-        standardizer = CheckMatrixStandardizer(check_matrix=self._check_matrix)
+        standardizer = CheckMatrixStandardizer(check_matrix=self._check_matrix_unstandardized)
         return standardizer.get_standardized_matrix()
 
     @property
     def _ordered_qubits(self) -> list[LineQubit]:
-        return [self._get_qubit_at_index(qubit_index=qubit_index) for qubit_index in range(self._check_matrix.num_physical_qubits)]
+        return [self._get_qubit_at_index(qubit_index=qubit_index) for qubit_index in range(self._check_matrix_unstandardized.num_physical_qubits)]
 
     def _get_qubit_at_index(self, qubit_index: int) -> LineQubit:
         return self.data_qubits[qubit_index]

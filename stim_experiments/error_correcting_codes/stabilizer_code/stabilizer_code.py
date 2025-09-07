@@ -19,10 +19,10 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
                  check_matrix: CheckMatrix,
                  recovery_combinations_finder: Optional[RecoveryCombinationsFinder] = None,
                  qubits: Optional[list[LineQubit]] = None):
-        self._check_matrix = check_matrix
+        self.check_matrix = check_matrix
         self._recovery_combinations_finder = recovery_combinations_finder or RecoveryCombinationsFinder(max_num_errors=1)
-        super().__init__(num_data_qubits=self._check_matrix.num_physical_qubits,
-                         num_logical_qubits=self._check_matrix.num_logical_qubits,
+        super().__init__(num_data_qubits=self.check_matrix.num_physical_qubits,
+                         num_logical_qubits=self.check_matrix.num_logical_qubits,
                          qubits=qubits)
 
     @abstractmethod
@@ -36,17 +36,17 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
     def encode_logical_qubit(self) -> Circuit:
         phase_corrections = [
             self._get_anticommuter_for_generator(generator_index=generator_index)
-            for generator_index in range(len(self._check_matrix.matrix))
+            for generator_index in range(len(self.check_matrix.matrix))
         ]
         return StateEncoderByGeneratorMeasurement(
-            check_matrix=self._check_matrix,
+            check_matrix=self.check_matrix,
             phase_corrections=phase_corrections,
             qubits=self.data_qubits,
         ).encode_state()
 
     def get_error_correction_circuit(self) -> CorrectionCircuit:
         return ErrorRecoveryByCheckMatrix(
-            check_matrix=self._check_matrix,
+            check_matrix=self.check_matrix,
             qubits=self.data_qubits,
             recovery_combinations_finder=self._recovery_combinations_finder
         ).get_error_correction_circuit()

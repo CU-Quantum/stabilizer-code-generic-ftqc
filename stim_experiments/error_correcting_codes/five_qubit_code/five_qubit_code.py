@@ -10,8 +10,8 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
 
 class FiveQubitCode(StabilizerCode):
     def __init__(self, qubits: Optional[list[LineQubit]] = None):
-        self._check_matrix = CheckMatrix(matrix=get_check_matrix_values_5_qubit())
-        super().__init__(check_matrix=self._check_matrix, qubits=qubits)
+        self.check_matrix = CheckMatrix(matrix=get_check_matrix_values_5_qubit())
+        super().__init__(check_matrix=self.check_matrix, qubits=qubits)
 
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
         qubits_indices_to_flip_per_generator = [(0, 2), (0, 1, 2, 3), (0, 1, 3, 4), (1, 4)]

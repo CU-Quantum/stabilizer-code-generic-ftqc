@@ -1,4 +1,3 @@
-from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.noise_parameters import NoiseParameters
 
 
@@ -6,7 +5,7 @@ class ConfigurationErrorCorrectingCodeManager:
     _configuration = None
 
     @classmethod
-    def get_configuration(cls) -> ConfigurationErrorCorrectingCode:
+    def get_configuration(cls) -> 'ConfigurationErrorCorrectingCode':
         if cls._configuration is None:
             cls.reset_configuration()
         return cls._configuration
@@ -25,6 +24,8 @@ class ConfigurationErrorCorrectingCodeManager:
             UniversalTFaultTolerant
         from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_sequential import \
             ParityVerifierSequential
+        from stim_experiments.custom_dataclasses.configuration_error_correcing_code import \
+            ConfigurationErrorCorrectingCode
         cls._configuration = ConfigurationErrorCorrectingCode(
             cat_state_creator_type=CatStateCreatorFlagPattern,
             majority_vote_repetitions=3,

@@ -14,29 +14,27 @@ from stim_experiments.error_correcting_codes.support.error_recovery.error_recove
 from stim_experiments.error_correcting_codes.support.recovery_combinations_finder import RecoveryCombinationsFinder
 from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder_by_generator_measurement import \
     StateEncoderByGeneratorMeasurement
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
 class RepetitionCodeOneLogical(ErrorCorrectingCode):
     def __init__(self, num_qubits: int, qubits: Optional[list[LineQubit]] = None):
-        self._check_matrix = None
+        self.check_matrix = None
         if num_qubits >= 2:
             z_stabilizers = MultipleCatCodeGenerators(num_qubits_per_cat=num_qubits, num_cats=1).get_z_generators()
-            self._check_matrix = CheckMatrix(matrix=array(z_stabilizers))
+            self.check_matrix = CheckMatrix(matrix=array(z_stabilizers))
         super().__init__(num_data_qubits=num_qubits,
                          num_logical_qubits=1,
                          qubits=qubits)
 
     def encode_logical_qubit(self) -> Circuit:
-        if self._check_matrix is None:
+        if self.check_matrix is None:
             return self._empty_circuit
         phase_corrections = [
             self._get_anticommuter_for_generator(generator_index=generator_index)
-            for generator_index in range(len(self._check_matrix.matrix))
+            for generator_index in range(len(self.check_matrix.matrix))
         ]
         return StateEncoderByGeneratorMeasurement(
-            check_matrix=self._check_matrix,
+            check_matrix=self.check_matrix,
             phase_corrections=phase_corrections,
             qubits=self.data_qubits,
         ).encode_state()
@@ -45,13 +43,13 @@ class RepetitionCodeOneLogical(ErrorCorrectingCode):
         return [X(self.data_qubits[qubit_index]) for qubit_index in range(generator_index + 1)]
 
     def get_error_correction_circuit(self) -> CorrectionCircuit:
-        if self._check_matrix is None:
+        if self.check_matrix is None:
             return CorrectionCircuit(
                 syndrome_circuit=self._empty_circuit,
                 recovery_circuit=self._empty_circuit,
             )
         return ErrorRecoveryByCheckMatrix(
-            check_matrix=self._check_matrix,
+            check_matrix=self.check_matrix,
             qubits=self.data_qubits,
             recovery_combinations_finder=RecoveryCombinationsFinder(max_num_x_errors=self._num_data_qubits // 2, max_num_z_errors=0)
         ).get_error_correction_circuit()

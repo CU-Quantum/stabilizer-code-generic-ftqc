@@ -10,8 +10,8 @@ from stim_experiments.utilities.predefined_check_matrix_values import get_check_
 
 class SteaneCode(StabilizerCode):
     def __init__(self, qubits: Optional[list[LineQubit]] = None):
-        self._check_matrix = CheckMatrix(matrix=get_check_matrix_values_steane())
-        super().__init__(check_matrix=self._check_matrix, qubits=qubits)
+        self.check_matrix = CheckMatrix(matrix=get_check_matrix_values_steane())
+        super().__init__(check_matrix=self.check_matrix, qubits=qubits)
 
     def _get_anticommuter_for_generator(self, generator_index: int) -> list[Operation]:
         target_qubit_index_per_sector = [3, 1, 0]

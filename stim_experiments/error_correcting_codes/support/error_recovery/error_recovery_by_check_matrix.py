@@ -1,6 +1,6 @@
 from typing import Optional
 
-from cirq import Circuit, LineQubit
+from cirq import LineQubit
 
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
