@@ -19,7 +19,7 @@ from stim_experiments.utilities.utilities import states_are_equal, tensor
 from tests.utilities_for_tests import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
-class TestUniversalControlledOperationInstances:
+class TestUniversalControlledFlipInstances:
     @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
         set_seed(seed=request.param)

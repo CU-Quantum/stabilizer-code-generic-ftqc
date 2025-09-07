@@ -4,7 +4,7 @@ from functools import cached_property
 from typing import Generator
 from uuid import uuid4
 
-from cirq import Circuit, CircuitOperation, FrozenCircuit, Moment, OP_TREE, Operation, Z
+from cirq import Circuit, CircuitOperation, FrozenCircuit, Moment, OP_TREE, Operation, TaggedOperation
 
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -18,9 +18,12 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
-from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
+
+
+UNIVERSAL_CONTROLLED_FLIP_CZ_TAG = 'UNIVERSAL_CONTROLLED_FLIP_CZ'
+UNIVERSAL_CONTROLLED_FLIP_C_TAG = 'UNIVERSAL_CONTROLLED_FLIP_C'
 
 
 class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
@@ -39,16 +42,43 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         return self._universal_operations_utilities.encode_multiple_cat(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return self._universal_operations_utilities.c_operations_helpers_to_data(
-            operations=context.data_code_logical_z,
-            context=context
-        )
+        operations_on_target = context.data_code_logical_z
+        return [
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        self._universal_operations_utilities.c_operations_helpers_to_data(
+                            operations=operations_on_target,
+                            context=context
+                        )
+                    )
+                ),
+                UNIVERSAL_CONTROLLED_FLIP_CZ_TAG
+            ),
+        ]
 
     def _c_helpers_to_target(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return self._universal_operations_utilities.c_operations_helpers_to_data(
-            operations=context.target_operations,
-            context=context
-        )
+        operations_on_target = context.target_operations
+        operations_on_control = list(context.cat_parity_code.get_operation_circuit(
+            operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+        ).all_operations())
+        return [
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        self._universal_operations_utilities.c_operations_helpers_to_data(
+                            operations=operations_on_target,
+                            context=context
+                        )
+                    )
+                ),
+                UNIVERSAL_CONTROLLED_FLIP_C_TAG
+            ),
+            self._universal_operations_utilities.fix_sign_flip_after_subregister_controlled_flips(
+                observable=operations_on_control + operations_on_target,
+                context=context,
+            )
+        ]
 
     def _measure_out_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_CONTROLLED_OPERATION_MEASUREMENT_{uuid4().hex}')

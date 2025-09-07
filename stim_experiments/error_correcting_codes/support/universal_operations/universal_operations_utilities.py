@@ -19,6 +19,9 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
+FINAL_C_FLIP_CORRECTION_TAG = 'FINAL_C_FLIP_CORRECTION'
+
+
 class UniversalOperationsUtilities:
     def __init__(self, num_qubits_for_logical_operations: int):
         self._num_qubits_for_logical_operations = num_qubits_for_logical_operations
@@ -59,16 +62,23 @@ class UniversalOperationsUtilities:
         with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
             z_on_gsch = context.cat_parity_code.get_operation_circuit(
                 operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
-            return [
-                encodings_store.get_all_correction_circuits(),
-                measurer_type(observables=[observable],
-                              measurement_keys=[measurement_key]).get_measurement_circuit(),
-                encodings_store.get_all_correction_circuits(),
+            return TaggedOperation(
                 CircuitOperation(
-                    FrozenCircuit(z_on_gsch),
-                ).with_classical_controls(sympy.Eq(measurement_symbol, measurement_trigger)),
-                encodings_store.get_all_correction_circuits(),
-            ]
+                    FrozenCircuit(
+                        [
+                            encodings_store.get_all_correction_circuits(),
+                            measurer_type(observables=[observable],
+                                          measurement_keys=[measurement_key]).get_measurement_circuit(),
+                            encodings_store.get_all_correction_circuits(),
+                            CircuitOperation(
+                                FrozenCircuit(z_on_gsch),
+                            ).with_classical_controls(sympy.Eq(measurement_symbol, measurement_trigger)),
+                            encodings_store.get_all_correction_circuits(),
+                        ]
+                    )
+                ),
+                FINAL_C_FLIP_CORRECTION_TAG
+            )
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:
         logical_z = list(context.multiple_cat_code.get_operation_circuit(
