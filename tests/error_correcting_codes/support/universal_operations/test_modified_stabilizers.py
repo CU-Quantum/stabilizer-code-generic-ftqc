@@ -54,10 +54,10 @@ class TestModifiedStabilizers:
         )
         assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
 
-    def test_overcorrection_ghch_3_3(self):
+    def test_error_in_each_block_ghch_3_3(self):
         more_than_half_distance_phase_errors = Circuit(
             Z(LineQubit(0)),
-            Z(LineQubit(3)),
+            X(LineQubit(9)),
         )
         assert self._correct_with_modified_stabilizers(error_circuit=more_than_half_distance_phase_errors)
 

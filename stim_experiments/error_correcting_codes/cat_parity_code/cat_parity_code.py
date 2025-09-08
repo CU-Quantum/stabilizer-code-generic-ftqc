@@ -71,12 +71,12 @@ class CatParityCode(StabilizerCode):
         control_stabilizers = CheckMatrixToOperations(check_matrix=self.check_matrix, qubits=self.data_qubits).get_operations()
         if subregister_index < len(self.subregisters) - 1:
             control_stabilizers[-self._num_x_stabilizers + subregister_index] += target_operations
-        all_stabilizers = target_stabilizers + control_stabilizers
-        all_qubits = target_code.data_qubits + self.data_qubits
+        all_stabilizers = control_stabilizers + target_stabilizers
+        all_qubits = self.data_qubits + target_code.data_qubits
         combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
 
         recoveries = RecoveryFinder(check_matrix=combined_check_matrix).find_recovery_operations(qubits=all_qubits)
-        blocks = [target_code, self]
+        blocks = [self, target_code]
         recoveries_per_block = [
             [recovery for recovery in recoveries if recovery.operation.qubits[0] in block.data_qubits]
             for block in blocks
@@ -89,18 +89,21 @@ class CatParityCode(StabilizerCode):
         for i, recovery_combos in enumerate(recovery_combos_per_block):
             for recovery in recovery_combos:
                 recovery_combos_per_block_by_symptom[i][tuple(recovery.symptom)].append(recovery)
-        for symptom_target, recoveries_target in recovery_combos_per_block_by_symptom[0].items():
-            for symptom_helper, recoveries_helper in recovery_combos_per_block_by_symptom[1].items():
+        recovery_combos_per_block_control = recovery_combos_per_block[0]
+        recovery_combos_per_block_by_symptom_control = recovery_combos_per_block_by_symptom[0]
+        recovery_combos_per_block_by_symptom_target = recovery_combos_per_block_by_symptom[1]
+        for symptom_helper, recoveries_helper in recovery_combos_per_block_by_symptom_control.items():
+            for symptom_target, recoveries_target in recovery_combos_per_block_by_symptom_target.items():
                 symptom_combined = array(list(symptom_target)) ^ array(list(symptom_helper))
                 for recovery_helper in recoveries_helper:
-                    recoveries.append(RecoveryOperation(
+                    recovery_combos_per_block_control.append(RecoveryOperation(
                         operation=recovery_helper.operation, # only do helper because target is corrected independently by ActiveEncodingsStore
                         symptom=symptom_combined.tolist(),
                     ))
 
         return ErrorRecoveryByStabilizers(
             stabilizers=all_stabilizers,
-            recoveries=recoveries,
+            recoveries=recovery_combos_per_block_control,
         ).get_error_correction_circuit()
 
     # def get_z_stabilizers_error_correction_circuit(self) -> CorrectionCircuit:
