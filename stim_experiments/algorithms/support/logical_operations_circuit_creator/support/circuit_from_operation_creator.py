@@ -19,11 +19,13 @@ LOGICAL_OPERATION_TAG = 'LOGICAL_OPERATION'
 MEASUREMENT_OPERATION_TAG = 'MEASUREMENT_OPERATION'
 LOGICAL_QUBIT_INDEX_TAG = 'LOGICAL_QUBIT_INDEX'
 GATE_TAG = 'GATE'
+OPERATION_INDEX_TAG = 'OPERATION_INDEX'
 
 
 class CircuitFromOperationCreator:
-    def __init__(self, operation: SimulationOperation):
+    def __init__(self, operation: SimulationOperation, operation_index: int):
         self._operation = operation
+        self._operation_index = operation_index
 
     def create_circuit(self) -> Circuit:
         if self._operation.target_encoding:
@@ -42,7 +44,7 @@ class CircuitFromOperationCreator:
                         target=self._operation.target_encoding
                     ).get_controlled_operation_circuit().freeze()
                 ),
-                CONTROLLED_OPERATION_TAG, f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
+                CONTROLLED_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
             )
         )
 
@@ -65,7 +67,7 @@ class CircuitFromOperationCreator:
                             encodings_store.get_all_correction_circuits()
                         ),
                     ),
-                    MEASUREMENT_OPERATION_TAG, f'{LOGICAL_QUBIT_INDEX_TAG}_{self._operation.control_encoding.qubit_index_logical}'
+                    MEASUREMENT_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{LOGICAL_QUBIT_INDEX_TAG}_{self._operation.control_encoding.qubit_index_logical}'
                 )
             )
 
@@ -75,7 +77,7 @@ class CircuitFromOperationCreator:
                 CircuitOperation(
                     self._logical_operation_on_target_unwrapped().freeze()
                 ),
-                LOGICAL_OPERATION_TAG, f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
+                LOGICAL_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
             )
         )
 

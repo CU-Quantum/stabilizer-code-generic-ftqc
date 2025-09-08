@@ -48,7 +48,8 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
                     FrozenCircuit(
                         self._universal_operations_utilities.c_operations_helpers_to_data(
                             operations=context.data_code_logical_z,
-                            context=context
+                            context=context,
+                            target_code=self._control.encoding,
                         )
                     )
                 ),
@@ -62,7 +63,8 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
                 FrozenCircuit(
                     self._universal_operations_utilities.c_operations_helpers_to_data(
                         operations=context.target_operations,
-                        context=context
+                        context=context,
+                        target_code=self._target.encoding,
                     )
                 )
             ),

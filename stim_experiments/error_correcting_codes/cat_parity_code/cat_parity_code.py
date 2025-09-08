@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Optional
 
 from cirq import Circuit, LineQubit, Operation, X, Z
@@ -84,13 +85,18 @@ class CatParityCode(StabilizerCode):
             block.recovery_combinations_finder.find_recovery_operations(recoveries)
             for block, recoveries in zip(blocks, recoveries_per_block)
         ]
-        for recovery_target in recovery_combos_per_block[0]:
-            for recovery_helper in recovery_combos_per_block[1]:
-                symptom = array(recovery_target.symptom) ^ array(recovery_helper.symptom)
-                recoveries.append(RecoveryOperation(
-                    operation=recovery_helper.operation, # only do helper because target is corrected independently by ActiveEncodingsStore
-                    symptom=symptom.tolist(),
-                ))
+        recovery_combos_per_block_by_symptom = [defaultdict(list) for _ in range(len(recovery_combos_per_block))]
+        for i, recovery_combos in enumerate(recovery_combos_per_block):
+            for recovery in recovery_combos:
+                recovery_combos_per_block_by_symptom[i][tuple(recovery.symptom)].append(recovery)
+        for symptom_target, recoveries_target in recovery_combos_per_block_by_symptom[0].items():
+            for symptom_helper, recoveries_helper in recovery_combos_per_block_by_symptom[1].items():
+                symptom_combined = array(list(symptom_target)) ^ array(list(symptom_helper))
+                for recovery_helper in recoveries_helper:
+                    recoveries.append(RecoveryOperation(
+                        operation=recovery_helper.operation, # only do helper because target is corrected independently by ActiveEncodingsStore
+                        symptom=symptom_combined.tolist(),
+                    ))
 
         return ErrorRecoveryByStabilizers(
             stabilizers=all_stabilizers,

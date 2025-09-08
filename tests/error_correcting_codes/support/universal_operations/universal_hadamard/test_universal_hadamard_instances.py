@@ -27,7 +27,7 @@ class TestUniversalHadamard:
         set_configuration_to_reduce_ancilla_qubits()
 
     @pytest.mark.parametrize('universal_hadamard_type', [
-        # pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
+        pytest.param(UniversalHadamardSingleAncilla, id='UniversalHadamardSingleAncilla'),
         pytest.param(UniversalHadamardFaultTolerant, id='UniversalHadamardFaultTolerant'),
     ])
     def test_random_alpha_beta(self, universal_hadamard_type: type[UniversalHadamard]):

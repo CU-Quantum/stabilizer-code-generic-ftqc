@@ -41,7 +41,7 @@ class ActiveEncodingsStore:
                 CircuitOperation(
                     FrozenCircuit(correction_circuit.syndrome_circuit),
                 ),
-                f'{ENCODING_TAG}_{i}'
+                CORRECTION_ROUND_SYNDROMES_TAG, f'{ENCODING_TAG}_{i}'
             )
             for i, correction_circuit in enumerate(correction_circuits)
         ]
@@ -50,7 +50,7 @@ class ActiveEncodingsStore:
                 CircuitOperation(
                     FrozenCircuit(correction_circuit.recovery_circuit),
                 ),
-                f'{ENCODING_TAG}_{i}'
+                CORRECTION_ROUND_RECOVERIES_TAG, f'{ENCODING_TAG}_{i}'
             )
             for i, correction_circuit in enumerate(correction_circuits)
         ]

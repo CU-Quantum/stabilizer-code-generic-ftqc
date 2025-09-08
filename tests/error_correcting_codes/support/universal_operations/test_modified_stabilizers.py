@@ -84,7 +84,8 @@ class TestModifiedStabilizers:
                                                   num_qubits_per_cat=len(control.subregisters[0]),
                                                   qubits=control.data_qubits,),
                     multiple_cat_code=control,
-                )
+                ),
+                target_code=target,
             )
             no_errors_state = simulator.run_simulation(
                 circuit=Circuit(
