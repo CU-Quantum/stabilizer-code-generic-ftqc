@@ -20,7 +20,7 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
                  recovery_combinations_finder: Optional[RecoveryCombinationsFinder] = None,
                  qubits: Optional[list[LineQubit]] = None):
         self.check_matrix = check_matrix
-        self._recovery_combinations_finder = recovery_combinations_finder or RecoveryCombinationsFinder(max_num_errors=1)
+        self.recovery_combinations_finder = recovery_combinations_finder or RecoveryCombinationsFinder(max_num_errors=1)
         super().__init__(num_data_qubits=self.check_matrix.num_physical_qubits,
                          num_logical_qubits=self.check_matrix.num_logical_qubits,
                          qubits=qubits)
@@ -48,5 +48,5 @@ class StabilizerCode(ErrorCorrectingCode, ABC):
         return ErrorRecoveryByCheckMatrix(
             check_matrix=self.check_matrix,
             qubits=self.data_qubits,
-            recovery_combinations_finder=self._recovery_combinations_finder
+            recovery_combinations_finder=self.recovery_combinations_finder
         ).get_error_correction_circuit()

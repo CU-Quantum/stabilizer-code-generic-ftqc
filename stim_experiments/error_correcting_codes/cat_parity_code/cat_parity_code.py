@@ -1,11 +1,12 @@
 from typing import Optional
 
 from cirq import Circuit, LineQubit, Operation, X, Z
-from numpy import array, concatenate
+from numpy import array
 
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.check_matrix import CheckMatrix
+from stim_experiments.custom_dataclasses.recovery import RecoveryOperation
 from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.error_correcting_codes.support.check_matrix_to_operations import CheckMatrixToOperations
 from stim_experiments.error_correcting_codes.support.error_recovery.error_recovery_by_stabilizers import \
@@ -72,7 +73,25 @@ class CatParityCode(StabilizerCode):
         all_stabilizers = target_stabilizers + control_stabilizers
         all_qubits = target_code.data_qubits + self.data_qubits
         combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
+
         recoveries = RecoveryFinder(check_matrix=combined_check_matrix).find_recovery_operations(qubits=all_qubits)
+        blocks = [target_code, self]
+        recoveries_per_block = [
+            [recovery for recovery in recoveries if recovery.operation.qubits[0] in block.data_qubits]
+            for block in blocks
+        ]
+        recovery_combos_per_block = [
+            block.recovery_combinations_finder.find_recovery_operations(recoveries)
+            for block, recoveries in zip(blocks, recoveries_per_block)
+        ]
+        for recovery_target in recovery_combos_per_block[0]:
+            for recovery_helper in recovery_combos_per_block[1]:
+                symptom = array(recovery_target.symptom) ^ array(recovery_helper.symptom)
+                recoveries.append(RecoveryOperation(
+                    operation=recovery_helper.operation, # only do helper because target is corrected independently by ActiveEncodingsStore
+                    symptom=symptom.tolist(),
+                ))
+
         return ErrorRecoveryByStabilizers(
             stabilizers=all_stabilizers,
             recoveries=recoveries,

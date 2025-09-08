@@ -19,6 +19,7 @@ from stim_experiments.error_correcting_codes.support.state_encoder.state_encoder
 class RepetitionCodeOneLogical(ErrorCorrectingCode):
     def __init__(self, num_qubits: int, qubits: Optional[list[LineQubit]] = None):
         self.check_matrix = None
+        self.recovery_combinations_finder = RecoveryCombinationsFinder(max_num_errors=1)
         if num_qubits >= 2:
             z_stabilizers = MultipleCatCodeGenerators(num_qubits_per_cat=num_qubits, num_cats=1).get_z_generators()
             self.check_matrix = CheckMatrix(matrix=array(z_stabilizers))
