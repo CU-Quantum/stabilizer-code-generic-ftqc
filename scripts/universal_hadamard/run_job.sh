@@ -2,7 +2,7 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=10:00:00
-#SBATCH --partition=amilan
+#SBATCH --partition=amem
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
