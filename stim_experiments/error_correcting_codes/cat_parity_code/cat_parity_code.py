@@ -68,8 +68,8 @@ class CatParityCode(StabilizerCode):
         target_stabilizers = CheckMatrixToOperations(check_matrix=target_code.check_matrix, qubits=target_code.data_qubits).get_operations() \
             if target_code.check_matrix is not None else []
         control_stabilizers = CheckMatrixToOperations(check_matrix=self.check_matrix, qubits=self.data_qubits).get_operations()
-        if subregister_index < self._num_x_stabilizers - 1:
-            control_stabilizers[-self._num_x_stabilizers + subregister_index].extend(target_operations)
+        if subregister_index < len(self.subregisters) - 1:
+            control_stabilizers[-self._num_x_stabilizers + subregister_index] += target_operations
         all_stabilizers = target_stabilizers + control_stabilizers
         all_qubits = target_code.data_qubits + self.data_qubits
         combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
