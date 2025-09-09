@@ -31,8 +31,8 @@ class LogicalOperationsCircuitCreator:
             ).get_simulation_operation()
             for operation in self._operations
         ]
+        encoding_circuits = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
         with ActiveEncodingsStore(additional_tracked_encodings=self._encodings) as encodings_store:
-            encoding_circuits = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
             operations_circuits = [
                 CircuitFromOperationCreator(operation=simulation_operation, operation_index=i).create_circuit()
                 for i, simulation_operation in enumerate(simulation_operations)
