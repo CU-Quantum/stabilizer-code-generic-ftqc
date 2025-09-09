@@ -86,10 +86,10 @@ class ScriptRunner:
         print(f"----NUMBER OF NOISY CIRCUITS----: {len(self._circuits_noisy)}")
         start_time = self._log_time_period(start_time)
 
-        results = [run_circuit(x) for x in self._circuits_noisy]
-        # results: list[Measurements] = []
-        # with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
-        #     results = pool.map(run_circuit, self._circuits_noisy)
+        # results = [run_circuit(x) for x in self._circuits_noisy]
+        results: list[Measurements] = []
+        with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
+            results = pool.map(run_circuit, self._circuits_noisy)
         start_time = self._log_time_period(start_time)
 
         measurements_per_shot = [result.measurements_per_shot[0] for result in results]

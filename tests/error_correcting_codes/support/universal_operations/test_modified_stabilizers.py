@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytest
 from cirq import Circuit, LineQubit, X, Y, Z
 
@@ -14,6 +16,9 @@ from stim_experiments.utilities.utilities import states_are_equal
 from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
+NOISY_CIRCUIT_TYPE = list[list[Circuit]]
+
+
 class TestModifiedStabilizers:
     @pytest.fixture(autouse=True)
     def _setup(self):
@@ -21,60 +26,117 @@ class TestModifiedStabilizers:
         set_configuration_to_reduce_ancilla_qubits()
 
     def test_no_errors(self):
-        error_circuit = Circuit()
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_x_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
-        error_circuit = Circuit(
-            X(LineQubit(15))
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                X(LineQubit(15)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_z_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
-        error_circuit = Circuit(
-            Z(LineQubit(15))
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Z(LineQubit(15)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_y_error_on_first_qubit_of_third_cat_state_ghch_3_3(self):
-        error_circuit = Circuit(
-            Y(LineQubit(15))
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Y(LineQubit(15)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_z_error_on_first_qubit_ghch_3_3(self):
-        error_circuit = Circuit(
-            Z(LineQubit(0))
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Z(LineQubit(0)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_z_error_on_first_cat_state_ghch_3_3(self):
-        error_circuit = Circuit(
-            Z(LineQubit(9))
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=error_circuit)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Z(LineQubit(0)),
+                Z(LineQubit(9)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_error_in_each_block_ghch_3_3(self):
-        more_than_half_distance_phase_errors = Circuit(
-            Z(LineQubit(0)),
-            X(LineQubit(9)),
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=more_than_half_distance_phase_errors)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Z(LineQubit(0)),
+                X(LineQubit(9)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
     def test_z_error_on_second_subregister_ghch_3_3(self):
-        more_than_half_distance_phase_errors = Circuit(
-            Z(LineQubit(4)),
-        )
-        assert self._correct_with_modified_stabilizers(error_circuit=more_than_half_distance_phase_errors)
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Z(LineQubit(4)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
 
-    def _correct_with_modified_stabilizers(self, error_circuit: Circuit):
+    def test_x_error_on_last_qubit_of_second_subregister_ghch_3_3(self):
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                X(LineQubit(5)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
+
+    def test_y_error_on_second_qubit_of_first_cat_state_ghch_3_3(self):
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                Y(LineQubit(10)),
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit)
+
+    def test_y_error_on_second_qubit_of_first_cat_state_ghch_3_3_after_second_subregister_and_before_correction(self):
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            flip_circuit[1].insert(1, Y(LineQubit(10)))
+            return Circuit(
+                encoding_circuit,
+                flip_circuit,
+            )
+        assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit, logical_operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
+
+    def _correct_with_modified_stabilizers(
+            self,
+            build_noisy_circuit: Callable[[Circuit, NOISY_CIRCUIT_TYPE], Circuit],
+            logical_operation: LogicalOperation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+    ):
         qubits = LineQubit.range(18)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
         simulator = ErrorCorrectingSimulatorStateVector()
 
         control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[:9])
         target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[9:])
-        x_operation_target = target.get_operation_circuit(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0))
+        x_operation_target = target.get_operation_circuit(operation=logical_operation)
         target_operations = list(x_operation_target.all_operations())
 
         with ActiveEncodingsStore(additional_tracked_encodings=[target]):
@@ -100,10 +162,6 @@ class TestModifiedStabilizers:
                 ),
                 num_data_qubits=len(qubits))
 
-            circuit_with_error = Circuit(
-                encoding_circuit,
-                error_circuit,
-                flip_circuit,
-            )
+            circuit_with_error = build_noisy_circuit(encoding_circuit, flip_circuit)
             result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(qubits))
             return states_are_equal(result.state, no_errors_state.state)
