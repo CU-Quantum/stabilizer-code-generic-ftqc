@@ -73,7 +73,7 @@ class CatParityCode(StabilizerCode):
             control_stabilizers[affected_stabilizer_index] += target_operations
         all_stabilizers = control_stabilizers + target_stabilizers
 
-        all_qubits = self.data_qubits + target_code.data_qubits
+        all_qubits = sorted(self.data_qubits + target_code.data_qubits)
         combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
         recoveries = RecoveryFinder(check_matrix=combined_check_matrix).find_recovery_operations(qubits=all_qubits)
         blocks = [self, target_code]

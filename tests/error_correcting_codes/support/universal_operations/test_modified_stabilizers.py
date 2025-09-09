@@ -25,6 +25,8 @@ class TestModifiedStabilizers:
         set_seed(0)
         set_configuration_to_reduce_ancilla_qubits()
 
+        self._qubits = LineQubit.range(18)
+
     def test_no_errors(self):
         def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
             return Circuit(
@@ -125,17 +127,31 @@ class TestModifiedStabilizers:
             )
         assert self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit, logical_operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
 
+    def test_reversed_registers(self):
+        def build_noisy_circuit(encoding_circuit: Circuit, flip_circuit: NOISY_CIRCUIT_TYPE) -> Circuit:
+            return Circuit(
+                encoding_circuit,
+                X(LineQubit(1)),
+                flip_circuit,
+            )
+
+        control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
+        target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
+        self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit, control=control, target=target)
+
     def _correct_with_modified_stabilizers(
             self,
             build_noisy_circuit: Callable[[Circuit, NOISY_CIRCUIT_TYPE], Circuit],
-            logical_operation: LogicalOperation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+            logical_operation: LogicalOperation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0),
+            control: MultipleCatCode = None,
+            target: MultipleCatCode = None,
     ):
-        qubits = LineQubit.range(18)
-        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
+        FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._qubits))
         simulator = ErrorCorrectingSimulatorStateVector()
 
-        control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[:9])
-        target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits[9:])
+        if control is None or target is None:
+            control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
+            target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
         x_operation_target = target.get_operation_circuit(operation=logical_operation)
         target_operations = list(x_operation_target.all_operations())
 
@@ -160,8 +176,8 @@ class TestModifiedStabilizers:
                     encoding_circuit,
                     flip_circuit,
                 ),
-                num_data_qubits=len(qubits))
+                num_data_qubits=len(self._qubits))
 
             circuit_with_error = build_noisy_circuit(encoding_circuit, flip_circuit)
-            result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(qubits))
+            result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(self._qubits))
             return states_are_equal(result.state, no_errors_state.state)
