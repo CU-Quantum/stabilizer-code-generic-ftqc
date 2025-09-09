@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Optional
 
-from cirq import Circuit, LineQubit, Operation, X, Z
+from cirq import Circuit, LineQubit, Operation, X, Y, Z
 from numpy import array
 
 from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
@@ -68,11 +68,11 @@ class CatParityCode(StabilizerCode):
         target_stabilizers = CheckMatrixToOperations(check_matrix=target_code.check_matrix, qubits=target_code.data_qubits).get_operations() \
             if target_code.check_matrix is not None else []
         control_stabilizers = CheckMatrixToOperations(check_matrix=self.check_matrix, qubits=self.data_qubits).get_operations()
+        affected_stabilizer_index = -self._num_x_stabilizers + subregister_index
         if subregister_index < len(self.subregisters) - 1:
-            control_stabilizers[-self._num_x_stabilizers + subregister_index] += target_operations
+            control_stabilizers[affected_stabilizer_index] += target_operations
         all_stabilizers = control_stabilizers + target_stabilizers
 
-        # TODO can probably cut down on redundant recovery operations somehow
         all_qubits = self.data_qubits + target_code.data_qubits
         combined_check_matrix = OperationsToCheckMatrix(operations_list=all_stabilizers).get_check_matrix()
         recoveries = RecoveryFinder(check_matrix=combined_check_matrix).find_recovery_operations(qubits=all_qubits)
@@ -85,15 +85,37 @@ class CatParityCode(StabilizerCode):
             block.recovery_combinations_finder.find_recovery_operations(recoveries)
             for block, recoveries in zip(blocks, recoveries_per_block)
         ]
-        recovery_combos_per_block_by_symptom = [defaultdict(list) for _ in range(len(recovery_combos_per_block))]
-        for i, recovery_combos in enumerate(recovery_combos_per_block):
-            for recovery in recovery_combos:
-                recovery_combos_per_block_by_symptom[i][tuple(recovery.symptom)].append(recovery)
         recovery_combos_per_block_control = recovery_combos_per_block[0]
-        recovery_combos_per_block_by_symptom_control = recovery_combos_per_block_by_symptom[0]
-        recovery_combos_per_block_by_symptom_target = recovery_combos_per_block_by_symptom[1]
-        for symptom_helper, recoveries_helper in recovery_combos_per_block_by_symptom_control.items():
-            for symptom_target, recoveries_target in recovery_combos_per_block_by_symptom_target.items():
+
+        recovery_combos_per_block_by_symptom_control = defaultdict(list)
+        effected_control_qubits = [operation.qubits[0] for operation in control_stabilizers[affected_stabilizer_index]]
+        for recovery in recovery_combos_per_block_control:
+            recovery_combos_per_block_by_symptom_control[tuple(recovery.symptom)].append(recovery)
+        recovery_combos_per_block_by_symptom_control_pruned = {
+            k: v
+            for k, v in recovery_combos_per_block_by_symptom_control.items()
+            if any(recovery.operation.gate == Z and recovery.operation.qubits[0] in effected_control_qubits
+                   for recovery in v)
+        }
+
+        recovery_combos_per_block_by_symptom_target = defaultdict(list)
+        errors_that_commute_with_target_operator = [
+            op
+            for operation in target_operations
+            for op in (X(operation.qubits[0]), Y(operation.qubits[0]), Z(operation.qubits[0]))
+            if op.gate != operation.gate
+        ]
+        for i, recovery in enumerate(recovery_combos_per_block[1]):
+            recovery_combos_per_block_by_symptom_target[tuple(recovery.symptom)].append(recovery)
+        recovery_combos_per_block_by_symptom_target_pruned = {
+            k: v
+            for k, v in recovery_combos_per_block_by_symptom_target.items()
+            if any(recovery.operation in errors_that_commute_with_target_operator
+                   for recovery in v)
+        }
+
+        for symptom_helper, recoveries_helper in recovery_combos_per_block_by_symptom_control_pruned.items():
+            for symptom_target, recoveries_target in recovery_combos_per_block_by_symptom_target_pruned.items():
                 symptom_combined = array(list(symptom_target)) ^ array(list(symptom_helper))
                 for recovery_helper in recoveries_helper:
                     recovery_combos_per_block_control.append(RecoveryOperation(

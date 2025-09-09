@@ -61,6 +61,12 @@ class TestModifiedStabilizers:
         )
         assert self._correct_with_modified_stabilizers(error_circuit=more_than_half_distance_phase_errors)
 
+    def test_z_error_on_second_subregister_ghch_3_3(self):
+        more_than_half_distance_phase_errors = Circuit(
+            Z(LineQubit(4)),
+        )
+        assert self._correct_with_modified_stabilizers(error_circuit=more_than_half_distance_phase_errors)
+
     def _correct_with_modified_stabilizers(self, error_circuit: Circuit):
         qubits = LineQubit.range(18)
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(qubits))
