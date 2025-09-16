@@ -63,7 +63,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                     FrozenCircuit(
                         self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                         encodings_store.get_all_correction_circuits(),
-                        TaggedOperation(
+                        Moment(TaggedOperation(
                             CircuitOperation(
                                 FrozenCircuit(
                                     CircuitOperation(
@@ -75,7 +75,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                                 )
                             ),
                             DELAYED_NOISE_TAG
-                        ),
+                        )),
                     )
                 ),
                 UNIVERSAL_HADAMARD_MEASUREMENT_TAG
