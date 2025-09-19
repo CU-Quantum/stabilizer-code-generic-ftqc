@@ -63,7 +63,7 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
                     FrozenCircuit(
                         self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
                         encodings_store.get_all_correction_circuits(),
-                        Moment(TaggedOperation(
+                        FrozenCircuit(TaggedOperation(  # FrozenCircuit to keep separate from correction round
                             CircuitOperation(
                                 FrozenCircuit(
                                     CircuitOperation(
