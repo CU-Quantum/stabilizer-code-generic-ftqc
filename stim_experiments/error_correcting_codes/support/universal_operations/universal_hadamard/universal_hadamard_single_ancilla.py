@@ -9,6 +9,7 @@ from stim_experiments.error_correcting_codes.support.measurer.measurer import Me
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
 class UniversalHadamardSingleAncilla(UniversalHadamard):
@@ -27,6 +28,7 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
                 for logical_operation in logical_operations
             )
             circuit = Circuit(
+                R(ancilla_qubit),
                 H(ancilla_qubit),
                 logical_cx,
                 logical_cz,
@@ -40,7 +42,6 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
                     op.with_classical_controls(sympy.Eq(self._measurement_key_symbol, 0))
                     for op in logical_z.all_operations()
                 ],
-                R(ancilla_qubit),
             )
             return circuit
 
@@ -50,7 +51,7 @@ class UniversalHadamardSingleAncilla(UniversalHadamard):
 
     @cached_property
     def _measurement_key(self) -> MeasurementKey:
-        return MeasurementKey(f"UNIVERSAL_HADAMARD_SINGLE_ANCILLA_{uuid4().hex}")
+        return MeasurementKeyWithStableHash(f"UNIVERSAL_HADAMARD_SINGLE_ANCILLA_{uuid4().hex}")
 
     @property
     def _measurer_type(self) -> type[Measurer]:

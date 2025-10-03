@@ -1,17 +1,17 @@
 import pytest
 from cirq import LineQubit
 
-from algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import SimulationOperation, TargetEncoding, LogicalEncodingIndex
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
 from tests.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator.error_correcting_code_stub_with_x_and_z import \
     ErrorCorrectingCodeStubWithXAndZ
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
 class TestCircuitFromOperationCreator:
@@ -42,11 +42,11 @@ class TestCircuitFromOperationCreator:
 
         utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulated_state_with_inactive_control = utilities.get_state_after_circuit(
+        simulated_state_with_inactive_control = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
         ).state
-        simulated_state_with_active_control = utilities.get_state_after_circuit(
+        simulated_state_with_active_control = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(qubits),
             initial_data_state=tensor(KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR),
@@ -68,7 +68,7 @@ class TestCircuitFromOperationCreator:
 
         utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
         circuit = CircuitFromOperationCreator(operation=operation).create_circuit()
-        simulation = utilities.get_state_after_circuit(
+        simulation = utilities.run_simulation(
             circuit=circuit,
             num_data_qubits=len(control_encoding.encoding.data_qubits),
         )

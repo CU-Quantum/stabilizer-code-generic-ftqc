@@ -4,6 +4,7 @@ from typing import Optional
 
 from cirq import Circuit, LineQubit
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
 
 
@@ -31,7 +32,7 @@ class ErrorCorrectingCode(ABC):
         pass
 
     @abstractmethod
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         pass
 
     @abstractmethod

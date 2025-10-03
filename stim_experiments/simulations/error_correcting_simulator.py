@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, LineQubit, \
+from cirq import Circuit, DensityMatrixSimulator, KET_ZERO, \
+    LineQubit, \
     NOISE_MODEL_LIKE, \
-    Simulator, \
+    ResetChannel, Simulator, \
     StateVectorTrialResult
 from qsimcirq import QSimOptions, QSimSimulator
 
@@ -31,19 +32,27 @@ class ErrorCorrectingSimulator(ABC):
                                ) -> StateAndMeasurements:
         pass
 
-    def get_state_after_circuit(self,
-                                circuit: Circuit,
-                                num_data_qubits: int,
-                                initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-                                noise_model: Optional[NOISE_MODEL_LIKE] = None,
-                                ) -> StateAndMeasurements:
+    def run_simulation(self,
+                       circuit: Circuit,
+                       num_data_qubits: int,
+                       initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
+                       noise_model: Optional[NOISE_MODEL_LIKE] = None,
+                       ) -> StateAndMeasurements:
         if initial_data_state is None:
             initial_data_state = tensor(*[self.zero_state] * num_data_qubits)
         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
-        num_ancillas = len(qubits) - num_data_qubits
+        ancilla_qubits = LineQubit.range(num_data_qubits, len(qubits))
+        num_ancillas = len(ancilla_qubits)
         initial_state = tensor(initial_data_state, *[self.zero_state] * num_ancillas)
 
-        simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, initial_state=initial_state, noise_model=noise_model)
+        circuit_with_reset_ancillas = Circuit(
+            circuit,
+            ResetChannel().on_each(*ancilla_qubits),
+        )
+        simulation = self._get_simulation_result(circuit=circuit_with_reset_ancillas,
+                                                 qubits=qubits,
+                                                 initial_state=initial_state,
+                                                 noise_model=noise_model)
         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
 
         return StateAndMeasurements(
@@ -100,41 +109,42 @@ class ErrorCorrectingSimulatorStateVector(ErrorCorrectingSimulator):
         )
 
 
-# class ErrorCorrectingSimulatorClifford(ErrorCorrectingSimulator):
-#     @property
-#     def zero_state(self) -> TYPE_STATE_VECTOR:
-#         return KET_ZERO_STATE_VECTOR
-#
-#     def get_state_after_circuit(self,
-#                                 circuit: Circuit,
-#                                 num_data_qubits: int,
-#                                 initial_data_state: Optional[TYPE_STATE_VECTOR_OR_DENSITY_MATRIX] = None,
-#                                 noise_model: Optional[NOISE_MODEL_LIKE] = None,
-#                                 ) -> StateAndMeasurements:
+# class ErrorCorrectingSimulatorClifford:
+#     def run_simulation(self,
+#                        circuit: Circuit,
+#                        num_data_qubits: int,
+#                        noise_model: Optional[NOISE_MODEL_LIKE] = None,
+#                        ) -> StateAndMeasurements:
 #         qubits = LineQubit.range(self.get_max_qubit_index(circuit=circuit) + 1)
-#         num_ancillas = len(qubits) - num_data_qubits
+#         ancilla_qubits = LineQubit.range(num_data_qubits, len(qubits))
 #
-#         simulation = self._get_simulation_result(circuit=circuit, qubits=qubits, noise_model=noise_model)
-#         data_state = trace_out_ancillas_in_zero_state(state=simulation.state, num_ancillas=num_ancillas)
-#
-#         return StateAndMeasurements(
-#             state=data_state,
-#             measurements=simulation.measurements,
+#         circuit_with_reset_ancillas = Circuit(
+#             circuit,
+#             ResetChannel().on_each(*ancilla_qubits),
 #         )
+#         simulation = self._get_simulation_result(circuit=circuit_with_reset_ancillas, noise_model=noise_model)
+#
+#         return simulation
 #
 #     def _get_simulation_result(self,
 #                                circuit: Circuit,
-#                                qubits: list[LineQubit],
-#                                initial_state: Optional[TYPE_STATE_VECTOR] = None,
 #                                noise_model: Optional[NOISE_MODEL_LIKE] = None,
 #                                ) -> StateAndMeasurements:
 #         circuit_noisy = circuit.with_noise(noise_model) if noise_model is not None else circuit
 #         simulator = CliffordSimulator(seed=self._seed)
-#         simulation: CliffordTrialResult = simulator.run(circuit_noisy)
+#         simulation: CliffordTrialResult = simulator.simulate(circuit_noisy)
 #         return StateAndMeasurements(
 #             state=simulation.final_state,
 #             measurements=dict(simulation.measurements),
 #         )
+#
+#     def get_max_qubit_index(self, circuit: Circuit) -> int:
+#         all_qubits = list(circuit.all_qubits())
+#         return max(all_qubits).x if all_qubits else -1
+#
+#     @property
+#     def _seed(self) -> int:
+#         return ConfigurationErrorCorrectingCodeManager().get_configuration().seed
 
 
 class ErrorCorrectingSimulatorMultiGpu(ErrorCorrectingSimulator):

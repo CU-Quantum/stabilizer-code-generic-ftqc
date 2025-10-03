@@ -2,6 +2,7 @@ from typing import Optional
 
 from cirq import Circuit, LineQubit, X, Z
 
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
@@ -15,7 +16,7 @@ class ErrorCorrectingCodeStubWithXAndZ(ErrorCorrectingCode):
     def encode_logical_qubit(self):
         pass
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         pass
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation):

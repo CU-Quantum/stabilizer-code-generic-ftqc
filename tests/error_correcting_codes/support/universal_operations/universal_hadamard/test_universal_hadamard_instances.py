@@ -4,7 +4,6 @@ from cirq import Circuit
 from numpy import array
 
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -14,9 +13,10 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import \
     UniversalHadamardSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import states_are_equal
-from tests.utilities import get_random_encoded_initial_state, random_complex_unit_vector, \
+from tests.utilities_for_tests import get_random_encoded_initial_state, random_complex_unit_vector, \
     set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
@@ -38,7 +38,7 @@ class TestUniversalHadamard:
         initial_state = random_complex_unit_vector(num_qubits=1)
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_hadamard.get_hadamard_circuit(),
@@ -64,7 +64,7 @@ class TestUniversalHadamard:
         computational_basis_states = encoded_initial_state.computational_basis_states
         utilities = get_error_correcting_simulator(state=initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_hadamard.get_hadamard_circuit(),

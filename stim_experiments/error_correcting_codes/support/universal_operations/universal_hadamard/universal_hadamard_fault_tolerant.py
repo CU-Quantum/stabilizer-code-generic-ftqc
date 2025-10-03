@@ -5,25 +5,32 @@ from typing import Generator
 from uuid import uuid4
 
 import sympy
-from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey, OP_TREE, Operation
+from cirq import Circuit, CircuitOperation, FrozenCircuit, Moment, OP_TREE, Operation, TaggedOperation
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.universal_hadamard_fault_tolerant_context import \
     UniversalHadamardFaultTolerantContext
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
 from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
+
+
+UNIVERSAL_HADAMARD_MEASUREMENT_TAG = 'UNIVERSAL_HADAMARD_MEASUREMENT_TAG'
+UNIVERSAL_HADAMARD_CZ_TAG = 'UNIVERSAL_HADAMARD_CZ'
+UNIVERSAL_HADAMARD_CX_TAG = 'UNIVERSAL_HADAMARD_CX'
 
 
 class UniversalHadamardFaultTolerant(UniversalHadamard):
     def get_hadamard_circuit(self) -> Circuit:
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
+                self._reset_ancilla_qubits(context=context),
                 self._encode_three_cat(context=context),
                 self._czx_helpers_to_data(context=context),
                 self._measure_out_helper(context=context),
-                self._reset_ancilla_qubits(context=context),
             )
 
     def _encode_three_cat(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
@@ -31,26 +38,48 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
 
     def _czx_helpers_to_data(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
         return [
-            self._universal_operations_utilities.c_operations_helpers_to_data(
-                operations=operations,
-                context=context
+            TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        self._universal_operations_utilities.c_operations_helpers_to_data(
+                            operations=operations,
+                            context=context,
+                            target_code=self._code
+                        )
+                    )
+                ),
+                tag
             )
-            for operations in (context.data_code_logical_x, context.data_code_logical_z)
+            for operations, tag in zip((context.data_code_logical_x, context.data_code_logical_z),
+                                       (UNIVERSAL_HADAMARD_CX_TAG, UNIVERSAL_HADAMARD_CZ_TAG))
         ]
 
     def _measure_out_helper(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
-        measurement_key = MeasurementKey(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
+        measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_HADAMARD_MEASUREMENT_{uuid4().hex}')
         measurement_key_symbol = sympy.symbols(measurement_key.name)
         with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
-            return [
-                FrozenCircuit(  # cirq seems to be reversing the order of these operations when not frozen
-                    self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
-                    encodings_store.get_all_correction_circuits(),
-                    CircuitOperation(FrozenCircuit(context.data_code_logical_x)).with_classical_controls(measurement_key),
-                    CircuitOperation(FrozenCircuit(context.data_code_logical_z)).with_classical_controls(sympy.Eq(measurement_key_symbol, 0)),
+            return TaggedOperation(
+                CircuitOperation(
+                    FrozenCircuit(
+                        self._universal_operations_utilities.measure_out_helper(measurement_key=measurement_key, context=context),
+                        encodings_store.get_all_correction_circuits(),
+                        FrozenCircuit(TaggedOperation(  # FrozenCircuit to keep separate from correction round
+                            CircuitOperation(
+                                FrozenCircuit(
+                                    CircuitOperation(
+                                        FrozenCircuit(context.data_code_logical_x)).with_classical_controls(
+                                        measurement_key),
+                                    CircuitOperation(
+                                        FrozenCircuit(context.data_code_logical_z)).with_classical_controls(
+                                        sympy.Eq(measurement_key_symbol, 0)),
+                                )
+                            ),
+                            DELAYED_NOISE_TAG
+                        )),
+                    )
                 ),
-                encodings_store.get_all_correction_circuits(),
-            ]
+                UNIVERSAL_HADAMARD_MEASUREMENT_TAG
+            )
 
     def _reset_ancilla_qubits(self, context: UniversalHadamardFaultTolerantContext):
         return self._universal_operations_utilities.reset_ancilla_qubits(context=context)

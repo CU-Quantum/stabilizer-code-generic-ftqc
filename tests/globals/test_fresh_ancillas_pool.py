@@ -44,3 +44,29 @@ class TestFreshAncillasPool:
         FreshAncillasPool().set_first_ancilla_num(4)
         with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
             assert ancilla_qubits == [LineQubit(4)]
+
+    def test_parallel_forces_new_qubits(self):
+        ancillas  = set()
+        with FreshAncillasPool().parallel(True) as ancilla_qubits:
+            with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+                ancillas.update(ancilla_qubits)
+            with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+                ancillas.update(ancilla_qubits)
+        assert len(ancillas) == 2
+
+    def test_parallel_puts_used_ancillas_back_into_pool(self):
+        with FreshAncillasPool().parallel(True):
+            with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+                pass
+        with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+            assert ancilla_qubits[0].x == 0
+
+    def test_parallel_does_not_permanently_remove_from_pool(self):
+        FreshAncillasPool().set_first_ancilla_num(1)
+        with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+            pass
+        with FreshAncillasPool().parallel(True):
+            with FreshAncillasPool().use_fresh_ancillas(1) as ancilla_qubits:
+                assert ancilla_qubits[0].x == 1
+        with FreshAncillasPool().use_fresh_ancillas(2) as ancilla_qubits:
+            assert ancilla_qubits == [LineQubit(1), LineQubit(2)]

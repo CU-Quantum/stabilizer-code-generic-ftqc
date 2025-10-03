@@ -5,7 +5,6 @@ from cirq import Circuit, I
 from numpy import sqrt
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
@@ -15,8 +14,9 @@ from stim_experiments.error_correcting_codes.shors_code.shors_repetition_code im
 from stim_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
-from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from tests.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
 from tests.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
@@ -28,7 +28,7 @@ from tests.error_correcting_codes.shors_code.expected_states_shor import Expecte
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 from stim_experiments.utilities.utilities import states_are_equal
 
 
@@ -91,7 +91,7 @@ class TestLogicalGates:
         expected_state = self._parameters.expected_states.get_logical_one_state_vector()
 
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        current_state = utilities.get_state_after_circuit(
+        current_state = utilities.run_simulation(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],
                 self._parameters.code.get_operation_circuit(operation=operation)
@@ -115,7 +115,7 @@ class TestLogicalGates:
         )
 
         utilities = get_error_correcting_simulator(state=initial_data_state)
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [I(qubit) for qubit in self._parameters.code.data_qubits],
                 self._parameters.code.get_operation_circuit(operation=operation)

@@ -7,6 +7,7 @@ from cirq import LineQubit
 class FreshAncillasPool:
     _pool: list[LineQubit] = []
     _next_ancilla_num = 0
+    _parallel = False
 
     @classmethod
     def set_first_ancilla_num(cls, first_ancilla_num: int):
@@ -27,5 +28,19 @@ class FreshAncillasPool:
 
         yield ancillas
 
-        for ancillas in reversed(ancillas):
-            self._pool.append(ancillas)
+        if not self._parallel:
+            for ancillas in reversed(ancillas):
+                self._pool.append(ancillas)
+
+    @contextmanager
+    def parallel(self, use_parallel: bool) -> Generator[None, None, None]:
+        if use_parallel:
+            self.__class__._parallel = True
+            old_ancilla_num = self._next_ancilla_num
+            old_pool = self._pool.copy()
+            yield
+            self.__class__._pool = old_pool
+            self.__class__._next_ancilla_num = old_ancilla_num
+            self.__class__._parallel = False
+        else:
+            yield

@@ -1,6 +1,4 @@
-from functools import cached_property
-
-from cirq import Circuit, MeasurementKey
+from cirq import Circuit, CircuitOperation, FrozenCircuit, TaggedOperation
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import \
@@ -10,26 +8,45 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
     UniversalControlledOperation
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t import UniversalT
+from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
+
+
+CONTROLLED_OPERATION_TAG = 'CONTROLLED_OPERATION'
+LOGICAL_OPERATION_TAG = 'LOGICAL_OPERATION'
+MEASUREMENT_OPERATION_TAG = 'MEASUREMENT_OPERATION'
+LOGICAL_QUBIT_INDEX_TAG = 'LOGICAL_QUBIT_INDEX'
+GATE_TAG = 'GATE'
+OPERATION_INDEX_TAG = 'OPERATION_INDEX'
 
 
 class CircuitFromOperationCreator:
-    def __init__(self, operation: SimulationOperation):
+    def __init__(self, operation: SimulationOperation, operation_index: int):
         self._operation = operation
+        self._operation_index = operation_index
 
     def create_circuit(self) -> Circuit:
         if self._operation.target_encoding:
-            return self._get_controlled_circuit() if self._operation.control_encoding else self._logical_operation_on_target
+            return self._get_controlled_circuit() if self._operation.control_encoding else self._logical_operation_on_target()
         elif self._operation.control_encoding:
             return self._get_measurement_circuit()
         else:
             raise ValueError('Was given a SimulationOperation with no encoding.')
 
     def _get_controlled_circuit(self) -> Circuit:
-        return self._universal_controlled_operation_type(control=self._operation.control_encoding,
-                                                         target=self._operation.target_encoding
-                                                         ).get_controlled_operation_circuit()
+        return Circuit(
+            TaggedOperation(
+                CircuitOperation(
+                    self._universal_controlled_operation_type(
+                        control=self._operation.control_encoding,
+                        target=self._operation.target_encoding
+                    ).get_controlled_operation_circuit().freeze()
+                ),
+                CONTROLLED_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
+            )
+        )
 
     def _get_measurement_circuit(self) -> Circuit:
         control_operation = LogicalOperation(
@@ -38,13 +55,33 @@ class CircuitFromOperationCreator:
         )
         logical_z_on_control = self._operation.control_encoding.encoding.get_operation_circuit(operation=control_operation)
         measurer = self._measurer_type(
-            operations=list(logical_z_on_control.all_operations()),
-            measurement_key=MeasurementKey(str(self._operation.control_encoding.qubit_index_logical)),
+            observables=[list(logical_z_on_control.all_operations())],
+            measurement_keys=[MeasurementKeyWithStableHash(str(self._operation.control_encoding.qubit_index_logical))],
         )
-        return measurer.get_measurement_circuit()
+        with ActiveEncodingsStore(additional_tracked_encodings=[]) as encodings_store:
+            return Circuit(
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            measurer.get_measurement_circuit(),
+                            encodings_store.get_all_correction_circuits()
+                        ),
+                    ),
+                    MEASUREMENT_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{LOGICAL_QUBIT_INDEX_TAG}_{self._operation.control_encoding.qubit_index_logical}'
+                )
+            )
 
-    @cached_property
     def _logical_operation_on_target(self) -> Circuit:
+        return Circuit(
+            TaggedOperation(
+                CircuitOperation(
+                    self._logical_operation_on_target_unwrapped().freeze()
+                ),
+                LOGICAL_OPERATION_TAG, f'{OPERATION_INDEX_TAG}_{self._operation_index}', f'{GATE_TAG}_{self._operation.target_encoding.operation.gate}'
+            )
+        )
+
+    def _logical_operation_on_target_unwrapped(self) -> Circuit:
         try:
             return self._operation.target_encoding.encoding.get_operation_circuit(operation=self._operation.target_encoding.operation)
         except NotImplementedError as e:

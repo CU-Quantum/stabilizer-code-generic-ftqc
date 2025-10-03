@@ -4,11 +4,12 @@ from numpy.ma.core import allequal
 
 from stim_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
+@pytest.mark.slow
 class TestDeutschJosza:
     @pytest.fixture(autouse=True, params=range(3))
     def _setup(self, request):

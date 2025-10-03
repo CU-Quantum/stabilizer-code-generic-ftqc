@@ -1,28 +1,22 @@
-from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Optional
 from uuid import uuid4
 
 import numpy as np
-from cirq import Circuit, H, LineQubit, M, MeasurementKey, \
-    Operation, R, X
-from numpy import array
+from cirq import Circuit, H, LineQubit, MeasurementKey, Operation, X, inverse
 from numpy._typing import NDArray
 from numpy.ma.extras import average
 
 from stim_experiments.conditions.flag_index_limit import FlagIndexLimit
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator import CatStateCreator
+from stim_experiments.custom_dataclasses.cat_state_flag_info import CatStateFlagInfo
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_measurer.flag_measurer import \
+    FlagMeasurer
+from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_measurer.flag_measurer_parallel import \
+    FlagMeasurerParallel
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_flag_pattern.support.flag_sequnce_generator import \
     FlagSequenceGenerator
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 from stim_experiments.utilities.utilities import cx_sequentially_closer_qubits_from_first
-
-
-@dataclass
-class ParityCheckInfo:
-    control_qubit_index: int
-    recovery_qubit_num: Optional[int] = None
-    flags_outcome: NDArray[int] = field(default_factory=lambda: array([]))
 
 
 class CatStateCreatorFlagPattern(CatStateCreator):
@@ -30,8 +24,9 @@ class CatStateCreatorFlagPattern(CatStateCreator):
     Idea comes from https://quantum-journal.org/papers/q-2023-10-24-1154/
     Note that you apparently cannot use this for syndrome measurement.
     """
-    def __init__(self, qubit_register: list[LineQubit]):
+    def __init__(self, qubit_register: list[LineQubit], flag_measurer_type: type[FlagMeasurer] = FlagMeasurerParallel):
         super().__init__(qubit_register=qubit_register)
+        self._flag_measurer_type = flag_measurer_type
 
     def get_cat_state_circuit(self) -> Circuit:
         if not self._num_data_qubits:
@@ -46,6 +41,13 @@ class CatStateCreatorFlagPattern(CatStateCreator):
             self._recover_from_errors(),
         )
 
+    def decode_state(self) -> Circuit:
+        if not self._num_data_qubits:
+            return Circuit()
+        return Circuit(
+            inverse(self._create_cat_state()),
+        )
+
     def _create_cat_state(self) -> list[list[Operation]]:
         return [
             [H(self._control_qubit)],
@@ -53,32 +55,14 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         ]
 
     def _measure_flags(self) -> list[list[Operation]]:
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=1) as ancilla_qubits:
-            ancilla = ancilla_qubits[0]
-            return [
-                X(ancilla).controlled_by(self._qubit_register[self._parity_check_infos[0].control_qubit_index]),
-                [
-                    [
-                        X(ancilla).controlled_by(self._qubit_register[parity_check_info.control_qubit_index])
-                        for previous_parity_check_index, parity_check_info in enumerate(self._parity_check_infos[1:-1])
-                        if parity_check_info.flags_outcome[flag_index]
-                           != self._parity_check_infos[previous_parity_check_index].flags_outcome[flag_index]
-                    ] + (self._get_measurement(ancilla=ancilla) if flag_index < self._num_measurements - 1 else [])
-                    for flag_index in range(self._num_measurements)
-                ],
-                X(ancilla).controlled_by(self._qubit_register[self._parity_check_infos[-1].control_qubit_index]),
-                self._get_measurement(ancilla=ancilla),
-            ]
-
-    def _get_measurement(self, ancilla: LineQubit) -> list[Operation]:
-        return [
-            M(ancilla, key=self._measurement_key),
-            R(ancilla),
-        ]
+        return self._flag_measurer_type(qubit_register=self._qubit_register,
+                                        parity_check_infos=self._parity_check_infos,
+                                        measurement_keys=self._measurement_keys,
+                                        ).measure_flags()
 
     def _recover_from_errors(self) -> list[list[Operation]]:
         return [
-            [X(qubit).with_classical_controls(FlagIndexLimit(key=MeasurementKey(self._measurement_key),
+            [X(qubit).with_classical_controls(FlagIndexLimit(measurement_keys=tuple(self._measurement_keys),
                                                              parity_check_index=parity_check_index - 1,
                                                              flag_sequence=self._flag_sequence)
                                               )
@@ -87,20 +71,20 @@ class CatStateCreatorFlagPattern(CatStateCreator):
         ]
 
     @cached_property
-    def _measurement_key(self) -> str:
-        return f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}"
+    def _measurement_keys(self) -> list[MeasurementKey]:
+        return [MeasurementKeyWithStableHash(f"CAT_STATE_FLAG_PATTERN_{uuid4().hex}") for _ in range(self._num_measurements)]
 
     @cached_property
-    def _parity_check_infos(self) -> list[ParityCheckInfo]:
+    def _parity_check_infos(self) -> list[CatStateFlagInfo]:
         perfect_num_data_qubits = 3 * (2 ** self._num_measurements - 2 * self._num_measurements + 2)
         num_data_qubits_less_than_perfect = perfect_num_data_qubits - self._num_data_qubits
-        initial_flag = ParityCheckInfo(control_qubit_index=0,
-                                       flags_outcome=self._flag_sequence[0])
-        last_flag = ParityCheckInfo(control_qubit_index=perfect_num_data_qubits - 1)
+        initial_flag = CatStateFlagInfo(control_qubit_index=0,
+                                        flags_outcome=self._flag_sequence[0])
+        last_flag = CatStateFlagInfo(control_qubit_index=perfect_num_data_qubits - 1)
         parity_check_data = ([initial_flag]
-                           + [ParityCheckInfo(control_qubit_index=last_seq_num * 3 + 1,
-                                              recovery_qubit_num=3 * last_seq_num,
-                                              flags_outcome=flags_outcome)
+                           + [CatStateFlagInfo(control_qubit_index=last_seq_num * 3 + 1,
+                                               recovery_qubit_num=3 * last_seq_num,
+                                               flags_outcome=flags_outcome)
                               for last_seq_num, flags_outcome in enumerate(self._flag_sequence[1:])]
                            + [last_flag])
         for i in range(num_data_qubits_less_than_perfect):

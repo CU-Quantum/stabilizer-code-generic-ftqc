@@ -4,8 +4,9 @@ from typing import List, Optional
 import pytest
 from cirq import Circuit, H, LineQubit, T, X, Z
 
-from algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.transformation_operation import \
@@ -24,7 +25,7 @@ class ErrorCorrectingCodeStub(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         pass
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         pass
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:

@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 
-from cirq import ClassicalDataStoreReader, Condition, MeasurementKey
-from cirq.protocols import json_serialization
+from cirq import ClassicalDataStoreReader, MeasurementKey, dataclass_json_dict, json_cirq_type
+
+from stim_experiments.conditions.custom_condition import CustomCondition
 
 
 @dataclass(frozen=True)
-class ParityCheckReader(Condition):
+class ParityCheckReader(CustomCondition):
     key: MeasurementKey
     qubit_correction_index: int = 0
 
@@ -20,7 +21,7 @@ class ParityCheckReader(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'ParityCheckIndexLimit({self.key!r}, f{self.qubit_correction_index})'
+        return f'{json_cirq_type(type(self))}({self.key!r}, f{self.qubit_correction_index})'
 
     def resolve(self, classical_data: ClassicalDataStoreReader) -> bool:
         if self.key not in classical_data.keys():
@@ -34,7 +35,7 @@ class ParityCheckReader(Condition):
             return bool(measurements[self.qubit_correction_index - 1] and measurements[self.qubit_correction_index])
 
     def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
+        return dataclass_json_dict(self)
 
     @classmethod
     def _from_json_dict_(cls, key, qubit_correction_index, **kwargs):

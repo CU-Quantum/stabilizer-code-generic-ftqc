@@ -1,18 +1,22 @@
-from cirq import Circuit, LineQubit
+from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, TaggedOperation
 from proto.utils import cached_property
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
-    CircuitFromOperationCreator
+    CircuitFromOperationCreator, LOGICAL_QUBIT_INDEX_TAG
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.support.transformation_operation_to_simulation_operation import \
     TransformationOperationToSimulationOperationConverter
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationOperation
-from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
+from stim_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
+LOGICAL_QUBIT_ENCODING_TAG = 'LOGICAL_QUBIT_ENCODING'
+
+
 class LogicalOperationsCircuitCreator:
-    def __init__(self, encodings: list[ErrorCorrectingCode], operations: list[TransformationOperation]):
+    def __init__(self, encodings: list[StabilizerCode], operations: list[TransformationOperation]):
         self._encodings = encodings
         self._operations = operations
 
@@ -27,18 +31,40 @@ class LogicalOperationsCircuitCreator:
             ).get_simulation_operation()
             for operation in self._operations
         ]
-        operations_circuits = [
-            CircuitFromOperationCreator(operation=simulation_operation).create_circuit()
-            for simulation_operation in simulation_operations
-        ]
-        encoding_circuits = [
-            encoding.encode_logical_qubit()
-            for encoding in self._encodings
-        ]
-        return Circuit(
-            encoding_circuits,
-            operations_circuits,
-        )
+        encoding_circuits = self._get_snowballed_encodings_with_error_correction(encodings=self._encodings)
+        with ActiveEncodingsStore(additional_tracked_encodings=self._encodings) as encodings_store:
+            operations_circuits = [
+                CircuitFromOperationCreator(operation=simulation_operation, operation_index=i).create_circuit()
+                for i, simulation_operation in enumerate(simulation_operations)
+            ]
+            return Circuit(
+                encoding_circuits,
+                [
+                    [
+                        operation_circuit,
+                        encodings_store.get_all_correction_circuits(),
+                    ] for operation_circuit in operations_circuits[:-1]
+                ],
+                operations_circuits[-1] if operations_circuits else []
+            )
+
+    def _get_snowballed_encodings_with_error_correction(self, encodings: list[StabilizerCode]) -> Circuit:
+        if not encodings:
+            return Circuit()
+        encoding = encodings[0]
+        with ActiveEncodingsStore(additional_tracked_encodings=[encoding]) as encodings_store:
+            return Circuit(
+                TaggedOperation(
+                    CircuitOperation(
+                        FrozenCircuit(
+                            encoding.encode_logical_qubit(),
+                            encodings_store.get_all_correction_circuits(),
+                            self._get_snowballed_encodings_with_error_correction(encodings[1:])
+                        ),
+                    ),
+                    LOGICAL_QUBIT_ENCODING_TAG, f'{LOGICAL_QUBIT_INDEX_TAG}_{len(self._encodings) - len(encodings)}'
+                )
+            )
 
     def _ensure_enough_logical_qubits(self) -> None:
         num_logical_qubits_given = sum(code.num_logical_qubits for code in self._encodings)

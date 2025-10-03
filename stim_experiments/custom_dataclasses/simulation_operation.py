@@ -2,12 +2,12 @@ from dataclasses import dataclass
 from typing import Optional
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalOperation
-from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 
 
 @dataclass
 class LogicalEncodingIndex:
-    encoding: ErrorCorrectingCode
+    encoding: StabilizerCode
     qubit_index_relative: int
     qubit_index_logical: Optional[int] = None
 
@@ -15,7 +15,7 @@ class LogicalEncodingIndex:
 @dataclass
 class TargetEncoding:
     operation: LogicalOperation
-    encoding: ErrorCorrectingCode
+    encoding: StabilizerCode
 
 
 @dataclass

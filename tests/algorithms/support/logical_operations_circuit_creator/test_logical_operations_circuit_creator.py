@@ -3,20 +3,21 @@ from typing import Optional
 import pytest
 from cirq import Circuit, H, I, X, Z, LineQubit
 
-from algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
+from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from stim_experiments.custom_dataclasses.state_and_measurements import \
     StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import \
     TransformationGate, TransformationOperation
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits, set_seed
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
 ENCODING_OPERATION_MARK = I
@@ -31,8 +32,8 @@ class LogicalBitsEncodingStub(ErrorCorrectingCode):
     def encode_logical_qubit(self) -> TYPE_STATE_VECTOR_OR_DENSITY_MATRIX:
         return Circuit([ENCODING_OPERATION_MARK(qubit) for qubit in self.data_qubits])
 
-    def get_error_correction_circuit(self) -> Circuit:
-        pass
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
+        return CorrectionCircuit()
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Circuit:
         gates = []
@@ -60,7 +61,7 @@ class TestLogicalOperationsCircuitCreator:
         operations = []
         simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
         circuit = simulator.get_simulation_circuit()
-        encoding_operation_exists = list(circuit.findall_operations_with_gate_type(ENCODING_OPERATION_MARK.__class__))
+        encoding_operation_exists = list(circuit[0].operations[0].untagged.circuit.findall_operations_with_gate_type(ENCODING_OPERATION_MARK.__class__))
         assert encoding_operation_exists
 
     def test_entanglement(self):
@@ -86,7 +87,7 @@ class TestLogicalOperationsCircuitCreator:
             circuit = simulator.get_simulation_circuit()
 
             utilities = get_error_correcting_simulator(state=KET_ZERO_STATE_VECTOR)
-            result = utilities.get_state_after_circuit(
+            result = utilities.run_simulation(
                 circuit=circuit,
                 num_data_qubits=len(simulator.data_qubits),
             )

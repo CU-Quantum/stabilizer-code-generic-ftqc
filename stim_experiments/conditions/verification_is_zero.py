@@ -1,8 +1,9 @@
-from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey
-from cirq.protocols import json_serialization
+from cirq import ClassicalDataDictionaryStore, MeasurementKey, json_cirq_type, obj_to_dict_helper
+
+from stim_experiments.conditions.custom_condition import CustomCondition
 
 
-class VerificationIsZero(Condition):
+class VerificationIsZero(CustomCondition):
     def __init__(self, key: MeasurementKey):
         self.key = key
         self._last_num_measurements = 0
@@ -18,7 +19,7 @@ class VerificationIsZero(Condition):
         return str(self.key)
 
     def __repr__(self):
-        return f'VerificationIsZero({self.key!r})'
+        return f'{json_cirq_type(type(self))}({self.key!r})'
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
@@ -29,7 +30,7 @@ class VerificationIsZero(Condition):
         return all_zero
 
     def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
+        return obj_to_dict_helper(self, ['key'])
 
     @classmethod
     def _from_json_dict_(cls, key: MeasurementKey, **kwargs):

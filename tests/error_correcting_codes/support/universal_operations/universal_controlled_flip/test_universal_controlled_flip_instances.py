@@ -3,7 +3,6 @@ from cirq import Circuit, LineQubit
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from stim_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex, TargetEncoding
-from simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
@@ -14,12 +13,13 @@ from stim_experiments.error_correcting_codes.support.universal_operations.univer
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import \
     UniversalControlledOperationSingleAncilla
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from stim_experiments.utilities.utilities import states_are_equal, tensor
-from tests.utilities import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed
+from tests.utilities_for_tests import get_random_encoded_initial_state, set_configuration_to_reduce_ancilla_qubits, set_seed
 
 
-class TestUniversalControlledOperationInstances:
+class TestUniversalControlledFlipInstances:
     @pytest.fixture(autouse=True, params=range(3))
     def _seed(self, request):
         set_seed(seed=request.param)
@@ -44,7 +44,7 @@ class TestUniversalControlledOperationInstances:
         initial_state = tensor(*[encoded_initial_state.initial_state for encoded_initial_state in encoded_initial_states])
         utilities = get_error_correcting_simulator(state=encoded_initial_states_control.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [code.encode_logical_qubit() for code in codes],
                 universal_controlled_operation.get_controlled_operation_circuit(),
@@ -89,7 +89,7 @@ class TestUniversalControlledOperationInstances:
         initial_state = tensor(*[encoded_initial_state.initial_state for encoded_initial_state in encoded_initial_states])
         utilities = get_error_correcting_simulator(state=encoded_initial_states_control.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 [code.encode_logical_qubit() for code in codes],
                 universal_controlled_operation.get_controlled_operation_circuit(),
@@ -138,7 +138,7 @@ class TestUniversalControlledOperationInstances:
         encoded_initial_states = get_random_encoded_initial_state(code=code)
         utilities = get_error_correcting_simulator(state=encoded_initial_states.initial_state)
 
-        simulated_state = utilities.get_state_after_circuit(
+        simulated_state = utilities.run_simulation(
             circuit=Circuit(
                 code.encode_logical_qubit(),
                 universal_controlled_operation.get_controlled_operation_circuit(),

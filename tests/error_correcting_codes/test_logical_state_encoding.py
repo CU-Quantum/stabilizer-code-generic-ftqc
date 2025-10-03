@@ -3,8 +3,6 @@ from dataclasses import dataclass
 import pytest
 
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from simulations.error_correcting_simulator import \
-    get_error_correcting_simulator
 from stim_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from stim_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
@@ -14,8 +12,9 @@ from stim_experiments.error_correcting_codes.steane_code.staene_code import Stea
 from stim_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
     CatParityCode
 
-from stim_experiments.error_correcting_codes.support.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal, tensor
@@ -32,7 +31,7 @@ from tests.error_correcting_codes.shors_code.expected_states_shor import Expecte
 from tests.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
     ExpectedStatesCatParity
-from tests.utilities import set_configuration_to_reduce_ancilla_qubits
+from tests.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
 @dataclass
@@ -164,7 +163,7 @@ class TestLogicalStateEncoding:
     def test_encoding(self):
         encoding = self._parameters.code.encode_logical_qubit()
         utilities = get_error_correcting_simulator(state=self._parameters.initial_data_state)
-        data_state = utilities.get_state_after_circuit(circuit=encoding,
-                                                       num_data_qubits=len(self._parameters.code.data_qubits),
-                                                       initial_data_state=self._parameters.initial_data_state).state
+        data_state = utilities.run_simulation(circuit=encoding,
+                                              num_data_qubits=len(self._parameters.code.data_qubits),
+                                              initial_data_state=self._parameters.initial_data_state).state
         assert states_are_equal(data_state, self._parameters.expected_state)

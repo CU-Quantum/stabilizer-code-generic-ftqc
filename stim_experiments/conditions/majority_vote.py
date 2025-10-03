@@ -1,43 +1,46 @@
 from uuid import uuid4
 
-from cirq import ClassicalDataDictionaryStore, Condition, MeasurementKey
-from cirq.protocols import json_serialization
+from cirq import ClassicalDataDictionaryStore, MeasurementKey, json_cirq_type, obj_to_dict_helper
 from numpy import array, bincount
 from numpy._typing import NDArray
 
+from stim_experiments.conditions.custom_condition import CustomCondition
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from stim_experiments.utilities.measurement_key_with_stable_hash import MeasurementKeyWithStableHash
 
 
-class MajorityVote(Condition):
-    def __init__(self, desired_measurement_key: MeasurementKey):
-        self.key = MeasurementKey(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
+class MajorityVote(CustomCondition):
+    def __init__(self, desired_measurement_key: MeasurementKey, key: MeasurementKeyWithStableHash = None, number_of_votes: int = 0,):
         self.desired_measurement_key = desired_measurement_key
-        self.number_of_votes = ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
+        self.key = key or MeasurementKeyWithStableHash(f'FAULT_TOLERANT_MEASUREMENT_{uuid4().hex}')
+        self.number_of_votes = number_of_votes or ConfigurationErrorCorrectingCodeManager().get_configuration().majority_vote_repetitions
+        self._start_index = 0
 
     @property
     def keys(self):
         return (self.key,)
 
     def replace_key(self, current: MeasurementKey, replacement: MeasurementKey):
-        self.key = replacement
-        return self
+        return MajorityVote(replacement) if self.key == current else self
 
     def __str__(self):
         return str(self.key)
 
     def __repr__(self):
-        return f'MajorityVote({self.desired_measurement_key!r})'
+        return f'{json_cirq_type(type(self))}({self.desired_measurement_key!r}, {self.key!r}, {self.number_of_votes})'
 
     def resolve(self, classical_data: ClassicalDataDictionaryStore) -> bool:
         if self.key not in classical_data.keys():
             raise ValueError(f'Measurement key {self.key} missing when majority voting.')
         measurements = self._get_measurements(classical_data=classical_data)
-        num_measurements = len(measurements)
+        latest_measurements = measurements[self._start_index:]
+        num_measurements = len(latest_measurements)
         if num_measurements == self.number_of_votes:
-            majority = int(bincount(measurements).argmax())
+            majority = int(bincount(latest_measurements).argmax())
             classical_data.record_measurement(key=self.desired_measurement_key,
                                               measurement=(majority,),
                                               qubits=classical_data.measured_qubits[self.key][0],)
+            self._start_index += self.number_of_votes
             return True
         return False
 
@@ -46,11 +49,11 @@ class MajorityVote(Condition):
         return array([classical_data.get_int(self.key, i) for i in range(num_measurements)])
 
     def _json_dict_(self):
-        return json_serialization.dataclass_json_dict(self)
+        return obj_to_dict_helper(self, ['desired_measurement_key', 'key', 'number_of_votes'])
 
     @classmethod
-    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, **kwargs):
-        return cls(desired_measurement_key=desired_measurement_key)
+    def _from_json_dict_(cls, desired_measurement_key: MeasurementKey, key: MeasurementKeyWithStableHash, number_of_votes: int, **kwargs):
+        return cls(desired_measurement_key=desired_measurement_key, key=key, number_of_votes=number_of_votes)
 
     @property
     def qasm(self):

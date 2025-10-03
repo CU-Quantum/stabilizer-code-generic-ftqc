@@ -95,7 +95,7 @@ circuit = simulator.get_simulation_circuit()
 
 # Simulate the circuit
 utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.get_state_after_circuit(
+result = utilities.run_simulation(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
 )
@@ -111,7 +111,9 @@ The project provides a configuration system that allows you to customize various
 
 ```python
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit import MeasurerWithSingleQubit
+from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import
+
+MeasurerWithSingleQubitSequential
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import
 
 CatStateCreatorCxFromFirstQubit
@@ -121,7 +123,7 @@ UniversalHadamardSingleAncilla
 from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import
 
 UniversalControlledOperationSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_singe_ancilla import
+from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_single_ancilla import
 
 UniversalTSingleAncilla
 
@@ -129,7 +131,7 @@ UniversalTSingleAncilla
 configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
 
 # Modify configuration settings
-configuration.measurer_type = MeasurerWithSingleQubit
+configuration.measurer_type = MeasurerWithSingleQubitSequential
 configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
 configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
 configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
@@ -158,6 +160,7 @@ from cirq import Circuit, LineQubit, R, X, Z
 from typing import Optional
 
 from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 
@@ -180,16 +183,17 @@ class MyCustomCode(ErrorCorrectingCode):
             ])
         return circuit
 
-    def get_error_correction_circuit(self) -> Circuit:
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
         # Implement error correction for your code
         # For a 3-qubit repetition code, we would use majority voting
-        circuit = Circuit()
+        circuit = CorrectionCircuit()
         # FreshAncillasPool allows you to pull fresh or unused ancilla qubits. 
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancilla_quibts:
+            # You must ensure the ancilla qubits are reset after pulling to ensure freshness
+            circuit.syndrome_circuit.append(R(ancilla for ancilla in ancilla_quibts))
             # Add error correction operations
-            Circuit.append(...)
-            # You must ensure the ancilla qubits return to the |0> state before exiting the FreshAncillasPool context.
-            Circuit.append(R(ancilla for ancilla in ancilla_quibts))
+            circuit.syndrome_circuit.append(...)
+            circuit.recovery_circuit.append(...)
             return circuit
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
@@ -246,7 +250,7 @@ operations = [
 simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 circuit = simulator.get_simulation_circuit()
 utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.get_state_after_circuit(
+result = utilities.run_simulation(
     circuit=circuit,
     num_data_qubits=len(simulator.data_qubits),
 )

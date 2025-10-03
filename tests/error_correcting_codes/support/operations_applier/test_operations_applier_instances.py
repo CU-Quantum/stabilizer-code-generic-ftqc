@@ -1,12 +1,12 @@
 import pytest
 from cirq import Circuit, LineQubit, X
 
-from simulations.error_correcting_simulator import get_error_correcting_simulator
-from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state.operations_applier_using_cat_state import \
+from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_cat_state import \
     OperationsApplierUsingCatStateControl
 from stim_experiments.error_correcting_codes.support.operations_applier.operations_applier_using_single_qubit_hadamard_control import \
     OperationsApplierUsingSingleQubitHadamardControl
 from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from stim_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from stim_experiments.utilities.utilities import KET_MINUS_STATE_VECTOR, KET_ONE_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor
 
@@ -42,9 +42,9 @@ class TestOperationsApplierInstances:
 
         initial_state = tensor(*[KET_MINUS_STATE_VECTOR] * num_data_qubits, KET_ZERO_STATE_VECTOR)
         utilities = get_error_correcting_simulator(state=initial_state)
-        simulation = utilities.get_state_after_circuit(circuit=circuit,
-                                                       num_data_qubits=num_qubits_with_measure,
-                                                       initial_data_state=initial_state)
+        simulation = utilities.run_simulation(circuit=circuit,
+                                              num_data_qubits=num_qubits_with_measure,
+                                              initial_data_state=initial_state)
 
         expected_measurement_result = KET_ONE_STATE_VECTOR if num_data_qubits % 2 else KET_ZERO_STATE_VECTOR
         expected_state = tensor(*[KET_MINUS_STATE_VECTOR] * num_data_qubits, expected_measurement_result)
