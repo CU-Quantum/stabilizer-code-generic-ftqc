@@ -139,7 +139,7 @@ class ScriptRunner:
         print(f"----NUMBER OF NOISY CIRCUITS----: {len(self._circuits_noisy)}")
 
         start_time = self._log_time_period(start_time)
-        circuits_to_run = [circuit.circuit for circuit in self._circuits_noisy]
+        circuits_to_run: list[Circuit] = [circuit.circuit for circuit in self._circuits_noisy]
         successful_or_not_shots = self._successful_results_info.get_successful_or_not_shots(
             set_configuration_func=self._set_configuration,
             circuits=circuits_to_run,

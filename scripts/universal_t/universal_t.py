@@ -12,7 +12,6 @@ from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state
 from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import \
     MeasurerWithSingleQubitSequential
 from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
 from stim_experiments.utilities.utilities import states_are_equal
 
 
@@ -23,15 +22,6 @@ class UniversalT:
     def run_main(self):
         return self.script_runner.run_main()
 
-    def _set_ideal_configuration(self) -> None:
-        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-        configuration.majority_vote_repetitions = 1
-        configuration.noise_parameters.depolarization_probability_one_qubit = 0
-        configuration.noise_parameters.depolarization_probability_two_qubit = 0
-
-        configuration.measurer_type = MeasurerWithSingleQubitSequential
-        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
-
     def was_successful(self, state_and_measurements: list[StateAndMeasurements]) -> NDArray[bool]:
         return np.array([
             states_are_equal(state_and_measurement.state, self.ideal_simulation.state,)
@@ -40,8 +30,18 @@ class UniversalT:
 
     @cached_property
     def ideal_simulation(self) -> StateAndMeasurements:
+        self._set_ideal_configuration()
         circuit_noiseless = self.script_runner.circuit_noiseless
         return simulate_circuit(circuit=circuit_noiseless, num_data_qubits=len(self.script_runner.circuit_creator.data_qubits))
+
+    def _set_ideal_configuration(self) -> None:
+        configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
+        configuration.majority_vote_repetitions = 1
+        configuration.noise_parameters.depolarization_probability_one_qubit = 0
+        configuration.noise_parameters.depolarization_probability_two_qubit = 0
+
+        configuration.measurer_type = MeasurerWithSingleQubitSequential
+        configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
 
     @property
     def script_runner(self) -> ScriptRunner:
