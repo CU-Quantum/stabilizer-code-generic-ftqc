@@ -8,8 +8,8 @@
 #SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
 #SBATCH --job-name=universal_t
-#SBATCH --error=results/universal_t/universal_cnot_%j.err
-#SBATCH --output=results/universal_t/universal_cnot_%j.out
+#SBATCH --error=results/universal_t/universal_t_%j.err
+#SBATCH --output=results/universal_t/universal_t_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
