@@ -1,7 +1,8 @@
+from abc import ABC, abstractmethod
 from argparse import ArgumentParser
 from dataclasses import asdict, dataclass
 from datetime import datetime
-from functools import cached_property
+from functools import cached_property, partial
 from multiprocessing import Pool, cpu_count
 from typing import Callable
 
@@ -11,10 +12,12 @@ from numpy._typing import NDArray
 
 from stim_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import \
     LogicalOperationsCircuitCreator
+from stim_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from stim_experiments.custom_dataclasses.noisy_circuit import NoisyCircuit
-from stim_experiments.custom_dataclasses.state_and_measurements import Measurements
+from stim_experiments.custom_dataclasses.state_and_measurements import Measurements, StateAndMeasurements
 from stim_experiments.custom_dataclasses.transformation_operation import TransformationOperation
 from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from stim_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_basic_nondeterministic.support.parity_verifier_sequential import \
     ParityVerifierSequential
 from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
@@ -25,6 +28,7 @@ from stim_experiments.globals.error_correcting_code_configuration import Configu
 from stim_experiments.serialization.custom_json_encoder import CustomJsonEncoder
 from stim_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from stim_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from stim_experiments.simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
 from stim_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
@@ -65,18 +69,67 @@ def get_runner_configuration_args() -> RunnerConfiguration:
     )
 
 
-def run_circuit(noisy_circuit: NoisyCircuit) -> Measurements:
-    return ErrorCorrectingRunnerClifford().run_circuit(noisy_circuit.circuit)
+def run_circuit(circuit: Circuit) -> Measurements:
+    return ErrorCorrectingRunnerClifford().run_circuit(circuit)
+
+
+def simulate_circuit(circuit: Circuit, num_data_qubits: int) -> StateAndMeasurements:
+    return ErrorCorrectingSimulatorStateVector().run_simulation(circuit, num_data_qubits=num_data_qubits)
+
+
+class SuccessfulResultsInfo(ABC):
+    @abstractmethod
+    def get_successful_or_not_shots(self,
+                                    set_configuration_func: Callable[[], None],
+                                    circuits: list[Circuit],
+                                    num_data_qubits: int,) -> NDArray[bool]:
+        pass
+
+
+class SuccessfulResultsInfoRunner(SuccessfulResultsInfo):
+    def __init__(self, num_processes: int, was_successful_func: Callable[[list[NDArray[int]]], NDArray[bool]]):
+        self._num_processes = num_processes
+        self._was_successful_func = was_successful_func
+
+    def get_successful_or_not_shots(self,
+                                    set_configuration_func: Callable[[], None],
+                                    circuits: list[Circuit],
+                                    num_data_qubits: int,) -> NDArray[bool]:
+        # results = [run_circuit(x) for x in self._circuits_noisy]
+        results: list[Measurements] = []
+        with Pool(processes=self._num_processes, initializer=set_configuration_func) as pool:
+            results = pool.map(run_circuit, circuits)
+
+        measurements_per_shot = [result.measurements_per_shot[0] for result in results]
+        return self._was_successful_func(measurements_per_shot)
+
+
+class SuccessfulResultsInfoSimulator(SuccessfulResultsInfo):
+    def __init__(self,
+                 num_processes: int,
+                 was_successful_func: Callable[[list[StateAndMeasurements]], NDArray[bool]],):
+        self._num_processes = num_processes
+        self._was_successful_func = was_successful_func
+
+    def get_successful_or_not_shots(self,
+                                    set_configuration_func: Callable[[], None],
+                                    circuits: list[Circuit],
+                                    num_data_qubits: int,) -> NDArray[bool]:
+        results: list[StateAndMeasurements] = []
+        with Pool(processes=self._num_processes, initializer=set_configuration_func) as pool:
+            simulate_func = partial(simulate_circuit, num_data_qubits=num_data_qubits)
+            results = pool.map(simulate_func, circuits)
+        return self._was_successful_func(results)
 
 
 class ScriptRunner:
     def __init__(self,
                  operations: list[TransformationOperation],
-                 was_successful_func: Callable[[list[NDArray[int]]], NDArray[bool]],
+                 successful_results_info: SuccessfulResultsInfo,
                  runner_configuration: RunnerConfiguration,
                  ):
         self._operations = operations
-        self._was_successful_func = was_successful_func
+        self._successful_results_info = successful_results_info
         self._runner_configuration = runner_configuration
 
     def run_main(self):
@@ -84,16 +137,16 @@ class ScriptRunner:
         start_time = datetime.now()
         print(f"{start_time}: Start runner")
         print(f"----NUMBER OF NOISY CIRCUITS----: {len(self._circuits_noisy)}")
+
+        start_time = self._log_time_period(start_time)
+        circuits_to_run: list[Circuit] = [circuit.circuit for circuit in self._circuits_noisy]
+        successful_or_not_shots = self._successful_results_info.get_successful_or_not_shots(
+            set_configuration_func=self._set_configuration,
+            circuits=circuits_to_run,
+            num_data_qubits=len(self.circuit_creator.data_qubits),
+        )
         start_time = self._log_time_period(start_time)
 
-        # results = [run_circuit(x) for x in self._circuits_noisy]
-        results: list[Measurements] = []
-        with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
-            results = pool.map(run_circuit, self._circuits_noisy)
-        start_time = self._log_time_period(start_time)
-
-        measurements_per_shot = [result.measurements_per_shot[0] for result in results]
-        successful_or_not_shots = self._was_successful_func(measurements_per_shot)
         num_assumed_success = self._runner_configuration.num_shots - len(self._circuits_noisy)
         errored_circuit_indices = np.nonzero(1 - successful_or_not_shots)[0]
         print()
@@ -153,7 +206,7 @@ class ScriptRunner:
 
     @cached_property
     def _circuits_noisy(self) -> list[NoisyCircuit]:
-        _get_cache_outside_processes = self._circuit_noiseless
+        _get_cache_outside_processes = self.circuit_noiseless
         with Pool(processes=self._runner_configuration.num_processes, initializer=self._set_configuration) as pool:
             noisy_circuits_list = pool.map(self._get_noisy_circuit, [()] * self._runner_configuration.num_shots)
         return [noisy_circuit
@@ -161,15 +214,18 @@ class ScriptRunner:
                 if noisy_circuit.noisy_operations_count.num_non_identity_errors]
 
     def _get_noisy_circuit(self, *args, **kwargs) -> NoisyCircuit:
-        return NoisyCircuitCreator(circuit=self._circuit_noiseless).get_noisy_circuit()
+        return NoisyCircuitCreator(circuit=self.circuit_noiseless).get_noisy_circuit()
 
     @cached_property
-    def _circuit_noiseless(self) -> Circuit:
-        circuit_creator = LogicalOperationsCircuitCreator(encodings=self._logical_qubits, operations=self._operations)
-        return circuit_creator.get_simulation_circuit()
+    def circuit_noiseless(self) -> Circuit:
+        return self.circuit_creator.get_simulation_circuit()
 
     @cached_property
-    def _logical_qubits(self) -> list[ErrorCorrectingCode]:
+    def circuit_creator(self) -> LogicalOperationsCircuitCreator:
+        return LogicalOperationsCircuitCreator(encodings=self._logical_qubits, operations=self._operations)
+
+    @cached_property
+    def _logical_qubits(self) -> list[StabilizerCode]:
         encoding = MultipleCatCode(num_cats=self._runner_configuration.surface_code_distance,
                                    num_qubits_per_cat=self._runner_configuration.surface_code_distance)
         num_qubits_per_encoding = len(encoding.data_qubits)
