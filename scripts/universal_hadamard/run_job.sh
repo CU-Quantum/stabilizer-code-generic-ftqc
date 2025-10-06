@@ -1,12 +1,12 @@
 #!/bin/bash
 
 #SBATCH --account=ucb685_asc1
-#SBATCH --time=10:00:00
+#SBATCH --time=24:00:00
 #SBATCH --partition=amem
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --qos=normal
+#SBATCH --nodes=4
+#SBATCH --ntasks=8
+#SBATCH --cpus-per-task=16
+#SBATCH --qos=mem
 #SBATCH --job-name=universal_hadamard
 #SBATCH --error=results/universal_hadamard/universal_hadamard_%j.err
 #SBATCH --output=results/universal_hadamard/universal_hadamard_%j.out
