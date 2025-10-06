@@ -19,7 +19,8 @@ class UniversalHadamard:
         ]
         return ScriptRunner(
             operations=operations,
-            successful_results_info=SuccessfulResultsInfoRunner(num_processes=run_configuration.num_processes, was_successful_func=self.was_successful),
+            successful_results_info=SuccessfulResultsInfoRunner(num_processes=self._run_configuration.num_processes,
+                                                                was_successful_func=self.was_successful),
             runner_configuration=self._run_configuration,
         ).run_main()
 
