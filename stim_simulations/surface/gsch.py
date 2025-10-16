@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 
 
 class Main:
-    def main(self):
+    def run(self):
         # Collect the samples (takes a few minutes).
         samples = sinter.collect(
             num_workers=4,
