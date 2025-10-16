@@ -9,7 +9,7 @@ class Main:
     def run(self):
         # Collect the samples (takes a few minutes).
         samples = sinter.collect(
-            num_workers=4,
+            num_workers=1,
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
