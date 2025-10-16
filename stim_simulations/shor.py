@@ -137,13 +137,49 @@ def decode_shor_syndrome(det_rows: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     return x_corr, z_corr
 
 
+def _syndrome_from_paulis(x_ops: np.ndarray, z_ops: np.ndarray) -> np.ndarray:
+    """Compute the 8-bit stabilizer syndrome for given per-qubit X/Z Paulis.
+
+    Args:
+        x_ops: boolean shape (9,) marking which qubits have an X component.
+        z_ops: boolean shape (9,) marking which qubits have a Z component.
+
+    Returns:
+        Boolean array of shape (8,) with detector order
+        [Z01, Z12, Z34, Z45, Z67, Z78, X012345, X345678].
+    """
+    if x_ops.shape != (9,) or z_ops.shape != (9,):
+        raise ValueError("x_ops and z_ops must be shape (9,)")
+    synd = np.zeros(8, dtype=bool)
+    # Z pair checks flip if an odd number of Xs in the pair
+    for i, (a, b) in enumerate(Z_PAIR_CHECKS):
+        synd[i] = bool(x_ops[a] ^ x_ops[b])
+    # X cross checks flip if an odd number of Zs in the group
+    synd[6] = bool(np.bitwise_xor.reduce(z_ops[X_CROSS_CHECKS[0]]))
+    synd[7] = bool(np.bitwise_xor.reduce(z_ops[X_CROSS_CHECKS[1]]))
+    return synd
+
+
 def run_shor_round_with_recovery(
     shots: int = 1,
     *,
     injected_error: Optional[Tuple[str, int]] = None,
     seed: Optional[int] = None,
 ) -> Dict[str, object]:
-    """Run one Shor round, sample syndromes, and compute recovery operations.
+    """Run one Shor round, sample syndromes, and compute/apply recovery operations.
+
+    In addition to returning the suggested X/Z corrections from the decoder,
+    this function classically applies those corrections on top of any injected
+    error and determines whether the final state matches the expected logical
+    state (up to stabilizers), not merely whether the final syndrome is zero.
+
+    We judge "final state matches expected" by checking that the residual Pauli
+    after applying corrections performs no logical action: it commutes with both
+    a chosen pair of logical operators for the Shor code.
+
+    We use the following logicals:
+      - X_L = X on all 9 data qubits.
+      - Z_L = Z on qubits {0, 3, 6} (one per block).
 
     Args:
         shots: number of repetitions to sample.
@@ -151,7 +187,8 @@ def run_shor_round_with_recovery(
         seed: RNG seed forwarded to Stim's sampler.
 
     Returns:
-        dict with keys: circuit, detections, x_corrections, z_corrections
+        dict with keys: circuit, detections, x_corrections, z_corrections,
+        final_syndrome, final_logical_flips, final_matches_expected
     """
     circuit = build_shor_one_round_circuit(injected_error=injected_error)
     det_sampler = circuit.compile_detector_sampler(seed=seed)
@@ -159,11 +196,51 @@ def run_shor_round_with_recovery(
 
     x_corr, z_corr = decode_shor_syndrome(dets)
 
+    # Build per-shot injected error vectors (x_err, z_err)
+    if injected_error is None:
+        x_err = np.zeros((shots, 9), dtype=bool)
+        z_err = np.zeros((shots, 9), dtype=bool)
+    else:
+        p, q = injected_error
+        p = p.upper()
+        x_err = np.zeros((shots, 9), dtype=bool)
+        z_err = np.zeros((shots, 9), dtype=bool)
+        if p == "X":
+            x_err[:, q] = True
+        elif p == "Z":
+            z_err[:, q] = True
+        else:
+            raise ValueError("injected_error pauli must be 'X' or 'Z'")
+
+    # Apply corrections in the Pauli frame
+    x_total = x_err ^ x_corr
+    z_total = z_err ^ z_corr
+
+    # Compute final syndromes after applying corrections (still useful to inspect)
+    final_syndrome = np.zeros((shots, 8), dtype=bool)
+    for s in range(shots):
+        final_syndrome[s] = _syndrome_from_paulis(x_total[s], z_total[s])
+
+    # Determine logical effect of the residual Pauli.
+    # Z_L = Z on {0,3,6}: anticommutes with X on those positions -> logical Z flip
+    zL_qubits = np.array([0, 3, 6], dtype=int)
+    # X_L = X on all 9: anticommutes with any Z -> parity of Z across all qubits
+    # Compute per-shot parities.
+    logical_Z_flip = (x_total[:, zL_qubits].sum(axis=1) % 2 == 1)
+    logical_X_flip = (z_total.sum(axis=1) % 2 == 1)
+    final_logical_flips = np.stack([logical_Z_flip, logical_X_flip], axis=1)
+
+    # Final state matches expected iff no logical flips occurred.
+    final_matches_expected = ~(logical_Z_flip | logical_X_flip)
+
     return {
         "circuit": circuit,
         "detections": dets,
         "x_corrections": x_corr,
         "z_corrections": z_corr,
+        "final_syndrome": final_syndrome,
+        "final_logical_flips": final_logical_flips,
+        "final_matches_expected": final_matches_expected,
     }
 
 

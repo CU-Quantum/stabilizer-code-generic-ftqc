@@ -14,12 +14,15 @@ def test_no_error_no_syndrome_and_no_corrections():
     dets = res["detections"]
     x_corr = res["x_corrections"]
     z_corr = res["z_corrections"]
+    final_ok = res["final_matches_expected"]
 
     # With no errors, all syndromes are zero and no corrections suggested
     assert dets.shape[1] == 8
     assert np.all(dets == 0)
     assert np.all(x_corr == 0)
     assert np.all(z_corr == 0)
+    # And after (trivial) recovery, we remain in the codespace
+    assert np.all(final_ok)
 
 
 @pytest.mark.parametrize("q", list(range(9)))
@@ -29,6 +32,7 @@ def test_single_x_error_is_corrected_on_same_qubit(q):
     dets = res["detections"][0]
     x_corr = res["x_corrections"][0]
     z_corr = res["z_corrections"][0]
+    final_ok = res["final_matches_expected"][0]
 
     # X errors flip Z-pair checks in their block, not the cross-block X checks
     assert dets[6] == 0 and dets[7] == 0
@@ -38,6 +42,8 @@ def test_single_x_error_is_corrected_on_same_qubit(q):
     assert int(np.sum(x_corr)) == 1
     # No Z corrections for a pure X error
     assert not np.any(z_corr)
+    # After applying recovery, we're back in the codespace (zero syndrome)
+    assert final_ok is True
 
 
 @pytest.mark.parametrize("q", list(range(9)))
@@ -47,6 +53,7 @@ def test_single_z_error_is_corrected_on_block_representative(q):
     dets = res["detections"][0]
     x_corr = res["x_corrections"][0]
     z_corr = res["z_corrections"][0]
+    final_ok = res["final_matches_expected"][0]
 
     # Z errors flip cross-block X checks depending on which block the qubit is in
     # And shouldn't trigger within-block Z-pair checks
@@ -68,3 +75,5 @@ def test_single_z_error_is_corrected_on_block_representative(q):
     assert int(np.sum(z_corr)) == 1
     # No X corrections for a pure Z error
     assert not np.any(x_corr)
+    # After applying recovery, we're back in the codespace (zero syndrome)
+    assert final_ok is True
