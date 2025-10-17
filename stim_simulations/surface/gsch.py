@@ -3,6 +3,28 @@ import pymatching
 import sinter
 import stim
 from matplotlib import pyplot as plt
+from sinter import CompiledDecoder, Decoder
+
+
+class CompiledDecoderMatrix(CompiledDecoder):
+    def __init__(self, matching: pymatching.Matching):
+        super().__init__()
+        self._matching = matching
+
+    def decode_shots_bit_packed(self, *, bit_packed_detection_event_data: np.ndarray) -> np.ndarray:
+        unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1, bitorder='little')
+        return self._matching.decode_batch(unpacked)
+
+
+class DecoderMatrix(Decoder):
+    def compile_decoder_for_dem(
+            self,
+            *,
+            dem: stim.DetectorErrorModel,
+    ) -> CompiledDecoder:
+        return CompiledDecoderMatrix(
+            matching=pymatching.Matching.from_detector_error_model(dem)
+        )
 
 
 class Main:
@@ -13,7 +35,8 @@ class Main:
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
-            decoders=['pymatching'],
+            decoders=['decoder_matrix'],
+            custom_decoders={'decoder_matrix': DecoderMatrix()},
         )
 
         # Print samples as CSV data.
