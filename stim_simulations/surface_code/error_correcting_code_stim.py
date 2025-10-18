@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, Iterable, List, Tuple
 
-from stim_experiments.error_correcting_codes.surface_code.coursera_custom.support.utilities import index_string
+from stim_simulations.surface_code.coursera_custom.support.utilities import index_string
 
 
 class ErrorCorrectingCodeStim(ABC):

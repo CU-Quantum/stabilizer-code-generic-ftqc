@@ -1,6 +1,6 @@
 import pytest
 
-from stim_experiments.error_correcting_codes.surface_code.coursera_custom.surface_code_coursera_custom import SurfaceCodeCourseraCustom
+from stim_simulations.surface_code.coursera_custom.surface_code_coursera_custom import SurfaceCodeCourseraCustom
 
 
 @pytest.mark.skip("Not implemented")

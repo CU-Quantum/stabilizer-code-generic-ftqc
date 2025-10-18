@@ -2,7 +2,9 @@ import numpy as np
 import pymatching
 import sinter
 import stim
+from beliefmatching import detector_error_model_to_check_matrices
 from matplotlib import pyplot as plt
+from scipy.sparse import csc_matrix
 from sinter import CompiledDecoder, Decoder
 
 
@@ -22,6 +24,15 @@ class DecoderMatrix(Decoder):
             *,
             dem: stim.DetectorErrorModel,
     ) -> CompiledDecoder:
+        H = csc_matrix([[1, 1, 0, 0, 0],
+                        [0, 1, 1, 0, 0],
+                        [0, 0, 1, 1, 0],
+                        [0, 0, 0, 1, 1]])
+        observables = csc_matrix([[1, 0, 0, 0, 0]])
+        m = detector_error_model_to_check_matrices(dem).check_matrix.toarray()
+        error_probability = 0.1
+        weights = np.ones(H.shape[1]) * np.log((1 - error_probability) / error_probability)
+        matching = pymatching.Matching.from_check_matrix(H, weights=weights)
         return CompiledDecoderMatrix(
             matching=pymatching.Matching.from_detector_error_model(dem)
         )
@@ -66,7 +77,8 @@ class Main:
 
     def generate_example_tasks(self):
         for p in [0.001, 0.005, 0.01]:
-            for d in [3, 5]:
+            for d in [3]:
+            # for d in [3, 5]:
                 yield sinter.Task(
                     circuit=stim.Circuit.generated(
                         rounds=d,
