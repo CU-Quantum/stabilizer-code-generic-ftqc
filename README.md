@@ -59,15 +59,15 @@ The project provides a `LogicalOperationsCircuitCreator` for creating circuits w
 
 ```python
 from cirq import LineQubit
-from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
+from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
 
 StabilizerStandardizedCode
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import
+from cirq_experiments import
 
 LogicalOperationsCircuitCreator
 from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
-from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
 # Create qubits for two logical qubits
 # The 5-qubit code requires 5 physical qubits per logical qubit
@@ -110,20 +110,20 @@ print("Measurements:", result.logical_qubit_measurements)
 The project provides a configuration system that allows you to customize various aspects of the error correction process. You can access and modify the configuration using the `ConfigurationErrorCorrectingCodeManager`:
 
 ```python
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from stim_experiments.error_correcting_codes.support.measurer.measurer_with_single_qubit_sequential import
+from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import
 
 MeasurerWithSingleQubitSequential
-from stim_experiments.error_correcting_codes.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import
+from cirq_experiments import
 
 CatStateCreatorCxFromFirstQubit
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import
+from cirq_experiments.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import
 
 UniversalHadamardSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import
+from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import
 
 UniversalControlledOperationSingleAncilla
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_t.universal_t_single_ancilla import
+from cirq_experiments.support.universal_operations.universal_t.universal_t_single_ancilla import
 
 UniversalTSingleAncilla
 
@@ -159,10 +159,11 @@ You can create your own error correcting code by extending the `ErrorCorrectingC
 from cirq import Circuit, LineQubit, R, X, Z
 from typing import Optional
 
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from stim_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-from stim_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
+from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
+from cirq_experiments import FreshAncillasPool
+from cirq_experiments.error_correcting_codes.error_correcting_code import ErrorCorrectingCode
+
 
 class MyCustomCode(ErrorCorrectingCode):
     def __init__(self, num_logical_qubits: int = 1, qubits: Optional[list[LineQubit]] = None):
@@ -224,8 +225,8 @@ class MyCustomCode(ErrorCorrectingCode):
 You can then use your custom code with the simulator:
 
 ```python
-from stim_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from stim_experiments.simulators.simulator_using_circuits.logical_operations_circuit_creator import
+from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
+from cirq_experiments import
 
 LogicalOperationsCircuitCreator
 from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
@@ -266,11 +267,11 @@ For example, if you are only using the Steane Code, you may specify a transversa
 ```python
 from cirq import Circuit, X
 
-from stim_experiments.custom_dataclasses.logical_operation import LogicalGateLabel
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip import
+from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel
+from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip import
 
 UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import
+from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import
 
 UniversalControlledFlipFaultTolerant
 
@@ -298,9 +299,11 @@ class MyCustomControlledOperation(UniversalControlledOperation):
 You can then set this in the configuration before simulating:
 
 ```python
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
-from stim_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
-from stim_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
+from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
+
+StabilizerStandardizedCode
+from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
+from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 # Set your custom controller operation 
 configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
