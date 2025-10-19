@@ -1,4 +1,4 @@
-class MultipleCatCodeGenerators:
+class GeneralizedShorCodeGenerators:
     def __init__(self, num_cats: int, num_qubits_per_cat: int):
         self._num_cats = num_cats
         self._num_qubits_per_cat = num_qubits_per_cat

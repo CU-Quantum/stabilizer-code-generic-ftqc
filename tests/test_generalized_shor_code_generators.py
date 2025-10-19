@@ -1,23 +1,23 @@
-from multiple_cat_code_generators import MultipleCatCodeGenerators
+from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 
 
-class TestMultipleCatCodeGenerators:
+class TestGeneralizedShorCodeGenerators:
     def test_x_generators_shor_code(self):
-        generators = MultipleCatCodeGenerators(3, 3).get_x_generators()
+        generators = GeneralizedShorCodeGenerators(3, 3).get_x_generators()
         assert generators == [
             [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
 
     def test_x_generators_3_4(self):
-        generators = MultipleCatCodeGenerators(3, 4).get_x_generators()
+        generators = GeneralizedShorCodeGenerators(3, 4).get_x_generators()
         assert generators == [
             [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
         ]
 
     def test_x_generators_5_5(self):
-        generators = MultipleCatCodeGenerators(5, 5).get_x_generators()
+        generators = GeneralizedShorCodeGenerators(5, 5).get_x_generators()
         assert generators == [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -26,7 +26,7 @@ class TestMultipleCatCodeGenerators:
         ]
 
     def test_z_generators_shor_code(self):
-        generators = MultipleCatCodeGenerators(3, 3).get_z_generators()
+        generators = GeneralizedShorCodeGenerators(3, 3).get_z_generators()
         assert generators == [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0],
@@ -37,7 +37,7 @@ class TestMultipleCatCodeGenerators:
         ]
 
     def test_z_generators_3_4(self):
-        generators = MultipleCatCodeGenerators(3, 4).get_z_generators()
+        generators = GeneralizedShorCodeGenerators(3, 4).get_z_generators()
         assert generators == [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -51,7 +51,7 @@ class TestMultipleCatCodeGenerators:
         ]
 
     def test_z_generators_5_5(self):
-        generators = MultipleCatCodeGenerators(5, 5).get_z_generators()
+        generators = GeneralizedShorCodeGenerators(5, 5).get_z_generators()
         assert generators == [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],

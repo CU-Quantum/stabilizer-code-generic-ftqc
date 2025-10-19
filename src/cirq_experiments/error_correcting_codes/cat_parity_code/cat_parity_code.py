@@ -4,7 +4,7 @@ from typing import Optional
 from cirq import Circuit, LineQubit, Operation, X, Y, Z
 from numpy import array
 
-from multiple_cat_code_generators import MultipleCatCodeGenerators
+from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.custom_dataclasses.check_matrix import CheckMatrix
@@ -24,8 +24,8 @@ class CatParityCode(StabilizerCode):
         self._num_cats = num_cats
         self._num_qubits_per_cat = max(3, num_qubits_per_cat)
 
-        generator = MultipleCatCodeGenerators(num_qubits_per_cat=self._num_qubits_per_cat,
-                                              num_cats=self._num_cats)
+        generator = GeneralizedShorCodeGenerators(num_qubits_per_cat=self._num_qubits_per_cat,
+                                                  num_cats=self._num_cats)
         z_stabilizers = generator.get_z_generators()
         x_stabilizers = generator.get_x_generators()
 

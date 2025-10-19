@@ -3,7 +3,7 @@ from typing import Optional
 from cirq import Circuit, I, LineQubit, Operation, X, Z
 from numpy import array
 
-from multiple_cat_code_generators import MultipleCatCodeGenerators
+from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 from cirq_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
@@ -20,7 +20,7 @@ class RepetitionCodeOneLogical(ErrorCorrectingCode):
         self.check_matrix = None
         self.recovery_combinations_finder = RecoveryCombinationsFinder(max_num_errors=1)
         if num_qubits >= 2:
-            z_stabilizers = MultipleCatCodeGenerators(num_qubits_per_cat=num_qubits, num_cats=1).get_z_generators()
+            z_stabilizers = GeneralizedShorCodeGenerators(num_qubits_per_cat=num_qubits, num_cats=1).get_z_generators()
             self.check_matrix = CheckMatrix(matrix=array(z_stabilizers))
         super().__init__(num_data_qubits=num_qubits,
                          num_logical_qubits=1,
