@@ -107,15 +107,29 @@ class Main:
             coords_to_index_map[(8, i)] = 26 + num_data_qubits + i
         cx_from_gsch = CxFromGsch(surface_coords_to_index=coords_to_index_map, physical_error_rate=physical_error_rate)
         circuit = Circuit(f"""
-            {surface_code.without_noise()}
-            
+            QUBIT_COORDS(1, 1) 1
+            QUBIT_COORDS(2, 0) 2
+            QUBIT_COORDS(3, 1) 3
+            QUBIT_COORDS(5, 1) 5
+            QUBIT_COORDS(1, 3) 8
+            QUBIT_COORDS(2, 2) 9
+            QUBIT_COORDS(3, 3) 10
+            QUBIT_COORDS(4, 2) 11
+            QUBIT_COORDS(5, 3) 12
+            QUBIT_COORDS(6, 2) 13
+            QUBIT_COORDS(0, 4) 14
+            QUBIT_COORDS(1, 5) 15
+            QUBIT_COORDS(2, 4) 16
+            QUBIT_COORDS(3, 5) 17
+            QUBIT_COORDS(4, 4) 18
+            QUBIT_COORDS(5, 5) 19
+            QUBIT_COORDS(4, 6) 25
+
             {cat_states_circuit.without_noise()}
             
             {tetrahedral_init.without_noise()}
             
             {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[0], target_qubit_coords=[(7, i) for i in range(len(subregister_coords[0]))])}
-            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[1], target_qubit_coords=[(7, len(subregister_coords[0]) + i) for i in range(len(subregister_coords[0]))])}
-            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[2], target_qubit_coords=[(7, 2 * len(subregister_coords[0]) + i) for i in range(len(subregister_coords[0]))])}
         """)
         with open('fds.html', 'w') as f: f.write(str(circuit.diagram(type='timeline-3d-html')))
         return circuit
