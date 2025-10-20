@@ -84,48 +84,131 @@ class Main:
             indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
             cat_states_circuit.append('CX', indices)
 
-        tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=26)
+        last_qubit_index = 117
+        last_qubit_row_coord = 14
+        tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index)
         num_data_qubits = 15
         num_ancillas = 14
         tetrahedral_init = Circuit(f"""
-            {'\n'.join([f'QUBIT_COORDS(7, {i}) {26 + i}' for i in range(num_data_qubits)])}
-            {'\n'.join([f'QUBIT_COORDS(8, {i}) {26 + num_data_qubits + i}' for i in range(num_ancillas)])}
+            {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+1}, {i}) {last_qubit_index + i}' for i in range(num_data_qubits)])}
+            {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+2}, {i}) {last_qubit_index + num_data_qubits + i}' for i in range(num_ancillas)])}
             
             {tetrahedral_code.without_noise()}
-            {f'Z {' '.join([str(26 + num_data_qubits + i) for i in range(num_ancillas)])}'}
-            {f'R {' '.join([str(26 + num_data_qubits + i) for i in range(num_ancillas)])}'}
+            {f'Z {' '.join([str(last_qubit_index + num_data_qubits + i) for i in range(num_ancillas)])}'}
+            {f'R {' '.join([str(last_qubit_index + num_data_qubits + i) for i in range(num_ancillas)])}'}
         """)
 
         coords_to_index_map = {k:v for k, v in zip([j for i in subregister_coords for j in i], [j for i in subregister_indices for j in i])}
         for i in range(num_data_qubits):
-            coords_to_index_map[(7, i)] = 26 + i
+            coords_to_index_map[(last_qubit_row_coord+1, i)] = last_qubit_index + i
         for i in range(num_ancillas):
-            coords_to_index_map[(8, i)] = 26 + num_data_qubits + i
+            coords_to_index_map[(last_qubit_row_coord+2, i)] = last_qubit_index + num_data_qubits + i
         cx_from_gsch = CxFromGsch(surface_coords_to_index=coords_to_index_map, physical_error_rate=physical_error_rate)
         circuit = Circuit(f"""
             QUBIT_COORDS(1, 1) 1
             QUBIT_COORDS(2, 0) 2
             QUBIT_COORDS(3, 1) 3
             QUBIT_COORDS(5, 1) 5
-            QUBIT_COORDS(1, 3) 8
-            QUBIT_COORDS(2, 2) 9
-            QUBIT_COORDS(3, 3) 10
-            QUBIT_COORDS(4, 2) 11
-            QUBIT_COORDS(5, 3) 12
-            QUBIT_COORDS(6, 2) 13
-            QUBIT_COORDS(0, 4) 14
-            QUBIT_COORDS(1, 5) 15
-            QUBIT_COORDS(2, 4) 16
-            QUBIT_COORDS(3, 5) 17
-            QUBIT_COORDS(4, 4) 18
-            QUBIT_COORDS(5, 5) 19
-            QUBIT_COORDS(4, 6) 25
+            QUBIT_COORDS(6, 0) 6
+            QUBIT_COORDS(7, 1) 7
+            QUBIT_COORDS(9, 1) 9
+            QUBIT_COORDS(10, 0) 10
+            QUBIT_COORDS(11, 1) 11
+            QUBIT_COORDS(13, 1) 13
+            QUBIT_COORDS(1, 3) 16
+            QUBIT_COORDS(2, 2) 17
+            QUBIT_COORDS(3, 3) 18
+            QUBIT_COORDS(4, 2) 19
+            QUBIT_COORDS(5, 3) 20
+            QUBIT_COORDS(6, 2) 21
+            QUBIT_COORDS(7, 3) 22
+            QUBIT_COORDS(8, 2) 23
+            QUBIT_COORDS(9, 3) 24
+            QUBIT_COORDS(10, 2) 25
+            QUBIT_COORDS(11, 3) 26
+            QUBIT_COORDS(12, 2) 27
+            QUBIT_COORDS(13, 3) 28
+            QUBIT_COORDS(14, 2) 29
+            QUBIT_COORDS(0, 4) 30
+            QUBIT_COORDS(1, 5) 31
+            QUBIT_COORDS(2, 4) 32
+            QUBIT_COORDS(3, 5) 33
+            QUBIT_COORDS(4, 4) 34
+            QUBIT_COORDS(5, 5) 35
+            QUBIT_COORDS(6, 4) 36
+            QUBIT_COORDS(7, 5) 37
+            QUBIT_COORDS(8, 4) 38
+            QUBIT_COORDS(9, 5) 39
+            QUBIT_COORDS(10, 4) 40
+            QUBIT_COORDS(11, 5) 41
+            QUBIT_COORDS(12, 4) 42
+            QUBIT_COORDS(13, 5) 43
+            QUBIT_COORDS(1, 7) 46
+            QUBIT_COORDS(2, 6) 47
+            QUBIT_COORDS(3, 7) 48
+            QUBIT_COORDS(4, 6) 49
+            QUBIT_COORDS(5, 7) 50
+            QUBIT_COORDS(6, 6) 51
+            QUBIT_COORDS(7, 7) 52
+            QUBIT_COORDS(8, 6) 53
+            QUBIT_COORDS(9, 7) 54
+            QUBIT_COORDS(10, 6) 55
+            QUBIT_COORDS(11, 7) 56
+            QUBIT_COORDS(12, 6) 57
+            QUBIT_COORDS(13, 7) 58
+            QUBIT_COORDS(14, 6) 59
+            QUBIT_COORDS(0, 8) 60
+            QUBIT_COORDS(1, 9) 61
+            QUBIT_COORDS(2, 8) 62
+            QUBIT_COORDS(3, 9) 63
+            QUBIT_COORDS(4, 8) 64
+            QUBIT_COORDS(5, 9) 65
+            QUBIT_COORDS(6, 8) 66
+            QUBIT_COORDS(7, 9) 67
+            QUBIT_COORDS(8, 8) 68
+            QUBIT_COORDS(9, 9) 69
+            QUBIT_COORDS(10, 8) 70
+            QUBIT_COORDS(11, 9) 71
+            QUBIT_COORDS(12, 8) 72
+            QUBIT_COORDS(13, 9) 73
+            QUBIT_COORDS(1, 11) 76
+            QUBIT_COORDS(2, 10) 77
+            QUBIT_COORDS(3, 11) 78
+            QUBIT_COORDS(4, 10) 79
+            QUBIT_COORDS(5, 11) 80
+            QUBIT_COORDS(6, 10) 81
+            QUBIT_COORDS(7, 11) 82
+            QUBIT_COORDS(8, 10) 83
+            QUBIT_COORDS(9, 11) 84
+            QUBIT_COORDS(10, 10) 85
+            QUBIT_COORDS(11, 11) 86
+            QUBIT_COORDS(12, 10) 87
+            QUBIT_COORDS(13, 11) 88
+            QUBIT_COORDS(14, 10) 89
+            QUBIT_COORDS(0, 12) 90
+            QUBIT_COORDS(1, 13) 91
+            QUBIT_COORDS(2, 12) 92
+            QUBIT_COORDS(3, 13) 93
+            QUBIT_COORDS(4, 12) 94
+            QUBIT_COORDS(5, 13) 95
+            QUBIT_COORDS(6, 12) 96
+            QUBIT_COORDS(7, 13) 97
+            QUBIT_COORDS(8, 12) 98
+            QUBIT_COORDS(9, 13) 99
+            QUBIT_COORDS(10, 12) 100
+            QUBIT_COORDS(11, 13) 101
+            QUBIT_COORDS(12, 12) 102
+            QUBIT_COORDS(13, 13) 103
+            QUBIT_COORDS(4, 14) 109
+            QUBIT_COORDS(8, 14) 113
+            QUBIT_COORDS(12, 14) 117
+            R 1 3 5 7 9 11 13 16 18 20 22 24 26 28 31 33 35 37 39 41 43 46 48 50 52 54 56 58 61 63 65 67 69 71 73 76 78 80 82 84 86 88 91 93 95 97 99 101 103 2 6 10 17 19 21 23 25 27 29 30 32 34 36 38 40 42 47 49 51 53 55 57 59 60 62 64 66 68 70 72 77 79 81 83 85 87 89 90 92 94 96 98 100 102 109 113 117
 
             {cat_states_circuit.without_noise()}
-            
+
             {tetrahedral_init.without_noise()}
-            
-            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[0], target_qubit_coords=[(7, i) for i in range(len(subregister_coords[0]))])}
+
+            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[0], target_qubit_coords=[(last_qubit_row_coord+1, i) for i in range(len(subregister_coords[0]))])}
         """)
         with open('fds.html', 'w') as f: f.write(str(circuit.diagram(type='timeline-3d-html')))
         return circuit
