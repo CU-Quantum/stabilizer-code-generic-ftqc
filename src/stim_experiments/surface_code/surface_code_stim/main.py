@@ -64,29 +64,25 @@ class Main:
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
         surface_code = Circuit.generated(
             rounds=1,
-            distance=self._distance,
+            distance=7,
             code_task=f'surface_code:rotated_memory_z',
         )
         subregister_coords = [
-            [(1, 1), (3, 1), (5, 1)],
-            [(1, 3), (3, 3), (5, 3)],
-            [(1, 5), (3, 5), (5, 5)]
+            [(2 * j + 1, 2 * i + 1) for j in range(self._distance)]
+            for i in range(self._distance)
         ]
+
         subregister_indices = [
-            [1, 3, 5],
-            [8, 10, 12],
-            [15, 17, 19]
+            [2 * j + 1 + (2 * self._distance + 1) * i for j in range(self._distance)]
+            for i in range(self._distance)
         ]
-        cat_states_circuit = Circuit(f"""
-            H 1
-            CX 1 3 1 5
-            
-            H 8
-            CX 8 10 8 12
-            
-            H 15
-            CX 15 17 15 19
-        """)
+
+        cat_states_circuit = Circuit()
+        for subregister in subregister_indices:
+            cat_states_circuit.append('H', subregister[0])
+            targets = subregister[1:]
+            indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
+            cat_states_circuit.append('CX', indices)
 
         tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=26)
         num_data_qubits = 15
@@ -136,4 +132,4 @@ class Main:
 
 
 if __name__ == '__main__':
-    Main(distance=3).run_main()
+    Main(distance=7).run_main()
