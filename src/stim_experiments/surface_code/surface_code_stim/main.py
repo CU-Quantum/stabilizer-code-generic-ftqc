@@ -3,7 +3,10 @@ from sinter import CSV_HEADER, Task, collect, plot_error_rate
 from stim import Circuit
 
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
+from predefined_check_matrix_values import get_check_matrix_values_tetrahedral
+from stim_experiments.surface_code.surface_code_stim.cx_from_gsch import CxFromGsch
 from stim_experiments.surface_code.surface_code_stim.decoder_by_matrix import DecoderByMatrix
+from stim_experiments.surface_code.surface_code_stim.tetrahedral_code import get_stabilizer_code_line
 
 
 class Main:
@@ -59,11 +62,62 @@ class Main:
             )
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
-        circuit = Circuit.generated(
+        surface_code = Circuit.generated(
             rounds=1,
             distance=self._distance,
-            code_task=f'surface_code:rotated_memory_x',
+            code_task=f'surface_code:rotated_memory_z',
         )
+        subregister_coords = [
+            [(1, 1), (3, 1), (5, 1)],
+            [(1, 3), (3, 3), (5, 3)],
+            [(1, 5), (3, 5), (5, 5)]
+        ]
+        subregister_indices = [
+            [1, 3, 5],
+            [8, 10, 12],
+            [15, 17, 19]
+        ]
+        cat_states_circuit = Circuit(f"""
+            H 1
+            CX 1 3 1 5
+            
+            H 8
+            CX 8 10 8 12
+            
+            H 15
+            CX 15 17 15 19
+        """)
+
+        tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=26)
+        num_data_qubits = 15
+        num_ancillas = 14
+        tetrahedral_init = Circuit(f"""
+            {'\n'.join([f'QUBIT_COORDS(7, {i}) {26 + i}' for i in range(num_data_qubits)])}
+            {'\n'.join([f'QUBIT_COORDS(8, {i}) {26 + num_data_qubits + i}' for i in range(num_ancillas)])}
+            
+            {tetrahedral_code.without_noise()}
+            {f'Z {' '.join([str(26 + num_data_qubits + i) for i in range(num_ancillas)])}'}
+            {f'R {' '.join([str(26 + num_data_qubits + i) for i in range(num_ancillas)])}'}
+        """)
+
+        coords_to_index_map = {k:v for k, v in zip([j for i in subregister_coords for j in i], [j for i in subregister_indices for j in i])}
+        for i in range(num_data_qubits):
+            coords_to_index_map[(7, i)] = 26 + i
+        for i in range(num_ancillas):
+            coords_to_index_map[(8, i)] = 26 + num_data_qubits + i
+        cx_from_gsch = CxFromGsch(surface_coords_to_index=coords_to_index_map, physical_error_rate=physical_error_rate)
+        circuit = Circuit(f"""
+            {surface_code.without_noise()}
+            
+            {cat_states_circuit.without_noise()}
+            
+            {tetrahedral_init.without_noise()}
+            
+            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[0], target_qubit_coords=[(7, i) for i in range(len(subregister_coords[0]))])}
+            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[1], target_qubit_coords=[(7, len(subregister_coords[0]) + i) for i in range(len(subregister_coords[0]))])}
+            {cx_from_gsch.perform_cx(control_qubit_coords=subregister_coords[2], target_qubit_coords=[(7, 2 * len(subregister_coords[0]) + i) for i in range(len(subregister_coords[0]))])}
+        """)
+        with open('fds.html', 'w') as f: f.write(str(circuit.diagram(type='timeline-3d-html')))
         return circuit
 
 

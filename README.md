@@ -67,7 +67,7 @@ from cirq_experiments import
 
 LogicalOperationsCircuitCreator
 from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
 # Create qubits for two logical qubits
 # The 5-qubit code requires 5 physical qubits per logical qubit
@@ -302,7 +302,7 @@ You can then set this in the configuration before simulating:
 from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
 
 StabilizerStandardizedCode
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
+from predefined_check_matrix_values import get_check_matrix_values_steane
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
 # Set your custom controller operation 

@@ -7,7 +7,7 @@ from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
+from predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_5_qubit
 
 

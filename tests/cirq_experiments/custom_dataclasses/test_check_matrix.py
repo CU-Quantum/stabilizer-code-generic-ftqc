@@ -5,7 +5,7 @@ from numpy import array
 
 from cirq_experiments.custom_dataclasses.check_matrix import CheckMatrix, \
     TYPE_CHECK_MATRIX
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_steane
+from predefined_check_matrix_values import get_check_matrix_values_steane
 
 
 def get_arbitrary_check_matrix_values():

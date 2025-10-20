@@ -9,7 +9,7 @@ from cirq_experiments.support.universal_operations.universal_hadamard.universal_
     UniversalHadamardSingleAncilla
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
+from predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_5_qubit, get_check_matrix_values_8_qubit
 from cirq_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_PLUS_STATE_VECTOR, KET_ZERO_STATE_VECTOR, \
     states_are_equal, tensor

@@ -14,7 +14,7 @@ from cirq_experiments.support.universal_operations.universal_hadamard.universal_
     UniversalHadamardSingleAncilla
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
+from predefined_check_matrix_values import get_check_matrix_values_4_qubit
 from cirq_experiments.utilities.utilities import states_are_equal
 from tests.cirq_experiments.utilities_for_tests import get_random_encoded_initial_state, random_complex_unit_vector, \
     set_configuration_to_reduce_ancilla_qubits, set_seed

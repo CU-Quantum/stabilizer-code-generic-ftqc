@@ -5,7 +5,7 @@ from cirq import Circuit, LineQubit, Operation, X, Z
 from cirq_experiments.custom_dataclasses.check_matrix import CheckMatrix
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.error_correcting_codes.stabilizer_code.stabilizer_code import StabilizerCode
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
 
 class FiveQubitCode(StabilizerCode):

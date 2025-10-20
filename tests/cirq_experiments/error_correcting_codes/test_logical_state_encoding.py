@@ -24,7 +24,7 @@ from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.
     ExpectedStatesGenericFiveQubit
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_steane import \
     ExpectedStatesGenericSteane
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor

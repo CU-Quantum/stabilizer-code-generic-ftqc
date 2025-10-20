@@ -5,7 +5,7 @@ from cirq_experiments.custom_dataclasses.check_matrix import \
     CheckMatrix
 from cirq_experiments.support.check_matrix_to_gates import \
     CheckMatrixToGates
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit
+from predefined_check_matrix_values import get_check_matrix_values_4_qubit
 
 
 class TestCheckMatrixToGates:

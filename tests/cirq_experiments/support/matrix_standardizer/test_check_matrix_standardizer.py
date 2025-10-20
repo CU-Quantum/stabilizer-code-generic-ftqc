@@ -9,7 +9,7 @@ from cirq_experiments.custom_dataclasses.check_matrix_standardized import \
     CheckMatrixStandardized
 from cirq_experiments.support.matrix_standardizer.check_matrix_standardizer import \
     CheckMatrixStandardizer
-from cirq_experiments.utilities.predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
+from predefined_check_matrix_values import get_check_matrix_values_4_qubit, \
     get_check_matrix_values_8_qubit, \
     get_check_matrix_values_shors, \
     get_check_matrix_values_steane
