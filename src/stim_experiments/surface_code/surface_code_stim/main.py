@@ -39,7 +39,7 @@ class Main:
             max_errors=1000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix)},
+            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance)},
         )
 
         # Print samples as CSV data.

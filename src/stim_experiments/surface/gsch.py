@@ -1,41 +1,45 @@
+from itertools import combinations
+
 import numpy as np
 import pymatching
 import sinter
 import stim
 from beliefmatching import detector_error_model_to_check_matrices
 from matplotlib import pyplot as plt
+from numpy._typing import NDArray
+from numpy.ma import allequal
 from scipy.sparse import csc_matrix
 from sinter import CompiledDecoder, Decoder
 
 
-class CompiledDecoderMatrix(CompiledDecoder):
-    def __init__(self, matching: pymatching.Matching):
-        super().__init__()
-        self._matching = matching
-
-    def decode_shots_bit_packed(self, *, bit_packed_detection_event_data: np.ndarray) -> np.ndarray:
-        unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1, bitorder='little')
-        return self._matching.decode_batch(unpacked)
-
-
-class DecoderMatrix(Decoder):
-    def compile_decoder_for_dem(
-            self,
-            *,
-            dem: stim.DetectorErrorModel,
-    ) -> CompiledDecoder:
-        H = csc_matrix([[1, 1, 0, 0, 0],
-                        [0, 1, 1, 0, 0],
-                        [0, 0, 1, 1, 0],
-                        [0, 0, 0, 1, 1]])
-        observables = csc_matrix([[1, 0, 0, 0, 0]])
-        m = detector_error_model_to_check_matrices(dem).check_matrix.toarray()
-        error_probability = 0.1
-        weights = np.ones(H.shape[1]) * np.log((1 - error_probability) / error_probability)
-        matching = pymatching.Matching.from_check_matrix(H, weights=weights)
-        return CompiledDecoderMatrix(
-            matching=pymatching.Matching.from_detector_error_model(dem)
-        )
+# class CompiledDecoderMatrix(CompiledDecoder):
+#     def __init__(self, matching: pymatching.Matching):
+#         super().__init__()
+#         self._matching = matching
+#
+#     def decode_shots_bit_packed(self, *, bit_packed_detection_event_data: np.ndarray) -> np.ndarray:
+#         unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1, bitorder='little')
+#         return self._matching.decode_batch(unpacked)
+#
+#
+# class DecoderMatrix(Decoder):
+#     def compile_decoder_for_dem(
+#             self,
+#             *,
+#             dem: stim.DetectorErrorModel,
+#     ) -> CompiledDecoder:
+#         H = csc_matrix([[1, 1, 0, 0, 0],
+#                         [0, 1, 1, 0, 0],
+#                         [0, 0, 1, 1, 0],
+#                         [0, 0, 0, 1, 1]])
+#         observables = csc_matrix([[1, 0, 0, 0, 0]])
+#         m = detector_error_model_to_check_matrices(dem).check_matrix.toarray()
+#         error_probability = 0.1
+#         weights = np.ones(H.shape[1]) * np.log((1 - error_probability) / error_probability)
+#         matching = pymatching.Matching.from_check_matrix(H, weights=weights)
+#         return CompiledDecoderMatrix(
+#             matching=pymatching.Matching.from_detector_error_model(dem)
+#         )
 
 
 class Main:
@@ -46,8 +50,8 @@ class Main:
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
-            decoders=['decoder_matrix'],
-            custom_decoders={'decoder_matrix': DecoderMatrix()},
+            decoders=['pymatching'],
+            # custom_decoders={'decoder_matrix': DecoderMatrix()},
         )
 
         # Print samples as CSV data.
