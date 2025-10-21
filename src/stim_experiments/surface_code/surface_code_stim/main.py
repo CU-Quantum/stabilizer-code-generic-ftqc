@@ -79,7 +79,7 @@ class Main:
 
         ancilla_subregister_indices = [
             [j + 2 * self._distance + 2 * ((k+1)%2) for j in i]
-            for k, i in enumerate(subregister_indices)
+            for k, i in enumerate(subregister_indices[:-1])
         ]
 
         cat_states_circuit = Circuit()
@@ -94,8 +94,8 @@ class Main:
         tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index)
         num_t_native_data_qubits = 15
         num_t_native_ancillas = 14
-        t_native_datas = [last_qubit_index + i for i in range(num_t_native_data_qubits)]
-        t_native_ancillas = [last_qubit_index + num_t_native_data_qubits + i for i in range(num_t_native_ancillas)]
+        t_native_datas = [last_qubit_index + 1 + i for i in range(num_t_native_data_qubits)]
+        t_native_ancillas = [last_qubit_index + 1 + num_t_native_data_qubits + i for i in range(num_t_native_ancillas)]
         tetrahedral_init = Circuit(f"""
             {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+1}, {i}) {q_index}' for i, q_index in enumerate(t_native_datas)])}
             {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+2}, {i}) {q_index}' for i, q_index in enumerate(t_native_ancillas)])}
@@ -111,9 +111,15 @@ class Main:
         for i, q_index in enumerate(t_native_ancillas):
             coords_to_index_map[(last_qubit_row_coord+2, i)] = q_index
         cx_from_gsch = CxFromGsch(surface_coords_to_index=coords_to_index_map, physical_error_rate=physical_error_rate)
-        modified_stabilizer = f"CX {' '.join([str(j) for i in zip(ancilla_subregister_indices[0], [last_qubit_index + 1 + i for i in range(len(ancilla_subregister_indices[0]))]) for j in i])}"
 
         num_qubits_for_z_obs_in_t_native = 3
+        modified_stabilizer = f"CX"
+        modified_subregister = ancilla_subregister_indices[0]
+        count = 0
+        while count < num_qubits_for_z_obs_in_t_native:
+            modified_stabilizer += f" {modified_subregister[2 * count]} {t_native_datas[count]}"
+            count += 1
+
         circuit = Circuit(f"""
             QUBIT_COORDS(1, 1) 1
             QUBIT_COORDS(2, 0) 2
@@ -243,7 +249,7 @@ class Main:
             MR 2 6 10 17 19 21 23 25 27 29 30 32 34 36 38 40 42 47 49 51 53 55 57 59 60 62 64 66 68 70 72 77 79 81 83 85 87 89 90 92 94 96 98 100 102 109 113 117
             
             {'\n'.join([f'DETECTOR rec[-{(self._distance**2 - 1) + (num_t_native_ancillas - i)}]' for i in range(num_t_native_ancillas)])}
-            
+
             DETECTOR(0, 4, 0) rec[-38]
             DETECTOR(0, 8, 0) rec[-24]
             DETECTOR(0, 12, 0) rec[-10]
