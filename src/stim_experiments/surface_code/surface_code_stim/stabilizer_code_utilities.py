@@ -48,7 +48,6 @@ class StabilizerCodeUtilities:
         if len(z_qubits):
             circuit.append('CZ', list(j for i in zip([ancilla_index] * len(z_qubits), np.array(self.data_indices)[z_qubits]) for j in i))
 
-
     @property
     def ancilla_indices(self) -> list[int]:
         num_ancillas = self._symplectic_matrix.shape[0]

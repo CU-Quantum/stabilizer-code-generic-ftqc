@@ -139,7 +139,7 @@ class Main:
             cat_states_circuit.append('CX', indices)
 
         modified_ancilla = generalized_shor_code_utilities.ancilla_indices[-self._distance + 1]
-        modified_stabilizer = f"CX {' '.join(str(j) for i in zip([modified_ancilla] * num_qubits_for_x_obs_in_t_native, t_native_code_utiilities.ancilla_indices[:num_qubits_for_x_obs_in_t_native]) for j in i)}"
+        modified_stabilizer = f"CX {' '.join(str(j) for i in zip([modified_ancilla] * num_qubits_for_x_obs_in_t_native, t_native_code_utiilities.data_indices[:num_qubits_for_x_obs_in_t_native]) for j in i)}"
 
         circuit = Circuit(f"""
             {generalized_shor_code_utilities.get_init()}
