@@ -15,27 +15,7 @@ class Main:
         self._distance = distance
 
     def run_main(self):
-        shor_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
-        shor_code_symplectic_matrix = np.array(shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators())
-        t_native_symplectic_matrix = get_check_matrix_values_tetrahedral()
-        combined_symplectic_matrix_shor = np.concatenate([
-            shor_code_symplectic_matrix[:, :shor_code_symplectic_matrix.shape[1] // 2],
-            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
-            shor_code_symplectic_matrix[:, shor_code_symplectic_matrix.shape[1] // 2:],
-            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
-        ], axis=1)
-        combined_symplectic_matrix_t_native = np.concatenate([
-            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
-            t_native_symplectic_matrix[:, :t_native_symplectic_matrix.shape[1] // 2],
-            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
-            t_native_symplectic_matrix[:, t_native_symplectic_matrix.shape[1] // 2:],
-        ], axis=1)
-        combined_symplectic_matrix_shor[-self._distance + 1][[shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(7)]] = np.ones(7)
-        combined_symplectic_matrix = np.concatenate([combined_symplectic_matrix_shor, combined_symplectic_matrix_t_native])
-
-        observable = np.zeros(combined_symplectic_matrix.shape[1])
-        observable[observable.shape[0] // 2 + 1] = 1
-        observable[[observable.shape[0] // 2 + shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(3)]] = np.ones(3)
+        combined_symplectic_matrix, observable = self.get_combined_symplectic()
 
         samples = collect(
             num_workers=5,
@@ -71,6 +51,35 @@ class Main:
         # fig.savefig('plot.png')
         plt.show()
 
+    def get_combined_symplectic(self):
+        shor_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
+        shor_code_symplectic_matrix = np.array(
+            shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators())
+        t_native_symplectic_matrix = get_check_matrix_values_tetrahedral()
+        combined_symplectic_matrix_shor = np.concatenate([
+            shor_code_symplectic_matrix[:, :shor_code_symplectic_matrix.shape[1] // 2],
+            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
+            shor_code_symplectic_matrix[:, shor_code_symplectic_matrix.shape[1] // 2:],
+            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
+        ], axis=1)
+        combined_symplectic_matrix_t_native = np.concatenate([
+            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
+            t_native_symplectic_matrix[:, :t_native_symplectic_matrix.shape[1] // 2],
+            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
+            t_native_symplectic_matrix[:, t_native_symplectic_matrix.shape[1] // 2:],
+        ], axis=1)
+        combined_symplectic_matrix_shor[-self._distance + 1][
+            [shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(7)]] = np.ones(7)
+        combined_symplectic_matrix = np.concatenate(
+            [combined_symplectic_matrix_shor, combined_symplectic_matrix_t_native])
+
+        observable = np.zeros(combined_symplectic_matrix.shape[1])
+        observable[observable.shape[0] // 2 + 1] = 1
+        observable[
+            [observable.shape[0] // 2 + shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(3)]] = np.ones(3)
+
+        return combined_symplectic_matrix, observable
+
     def generate_example_tasks(self):
         for p in [0.001, 0.005, 0.01]:
             yield Task(
@@ -82,9 +91,15 @@ class Main:
             )
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
-        surface_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
-        surface_code_symplectic_matrix = surface_code_generators.get_z_generators() + surface_code_generators.get_x_generators()
-        generalized_shor_code_utilities = StabilizerCodeUtilities(np.array(surface_code_symplectic_matrix))
+        shor_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
+        shor_code_symplectic_matrix = shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators()
+        shor_anticommutors = [
+            [np.concatenate([np.ones(np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:])), np.zeros(len(shor_code_symplectic_matrix[0]) - np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:]))])
+             if i <= len(shor_code_symplectic_matrix) - self._distance
+             else np.concatenate([np.zeros(len(shor_code_symplectic_matrix[0]) // 2), [int(not j % self._distance and j // self._distance < i - (len(shor_code_symplectic_matrix) - self._distance)) for j in range(len(shor_code_symplectic_matrix[0]) // 2)]])]
+            for i in range(len(shor_code_symplectic_matrix))
+        ]
+        generalized_shor_code_utilities = StabilizerCodeUtilities(np.array(shor_code_symplectic_matrix), np.array(shor_anticommutors))
 
         last_qubit_index = generalized_shor_code_utilities.ancilla_indices[-1]
         last_qubit_row_coord = 1

@@ -17,26 +17,15 @@ class CompiledDecoderByMatrix(CompiledDecoder):
     def decode_shots_bit_packed(self, *, bit_packed_detection_event_data: np.ndarray) -> np.ndarray:
         # Matching.from_check_matrix(csc_matrix(self._symplectic_matrix))
         unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1, bitorder='little')
-        predictions = np.zeros((unpacked.shape[0], len(self._observables)), dtype=np.uint8)
-        if not unpacked.max():
-            return predictions
-
-        possible_combos = [combo for i in range(1, (self._distance - 1) // 2 + 1) for combo in combinations(range(self._symplectic_matrix.shape[1]), i)]
-        for combo in possible_combos:
-            found_noise = np.zeros(self._symplectic_matrix.shape[1], dtype=np.uint8)
-            found_noise[list(combo)] = np.ones(len(combo))
-            found_syndrome = self._symplectic_matrix @ found_noise
-            indices_matching = np.where(np.all(unpacked == found_syndrome, axis=1))[0]
-            if len(indices_matching):
-                noisy_shots = np.array([found_noise for _ in range(len(indices_matching))])
-                predictions[indices_matching] = noisy_shots @ self._observables.T
-        # for syndrome in unpacked:
-        #     found_noise = np.zeros(self._symplectic_matrix.shape[0], dtype=np.uint8)
-        #     if any(syndrome):
-        #         for combo in possible_combos:
-        #             found_noise[combo] = np.ones(len(combo))
-        #             found_syndrome = self._symplectic_matrix @ found_noise
-        #             if allequal(found_syndrome, syndrome):
-        #                 break
-        #     predictions.append(found_noise)
-        return predictions
+        predictions = np.zeros((unpacked.shape[0], int(np.ceil(len(self._observables) / 8))), dtype=np.uint8)
+        if unpacked.max():
+            possible_combos = [combo for i in range(1, (self._distance - 1) // 2 + 1) for combo in combinations(range(self._symplectic_matrix.shape[1]), i)]
+            for combo in possible_combos:
+                found_noise = np.zeros(self._symplectic_matrix.shape[1], dtype=np.uint8)
+                found_noise[list(combo)] = np.ones(len(combo))
+                found_syndrome = (self._symplectic_matrix @ found_noise) % 2
+                indices_matching = np.where(np.all(unpacked[:, self._symplectic_matrix.shape[0]:] == found_syndrome, axis=1))[0]
+                if len(indices_matching):
+                    noisy_shots = np.array([found_noise for _ in range(len(indices_matching))])
+                    predictions[indices_matching] ^= (noisy_shots @ self._observables.T) % 2
+        return np.packbits(predictions, axis=1, bitorder='little')
