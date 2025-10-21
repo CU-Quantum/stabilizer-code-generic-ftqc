@@ -15,16 +15,31 @@ class Main:
         self._distance = distance
 
     def run_main(self):
-        surface_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
-        surface_code_symplectic_matrix = surface_code_generators.get_z_generators() + surface_code_generators.get_x_generators()
+        shor_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
+        shor_code_symplectic_matrix = np.array(shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators())
+        t_native_symplectic_matrix = get_check_matrix_values_tetrahedral()
+        combined_symplectic_matrix_shor = np.concatenate([
+            shor_code_symplectic_matrix[:, :shor_code_symplectic_matrix.shape[1] // 2],
+            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
+            shor_code_symplectic_matrix[:, shor_code_symplectic_matrix.shape[1] // 2:],
+            np.zeros((shor_code_symplectic_matrix.shape[0], t_native_symplectic_matrix.shape[1] // 2)),
+        ], axis=1)
+        combined_symplectic_matrix_t_native = np.concatenate([
+            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
+            t_native_symplectic_matrix[:, :t_native_symplectic_matrix.shape[1] // 2],
+            np.zeros((t_native_symplectic_matrix.shape[0], shor_code_symplectic_matrix.shape[1] // 2)),
+            t_native_symplectic_matrix[:, t_native_symplectic_matrix.shape[1] // 2:],
+        ], axis=1)
+        combined_symplectic_matrix_shor[-self._distance + 1][[shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(7)]] = np.ones(7)
+        combined_symplectic_matrix = np.concatenate([combined_symplectic_matrix_shor, combined_symplectic_matrix_t_native])
 
         samples = collect(
             num_workers=5,
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
-            decoders=['pymatching'],
-            # custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=surface_code_symplectic_matrix)},
+            decoders=['decoder_by_matrix'],
+            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix)},
         )
 
         # Print samples as CSV data.
