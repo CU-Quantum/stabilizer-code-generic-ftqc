@@ -18,5 +18,4 @@ class CxFromGsch:
             CX {' '.join(map(str, cx_qubits))}
             DEPOLARIZE2({self._physical_error_rate}) {' '.join(map(str, cx_qubits))}
             DEPOLARIZE1({self._physical_error_rate}) {' '.join(map(str, idle_qubits))}
-            TICK
         """

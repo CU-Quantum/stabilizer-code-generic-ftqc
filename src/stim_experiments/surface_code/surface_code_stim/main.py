@@ -139,7 +139,11 @@ class Main:
             cat_states_circuit.append('CX', indices)
 
         modified_ancilla = generalized_shor_code_utilities.ancilla_indices[-self._distance + 1]
-        modified_stabilizer = f"CX {' '.join(str(j) for i in zip([modified_ancilla] * num_qubits_for_x_obs_in_t_native, t_native_code_utiilities.data_indices[:num_qubits_for_x_obs_in_t_native]) for j in i)}"
+        modified_stabilizer = f"""
+            H {modified_ancilla}
+            CX {' '.join(str(j) for i in zip([modified_ancilla] * num_qubits_for_x_obs_in_t_native, t_native_code_utiilities.data_indices[:num_qubits_for_x_obs_in_t_native]) for j in i)}
+            H {modified_ancilla}
+        """
 
         circuit = Circuit(f"""
             {generalized_shor_code_utilities.get_init()}
@@ -147,6 +151,7 @@ class Main:
 
             TICK
             {cat_states_circuit}
+            {t_native_code_utiilities.get_encoding_by_stabilizer()}
 
             TICK
             {cx_from_gsch.perform_cx()}
@@ -167,7 +172,7 @@ class Main:
             OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + num_qubits_for_z_obs_in_t_native)])}
         """)
 
-        # with open('fds.html', 'w') as f: f.write(str(circuit.diagram(type='timeline-3d-html')))
+        # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
 
 

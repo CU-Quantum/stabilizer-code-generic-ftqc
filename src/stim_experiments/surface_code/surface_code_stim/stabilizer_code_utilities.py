@@ -24,7 +24,14 @@ class StabilizerCodeUtilities:
             {'\n'.join([f'QUBIT_COORDS({self.row_coord_start + 1}, {i}) {q_index}' for i, q_index in enumerate(self.ancilla_indices)])}
             R {' '.join(map(str, self.data_indices))}
             R {' '.join(map(str, self.ancilla_indices))}
-            
+        """)
+
+    def get_encoding_by_stabilizer(self):
+        anticommutor_circuit = Circuit()
+        for ancilla_index, anticommutor in zip(self.ancilla_indices, self._generator_anticommutors):
+            self.apply_stabilizer(anticommutor, anticommutor_circuit, ancilla_index)
+
+        return Circuit(f"""
             {self.get_stabilizers()}
 
             M {' '.join(map(str, self.ancilla_indices))}
