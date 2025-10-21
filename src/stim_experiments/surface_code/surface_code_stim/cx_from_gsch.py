@@ -1,20 +1,22 @@
-from stim_experiments.surface_code.surface_code_stim.utilities import index_string
-
-
 class CxFromGsch:
-    def __init__(self, surface_coords_to_index: dict[tuple[int, int], int], physical_error_rate: float = 0.001):
-        self._surface_coords_to_index = surface_coords_to_index
+    def __init__(self,
+                 control_qubit_indices: list[int],
+                 target_qubit_indices: list[int],
+                 possible_idle_qubit_indices: list[int],
+                 physical_error_rate: float = 0.001):
+        self._control_qubit_indices = control_qubit_indices
+        self._target_qubit_indices = target_qubit_indices
+        self._possible_idle_qubit_indices = possible_idle_qubit_indices
         self._physical_error_rate = physical_error_rate
 
-    def perform_cx(self, control_qubit_coords: list[tuple[int, int]], target_qubit_coords: list[tuple[int, int]]):
-        control_qubit_pairs = zip(control_qubit_coords, target_qubit_coords)
+    def perform_cx(self, ):
+        control_qubit_pairs = zip(self._control_qubit_indices, self._target_qubit_indices)
         cx_qubits = [coord for coords in control_qubit_pairs for coord in coords]
-        idle_qubits = [coord for coord in self._surface_coords_to_index.keys() if coord not in cx_qubits]
+        idle_qubits = [coord for coord in self._possible_idle_qubit_indices if coord not in cx_qubits]
 
         return f"""
-    CX {index_string(cx_qubits, self._surface_coords_to_index)}
-    DEPOLARIZE2({self._physical_error_rate}) {index_string(cx_qubits, self._surface_coords_to_index)}
-    DEPOLARIZE1({self._physical_error_rate}) {index_string(idle_qubits, self._surface_coords_to_index)}
-    TICK
-"""
-
+            CX {' '.join(map(str, cx_qubits))}
+            DEPOLARIZE2({self._physical_error_rate}) {' '.join(map(str, cx_qubits))}
+            DEPOLARIZE1({self._physical_error_rate}) {' '.join(map(str, idle_qubits))}
+            TICK
+        """
