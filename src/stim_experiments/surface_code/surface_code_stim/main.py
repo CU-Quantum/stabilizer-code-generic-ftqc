@@ -19,12 +19,12 @@ class Main:
         surface_code_symplectic_matrix = surface_code_generators.get_z_generators() + surface_code_generators.get_x_generators()
 
         samples = collect(
-            num_workers=1,
+            num_workers=5,
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
-            decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=surface_code_symplectic_matrix)},
+            decoders=['pymatching'],
+            # custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=surface_code_symplectic_matrix)},
         )
 
         # Print samples as CSV data.
@@ -37,8 +37,8 @@ class Main:
         plot_error_rate(
             ax=ax,
             stats=samples,
-            group_func=lambda stat: f"Rotated Surface Code d={stat.json_metadata['d']}",
-            x_func=lambda stat: stat.json_metadata['p'],
+            group_func=lambda stat: f"Rotated Surface Code d={stat.json_metadata['distance']}",
+            x_func=lambda stat: stat.json_metadata['physical_error_rate'],
         )
         ax.loglog()
         ax.set_ylim(1e-5, 1)
@@ -49,7 +49,7 @@ class Main:
         ax.legend()
 
         # Save to file and also open in a window.
-        fig.savefig('plot.png')
+        # fig.savefig('plot.png')
         plt.show()
 
     def generate_example_tasks(self):
@@ -67,7 +67,7 @@ class Main:
         surface_code_symplectic_matrix = surface_code_generators.get_z_generators() + surface_code_generators.get_x_generators()
         generalized_shor_code_utilities = StabilizerCodeUtilities(np.array(surface_code_symplectic_matrix))
 
-        last_qubit_index = generalized_shor_code_utilities.data_indices[-1]
+        last_qubit_index = generalized_shor_code_utilities.ancilla_indices[-1]
         last_qubit_row_coord = 1
         t_native_code_utiilities = StabilizerCodeUtilities(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index+1, row_coord_start=last_qubit_row_coord+1)
         num_qubits_for_x_obs_in_t_native = 7
@@ -111,11 +111,11 @@ class Main:
 
             {'\n'.join([f'DETECTOR rec[{-len(generalized_shor_code_utilities.ancilla_indices) - len(t_native_code_utiilities.ancilla_indices) + i}]' for i in range(len(generalized_shor_code_utilities.ancilla_indices))])}
             {'\n'.join([f'DETECTOR rec[{-len(t_native_code_utiilities.ancilla_indices) + i}]' for i in range(len(t_native_code_utiilities.ancilla_indices))])}
-            
+
             TICK
             H {generalized_shor_code_utilities.ancilla_indices[0]} {t_native_code_utiilities.ancilla_indices[0]}
             TICK
-            CZ {' '.join([str(j) for i in zip([generalized_shor_code_utilities.ancilla_indices[0]] * self._distance, [str(subreg[0]) for subreg in shor_data_subregister_indices]) for j in i])}
+            CZ {' '.join([str(j) for i in zip([generalized_shor_code_utilities.ancilla_indices[0]] * 1, [str(subreg[0]) for subreg in shor_data_subregister_indices[:1]]) for j in i])}
             CZ {' '.join([str(j) for i in zip([t_native_code_utiilities.ancilla_indices[0]] * num_qubits_for_z_obs_in_t_native, t_native_code_utiilities.data_indices[:num_qubits_for_z_obs_in_t_native]) for j in i])}
             TICK
             H {generalized_shor_code_utilities.ancilla_indices[0]} {t_native_code_utiilities.ancilla_indices[0]}

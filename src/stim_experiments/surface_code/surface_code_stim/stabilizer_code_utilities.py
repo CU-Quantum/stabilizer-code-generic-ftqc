@@ -16,7 +16,7 @@ class StabilizerCodeUtilities:
             R {' '.join(map(str, self.data_indices))}
             R {' '.join(map(str, self.ancilla_indices))}
             
-            {self.get_stabilizers().without_noise()}
+            {self.get_stabilizers()}
 
             M {' '.join(map(str, self.ancilla_indices))}
             Z {' '.join(map(str, self.ancilla_indices))}
