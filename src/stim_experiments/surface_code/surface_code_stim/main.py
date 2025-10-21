@@ -33,13 +33,17 @@ class Main:
         combined_symplectic_matrix_shor[-self._distance + 1][[shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(7)]] = np.ones(7)
         combined_symplectic_matrix = np.concatenate([combined_symplectic_matrix_shor, combined_symplectic_matrix_t_native])
 
+        observable = np.zeros(combined_symplectic_matrix.shape[1])
+        observable[observable.shape[0] // 2 + 1] = 1
+        observable[[observable.shape[0] // 2 + shor_code_symplectic_matrix.shape[1] // 2 + i for i in range(3)]] = np.ones(3)
+
         samples = collect(
             num_workers=5,
             max_shots=1_000_000,
             max_errors=1000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance)},
+            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
         )
 
         # Print samples as CSV data.
