@@ -9,8 +9,6 @@ def get_stabilizer_code_line(symplectic_matrix: NDArray[NDArray[int]], qubit_id_
     data_qubit_indices = list(range(qubit_id_start, qubit_id_start + num_data_qubits))
     ancilla_qubit_indices = list(range(qubit_id_start + num_data_qubits, qubit_id_start + num_data_qubits + num_ancillas))
     circuit = stim.Circuit()
-    circuit.append('R', data_qubit_indices)
-    circuit.append('R', ancilla_qubit_indices)
     for i, stabilizer in enumerate(symplectic_matrix):
         x_qubits = np.argwhere(stabilizer[:num_data_qubits] == 1).flatten()
         z_qubits = np.argwhere(stabilizer[num_data_qubits:] == 1).flatten()
@@ -18,5 +16,4 @@ def get_stabilizer_code_line(symplectic_matrix: NDArray[NDArray[int]], qubit_id_
         circuit.append('CX', list(j for i in zip([ancilla_qubit_indices[i]] * len(x_qubits), np.array(data_qubit_indices)[x_qubits]) for j in i))
         circuit.append('CZ', list(j for i in zip([ancilla_qubit_indices[i]] * len(z_qubits), np.array(data_qubit_indices)[z_qubits]) for j in i))
         circuit.append('H', ancilla_qubit_indices[i])
-    circuit.append('M', ancilla_qubit_indices)
     return circuit

@@ -91,18 +91,22 @@ class Main:
 
         last_qubit_index = 117
         last_qubit_row_coord = 14
-        tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index)
         num_t_native_data_qubits = 15
         num_t_native_ancillas = 14
         t_native_datas = [last_qubit_index + 1 + i for i in range(num_t_native_data_qubits)]
         t_native_ancillas = [last_qubit_index + 1 + num_t_native_data_qubits + i for i in range(num_t_native_ancillas)]
+        tetrahedral_code = get_stabilizer_code_line(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index+1)
         tetrahedral_init = Circuit(f"""
             {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+1}, {i}) {q_index}' for i, q_index in enumerate(t_native_datas)])}
             {'\n'.join([f'QUBIT_COORDS({last_qubit_row_coord+2}, {i}) {q_index}' for i, q_index in enumerate(t_native_ancillas)])}
-            
+            R {' '.join(map(str, t_native_datas))}
+            R {' '.join(map(str, t_native_ancillas))}
+
             {tetrahedral_code.without_noise()}
-            {f'Z {' '.join(map(str, t_native_ancillas))}'}
-            {f'R {' '.join(map(str, t_native_ancillas))}'}
+
+            M {' '.join(map(str, t_native_ancillas))}
+            Z {' '.join(map(str, t_native_ancillas))}
+            R {' '.join(map(str, t_native_ancillas))}
         """)
 
         coords_to_index_map = {k:v for k, v in zip([j for i in subregister_coords for j in i], [j for i in subregister_indices for j in i])}
@@ -247,7 +251,7 @@ class Main:
             TICK
             {f'MR {' '.join(map(str, t_native_ancillas))}'}
             MR 2 6 10 17 19 21 23 25 27 29 30 32 34 36 38 40 42 47 49 51 53 55 57 59 60 62 64 66 68 70 72 77 79 81 83 85 87 89 90 92 94 96 98 100 102 109 113 117
-            
+
             {'\n'.join([f'DETECTOR rec[-{(self._distance**2 - 1) + (num_t_native_ancillas - i)}]' for i in range(num_t_native_ancillas)])}
 
             DETECTOR(0, 4, 0) rec[-38]
