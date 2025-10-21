@@ -94,16 +94,32 @@ class Main:
         shor_code_generators = GeneralizedShorCodeGenerators(num_cats=self._distance, num_qubits_per_cat=self._distance)
         shor_code_symplectic_matrix = shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators()
         shor_anticommutors = [
-            [np.concatenate([np.ones(np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:])), np.zeros(len(shor_code_symplectic_matrix[0]) - np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:]))])
+            np.concatenate([np.ones(np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:])), np.zeros(len(shor_code_symplectic_matrix[0]) - np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:]))])
              if i <= len(shor_code_symplectic_matrix) - self._distance
-             else np.concatenate([np.zeros(len(shor_code_symplectic_matrix[0]) // 2), [int(not j % self._distance and j // self._distance < i - (len(shor_code_symplectic_matrix) - self._distance)) for j in range(len(shor_code_symplectic_matrix[0]) // 2)]])]
+             else np.concatenate([np.zeros(len(shor_code_symplectic_matrix[0]) // 2), [int(not j % self._distance and j // self._distance < i - (len(shor_code_symplectic_matrix) - self._distance)) for j in range(len(shor_code_symplectic_matrix[0]) // 2)]])
             for i in range(len(shor_code_symplectic_matrix))
         ]
         generalized_shor_code_utilities = StabilizerCodeUtilities(np.array(shor_code_symplectic_matrix), np.array(shor_anticommutors))
 
         last_qubit_index = generalized_shor_code_utilities.ancilla_indices[-1]
         last_qubit_row_coord = 1
-        t_native_code_utiilities = StabilizerCodeUtilities(get_check_matrix_values_tetrahedral(), qubit_id_start=last_qubit_index+1, row_coord_start=last_qubit_row_coord+1)
+        t_native_anticommutors = np.array([
+            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+        ])
+        t_native_code_utiilities = StabilizerCodeUtilities(get_check_matrix_values_tetrahedral(), t_native_anticommutors, qubit_id_start=last_qubit_index+1, row_coord_start=last_qubit_row_coord+1)
         num_qubits_for_x_obs_in_t_native = 7
         num_qubits_for_z_obs_in_t_native = 3
 
