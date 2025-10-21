@@ -113,15 +113,8 @@ class Main:
             {'\n'.join([f'DETECTOR rec[{-len(t_native_code_utiilities.ancilla_indices) + i}]' for i in range(len(t_native_code_utiilities.ancilla_indices))])}
 
             TICK
-            H {generalized_shor_code_utilities.ancilla_indices[0]} {t_native_code_utiilities.ancilla_indices[0]}
-            TICK
-            CZ {' '.join([str(j) for i in zip([generalized_shor_code_utilities.ancilla_indices[0]] * 1, [str(subreg[0]) for subreg in shor_data_subregister_indices[:1]]) for j in i])}
-            CZ {' '.join([str(j) for i in zip([t_native_code_utiilities.ancilla_indices[0]] * num_qubits_for_z_obs_in_t_native, t_native_code_utiilities.data_indices[:num_qubits_for_z_obs_in_t_native]) for j in i])}
-            TICK
-            H {generalized_shor_code_utilities.ancilla_indices[0]} {t_native_code_utiilities.ancilla_indices[0]}
-            TICK
-            MR {generalized_shor_code_utilities.ancilla_indices[0]} {t_native_code_utiilities.ancilla_indices[0]}
-            OBSERVABLE_INCLUDE(0) rec[-1] rec[-2]
+            MR {' '.join([str(subreg[0]) for subreg in shor_data_subregister_indices[:1]] + list(map(str, t_native_code_utiilities.data_indices[:num_qubits_for_z_obs_in_t_native])))}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + num_qubits_for_z_obs_in_t_native)])}
         """)
 
         # with open('fds.html', 'w') as f: f.write(str(circuit.diagram(type='timeline-3d-html')))
