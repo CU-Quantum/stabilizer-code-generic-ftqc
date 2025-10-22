@@ -1,11 +1,15 @@
 from itertools import combinations
 
 import numpy as np
+import pytest
 from matplotlib import pyplot as plt
 from pymatching import Matching
 from scipy.sparse import csc_matrix
 from sinter import CSV_HEADER, CompiledDecoder, Decoder, Task, collect, plot_error_rate
 from stim import Circuit, DetectorErrorModel
+
+from stim_experiments.surface_code.surface_code_stim.compiled_decoder_by_matrix import CompiledDecoderByMatrix
+from stim_experiments.surface_code.surface_code_stim.decoder_by_matrix import DecoderByMatrix
 
 
 class CompiledDecoderByMatrixRepetition(CompiledDecoder):
@@ -34,7 +38,13 @@ class CompiledDecoderByMatrixRepetition(CompiledDecoder):
                 if len(indices_matching):
                     noisy_shots = np.array([found_noise for _ in range(len(indices_matching))], dtype=np.uint8)
                     predictions[indices_matching] = (noisy_shots @ self._observables.T) % 2
-        by_matrix_results = np.packbits(predictions, axis=1, bitorder='little')
+        by_matrix_results = DecoderByMatrix(
+            symplectic_matrix=self._symplectic_matrix,
+            distance=self._distance,
+            observables=self._observables,
+        ).compile_decoder_for_dem(dem=None).decode_shots_bit_packed(
+            bit_packed_detection_event_data=bit_packed_detection_event_data
+        )
         return by_matrix_results
 
 
@@ -55,7 +65,7 @@ class RepetitionSimulator:
         samples = collect(
             num_workers=1,
             max_shots=1_000_000,
-            max_errors=10_000,
+            max_errors=1_000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrixRepetition()},
@@ -123,6 +133,8 @@ class RepetitionSimulator:
             OBSERVABLE_INCLUDE(0) rec[-1]
         """)
 
+
+@pytest.mark.experiment
 class TestRepetitionMatrixDecoder:
     def test(self):
         RepetitionSimulator().run_main()
