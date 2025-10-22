@@ -20,7 +20,6 @@ class Main:
         samples = collect(
             num_workers=5,
             max_shots=1_000_000,
-            max_errors=1000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
