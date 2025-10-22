@@ -7,12 +7,15 @@ class StabilizerCodeUtilities:
     def __init__(self,
                  symplectic_matrix: NDArray[NDArray[int]],
                  generator_anticommutors: NDArray[NDArray[int]],
+                 z_observable: NDArray[int],
                  qubit_id_start: int = 0,
                  row_coord_start: int = 0,):
-        self._symplectic_matrix = symplectic_matrix
+        self.symplectic_matrix = symplectic_matrix
+        self.row_coord_start = row_coord_start
+
         self._generator_anticommutors = generator_anticommutors
         self._qubit_id_start = qubit_id_start
-        self.row_coord_start = row_coord_start
+        self.z_observable = z_observable
 
     def get_init(self):
         anticommutor_circuit = Circuit()
@@ -41,7 +44,7 @@ class StabilizerCodeUtilities:
 
     def get_stabilizers(self) -> Circuit:
         circuit = Circuit()
-        for ancilla_index, stabilizer in zip(self.ancilla_indices, self._symplectic_matrix):
+        for ancilla_index, stabilizer in zip(self.ancilla_indices, self.symplectic_matrix):
             circuit.append('H', ancilla_index)
             self.apply_stabilizer(stabilizer, circuit, ancilla_index)
             circuit.append('H', ancilla_index)
@@ -57,11 +60,11 @@ class StabilizerCodeUtilities:
 
     @property
     def ancilla_indices(self) -> list[int]:
-        num_ancillas = self._symplectic_matrix.shape[0]
+        num_ancillas = self.symplectic_matrix.shape[0]
         start_ancilla_index = self._qubit_id_start + len(self.data_indices)
         return list(range(start_ancilla_index, start_ancilla_index + num_ancillas))
 
     @property
     def data_indices(self) -> list[int]:
-        num_data_qubits = self._symplectic_matrix.shape[1] // 2
+        num_data_qubits = self.symplectic_matrix.shape[1] // 2
         return list(range(self._qubit_id_start, self._qubit_id_start + num_data_qubits))
