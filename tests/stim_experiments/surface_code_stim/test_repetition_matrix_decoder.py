@@ -19,7 +19,7 @@ class CompiledDecoderByMatrixRepetition(CompiledDecoder):
     def decode_shots_bit_packed(self, *, bit_packed_detection_event_data: np.ndarray) -> np.ndarray:
         unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1, bitorder='little')[:, :self._symplectic_matrix.shape[0]]
         # from_pymatching_dem_results = self._matching.decode_batch(unpacked)
-        # from_pymatching_matrix_results = Matching.from_check_matrix(csc_matrix(self._symplectic_matrix)).decode_batch(unpacked)
+        # from_pymatching_matrix_results = Matching.from_check_matrix(csc_matrix(self._symplectic_matrix))
         predictions = np.zeros((unpacked.shape[0], len(self._observables)), dtype=np.uint8)
         if unpacked.max():
             possible_combos = [combo for i in range(1, (self._distance - 1) // 2 + 1) for combo in
