@@ -96,7 +96,7 @@ class SimulateCx:
         samples = collect(
             num_workers=5,
             max_shots=1_000_000,
-            max_errors=1_000,
+            max_errors=100,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
@@ -128,36 +128,33 @@ class SimulateCx:
         plt.show()
 
     def get_combined_symplectic(self):
-        control_symplectic_matrix_solo = self._control_code_utilities.symplectic_matrix
         target_symplectic_matrix_solo = self._target_code_utilities.symplectic_matrix
-        control_symplectic_matrix_expanded = np.concatenate([
-            control_symplectic_matrix_solo[:, :control_symplectic_matrix_solo.shape[1] // 2],
-            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
-            control_symplectic_matrix_solo[:, control_symplectic_matrix_solo.shape[1] // 2:],
-            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
-        ], axis=1)
-        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
-            control_symplectic_matrix_solo.shape[1] // 2:control_symplectic_matrix_expanded.shape[1] // 2] \
-            = self._target_code_utilities.x_observable[:len(self._target_code_utilities.x_observable) // 2]
-        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
-            control_symplectic_matrix_expanded.shape[1] // 2 + control_symplectic_matrix_solo.shape[1] // 2:control_symplectic_matrix_expanded.shape[1] //2 + control_symplectic_matrix_expanded.shape[1] // 2] \
-            = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
+        control_symplectic_matrix_solo = self._control_code_utilities.symplectic_matrix
         target_symplectic_matrix_expanded = np.concatenate([
-            np.zeros((target_symplectic_matrix_solo.shape[0], control_symplectic_matrix_solo.shape[1] // 2)),
             target_symplectic_matrix_solo[:, :target_symplectic_matrix_solo.shape[1] // 2],
             np.zeros((target_symplectic_matrix_solo.shape[0], control_symplectic_matrix_solo.shape[1] // 2)),
             target_symplectic_matrix_solo[:, target_symplectic_matrix_solo.shape[1] // 2:],
+            np.zeros((target_symplectic_matrix_solo.shape[0], control_symplectic_matrix_solo.shape[1] // 2)),
         ], axis=1)
-        combined_symplectic_matrix = np.concatenate([control_symplectic_matrix_expanded, target_symplectic_matrix_expanded])
+        control_symplectic_matrix_expanded = np.concatenate([
+            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
+            control_symplectic_matrix_solo[:, :control_symplectic_matrix_solo.shape[1] // 2],
+            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
+            control_symplectic_matrix_solo[:, control_symplectic_matrix_solo.shape[1] // 2:],
+        ], axis=1)
+        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
+            :len(self._target_code_utilities.x_observable) // 2] = self._target_code_utilities.x_observable[:len(self._target_code_utilities.x_observable) // 2]
+        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
+            control_symplectic_matrix_expanded.shape[1] // 2:control_symplectic_matrix_expanded.shape[1] //2 + len(self._target_code_utilities.x_observable) // 2] \
+            = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
+        combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
 
         observable = np.zeros(combined_symplectic_matrix.shape[1])
-        # control observable
-        observable[[observable.shape[0] // 2 + i for i in range(self._si + 1)]] = np.ones(self._si + 1)
         # target observable
-        observable[control_symplectic_matrix_solo.shape[1] // 2:len(observable) // 2] \
-            = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
-        observable[len(observable) // 2 + control_symplectic_matrix_solo.shape[1] // 2:] \
-            = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
+        observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
+        observable[len(observable) // 2:len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
+        # control observable
+        observable[[len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i for i in range(self._si + 1)]] = np.ones(self._si + 1)
 
         return combined_symplectic_matrix, observable
 
@@ -175,7 +172,7 @@ class SimulateCx:
         control_subregister_indices = [self._control_code_utilities.data_indices[i * self._distance:(i + 1) * self._distance] for i in range(self._distance)]
         all_data_indices = self._control_code_utilities.data_indices + self._target_code_utilities.data_indices
 
-        # TODO: allow for not only CX operations
+        # TODO: allow for targets NOT logical gates with not only CX operations
         cx_from_gsch = CxFromGsch(control_qubit_indices=control_subregister_indices[0],
                                   target_qubit_indices=self._target_code_utilities.data_indices[:len(self._target_code_utilities.x_observable)],
                                   possible_idle_qubit_indices=all_data_indices,
@@ -189,35 +186,36 @@ class SimulateCx:
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._distance + 1 + self._si]
         modified_stabilizer = f"""
             H {modified_ancilla}
-            CX {' '.join(str(j) for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:len(self._target_code_utilities.x_observable)]) for j in i)}
+            CX {' '.join(str(j) for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i)}
             H {modified_ancilla}
         """
 
+        target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         circuit = Circuit(f"""
-            {self._control_code_utilities.get_init()}
             {self._target_code_utilities.get_init()}
+            {self._control_code_utilities.get_init()}
 
             TICK
-            {cat_states_circuit}
             {self._target_code_utilities.get_encoding_by_stabilizer()}
+            {cat_states_circuit}
 
             TICK
             {cx_from_gsch.perform_cx()}
 
             TICK
-            {self._control_code_utilities.get_stabilizers()}
             {self._target_code_utilities.get_stabilizers()}
+            {self._control_code_utilities.get_stabilizers()}
             {modified_stabilizer}
             TICK
-            {f'MR {' '.join(map(str, self._control_code_utilities.ancilla_indices))}'}
             {f'MR {' '.join(map(str, self._target_code_utilities.ancilla_indices))}'}
+            {f'MR {' '.join(map(str, self._control_code_utilities.ancilla_indices))}'}
 
-            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) - len(self._target_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
-            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
+            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
+            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
 
             TICK
-            MR {' '.join([str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]] + list(map(str, np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))))}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + self._si + np.count_nonzero(self._target_code_utilities.z_observable))])}
+            MR {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]])}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + len(target_measurement_indices) + self._si)])}
         """)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
