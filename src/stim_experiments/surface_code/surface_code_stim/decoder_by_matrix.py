@@ -31,7 +31,6 @@ class DecoderByMatrix(Decoder):
             if syndrome.max()
         }
         return CompiledDecoderByMatrix(
-            symplectic_matrix=self._symplectic_matrix,
             syndrome_to_noise=syndrome_to_noise,
             distance=self._distance,
             observables=self._observables
