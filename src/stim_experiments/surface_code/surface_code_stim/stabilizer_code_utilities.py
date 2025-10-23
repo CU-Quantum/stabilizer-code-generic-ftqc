@@ -8,14 +8,16 @@ class StabilizerCodeUtilities:
                  symplectic_matrix: NDArray[NDArray[int]],
                  generator_anticommutors: NDArray[NDArray[int]],
                  z_observable: NDArray[int],
+                 x_observable: NDArray[int],
                  qubit_id_start: int = 0,
                  row_coord_start: int = 0,):
         self.symplectic_matrix = symplectic_matrix
         self.row_coord_start = row_coord_start
+        self.z_observable = z_observable
+        self.x_observable = x_observable
 
         self._generator_anticommutors = generator_anticommutors
         self._qubit_id_start = qubit_id_start
-        self.z_observable = z_observable
 
     def get_init(self):
         anticommutor_circuit = Circuit()
