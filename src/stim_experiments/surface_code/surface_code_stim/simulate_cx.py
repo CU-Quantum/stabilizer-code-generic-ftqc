@@ -115,7 +115,7 @@ class SimulateCx:
         samples = collect(
             num_workers=5,
             max_shots=1_000_000,
-            max_errors=100,
+            max_errors=1_000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
@@ -135,7 +135,7 @@ class SimulateCx:
             x_func=lambda stat: stat.json_metadata['physical_error_rate'],
         )
         ax.loglog()
-        ax.set_ylim(1e-5, 1)
+        ax.set_ylim(1e-10, 1e-1)
         ax.grid()
         ax.set_title('Logical Error Rate vs Physical Error Rate')
         ax.set_ylabel('Logical Error Probability (per shot)')
@@ -242,6 +242,7 @@ class SimulateCx:
 
 
 if __name__ == '__main__':
-    # target_code = get_shor_code_utilities(distance=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    target_code = get_3_repetition_code_utilities()
+    # target_code = get_3_repetition_code_utilities()
+    target_code = get_shor_code_utilities(distance=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
+    # target_code = get_15_1_3_reed_solomon_code_utilities()
     SimulateCx(target_code_utilities=target_code, si=0).run_main()

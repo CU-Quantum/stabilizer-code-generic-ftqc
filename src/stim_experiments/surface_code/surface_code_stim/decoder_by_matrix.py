@@ -27,7 +27,7 @@ class DecoderByMatrix(Decoder):
         syndrome_to_noise = {
             tuple(syndrome): noise
             for combo in possible_combos
-            for syndrome, noise in self._syndrome_and_noise(combo)
+            for syndrome, noise in self._syndrome_and_noise_from_non_y_combo(combo)
             if syndrome.max()
         }
         return CompiledDecoderByMatrix(
@@ -36,8 +36,18 @@ class DecoderByMatrix(Decoder):
             observables=self._observables
         )
 
-    def _syndrome_and_noise(self, combo):
+    def _syndrome_and_noise_from_non_y_combo(self, combo):
+        res = [self._syndrome_and_noise_from_combo(combo=combo)]
+
+        y_additions = (np.array([c for i in range(len(combo)) for c in combinations(combo, i+1)]) + self._symplectic_matrix.shape[1] // 2) % self._symplectic_matrix.shape[1]
+        for y_addition in y_additions:
+            y_combo = set(np.concatenate([combo, y_addition]))
+            res.append(self._syndrome_and_noise_from_combo(y_combo))
+
+        return res
+
+    def _syndrome_and_noise_from_combo(self, combo):
         found_noise = np.zeros(self._symplectic_matrix.shape[1], dtype=np.uint8)
         found_noise[list(combo)] = np.ones(len(combo))
         found_syndrome = (self._symplectic_matrix @ found_noise) % 2
-        return [(found_syndrome, found_noise)]
+        return found_syndrome, found_noise
