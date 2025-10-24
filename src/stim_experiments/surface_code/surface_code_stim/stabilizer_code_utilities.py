@@ -6,7 +6,7 @@ from stim import Circuit
 class StabilizerCodeUtilities:
     def __init__(self,
                  symplectic_matrix: NDArray[NDArray[int]],
-                 generator_anticommutors: NDArray[NDArray[int]],
+                 generator_anticommutators: NDArray[NDArray[int]],
                  z_observable: NDArray[int],
                  x_observable: NDArray[int],
                  qubit_id_start: int = 0,
@@ -16,13 +16,13 @@ class StabilizerCodeUtilities:
         self.z_observable = z_observable
         self.x_observable = x_observable
 
-        self._generator_anticommutors = generator_anticommutors
+        self._generator_anticommutators = generator_anticommutators
         self._qubit_id_start = qubit_id_start
 
     def get_init(self):
-        anticommutor_circuit = Circuit()
-        for ancilla_index, anticommutor in zip(self.ancilla_indices, self._generator_anticommutors):
-            self.apply_stabilizer(anticommutor, anticommutor_circuit, ancilla_index)
+        anticommutator_circuit = Circuit()
+        for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
+            self.apply_stabilizer(anticommutator, anticommutator_circuit, ancilla_index)
 
         return Circuit(f"""
             {'\n'.join([f'QUBIT_COORDS({self.row_coord_start}, {i}) {q_index}' for i, q_index in enumerate(self.data_indices)])}
@@ -32,15 +32,15 @@ class StabilizerCodeUtilities:
         """)
 
     def get_encoding_by_stabilizer(self):
-        anticommutor_circuit = Circuit()
-        for ancilla_index, anticommutor in zip(self.ancilla_indices, self._generator_anticommutors):
-            self.apply_stabilizer(anticommutor, anticommutor_circuit, ancilla_index)
+        anticommutator_circuit = Circuit()
+        for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
+            self.apply_stabilizer(anticommutator, anticommutator_circuit, ancilla_index)
 
         return Circuit(f"""
             {self.get_stabilizers()}
 
             M {' '.join(map(str, self.ancilla_indices))}
-            {anticommutor_circuit}
+            {anticommutator_circuit}
             R {' '.join(map(str, self.ancilla_indices))}
         """)
 
