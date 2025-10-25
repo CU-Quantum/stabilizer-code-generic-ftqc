@@ -19,23 +19,24 @@ def get_shor_h_observable_x(distance: int) -> NDArray:
     return np.concatenate([np.ones(distance), np.zeros(distance * (distance - 1) + distance ** 2)])
 
 
-def get_shor_code_utilities(distance: int, 
+def get_shor_code_utilities(num_cat_states: int,
+                            num_qubits_per_cat_state: int,
                             z_observable: NDArray, 
                             x_observable: NDArray,
                             qubit_id_start: int = 0,
                             row_coord_start: int = 0
                             ) -> StabilizerCodeUtilities:
-    shor_code_generators = GeneralizedShorCodeGenerators(num_cats=distance, num_qubits_per_cat=distance)
+    shor_code_generators = GeneralizedShorCodeGenerators(num_cats=num_cat_states, num_qubits_per_cat=num_qubits_per_cat_state)
     shor_code_symplectic_matrix = shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators()
     shor_anticommutors = [
         np.concatenate(
             [np.ones(np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:])),
              np.zeros(len(shor_code_symplectic_matrix[0]) - np.argmax(
                  shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:]))])
-        if i <= len(shor_code_symplectic_matrix) - distance
+        if i <= len(shor_code_symplectic_matrix) - num_cat_states
         else np.concatenate([np.zeros(len(shor_code_symplectic_matrix[0]) // 2), [
-            int(not j % distance and j // distance < i - (
-                        len(shor_code_symplectic_matrix) - distance)) for j in
+            int(not j % num_qubits_per_cat_state and j // num_qubits_per_cat_state < i - (
+                        len(shor_code_symplectic_matrix) - num_cat_states)) for j in
             range(len(shor_code_symplectic_matrix[0]) // 2)]])
         for i in range(len(shor_code_symplectic_matrix))
     ]
@@ -96,15 +97,17 @@ def get_3_repetition_code_utilities():
 
 
 class SimulateCx:
-    def __init__(self, target_code_utilities: StabilizerCodeUtilities, si: int):
+    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int):
+        self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
-        
-        self._distance = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
+
+        self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._control_code_utilities = get_shor_code_utilities(
-            distance=self._distance, 
-            z_observable=get_shor_h_observable_z(self._distance), 
-            x_observable=get_shor_h_observable_x(self._distance),
+            num_cat_states=self._num_cat_states,
+            num_qubits_per_cat_state=self._num_qubits_per_cat_state,
+            z_observable=get_shor_h_observable_z(self._num_cat_states),
+            x_observable=get_shor_h_observable_x(self._num_cat_states),
             qubit_id_start=self._target_code_utilities.ancilla_indices[-1]+1,
             row_coord_start=2,
         )
@@ -114,11 +117,11 @@ class SimulateCx:
 
         samples = collect(
             num_workers=5,
-            max_shots=100_000_000,
-            max_errors=10000,
+            max_shots=1_000_000_000,
+            max_errors=100_000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
+            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._num_cat_states, observables=np.array([observable]))},
         )
 
         # Print samples as CSV data.
@@ -161,9 +164,9 @@ class SimulateCx:
             np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
             control_symplectic_matrix_solo[:, control_symplectic_matrix_solo.shape[1] // 2:],
         ], axis=1)
-        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
+        control_symplectic_matrix_expanded[-self._num_cat_states + 1 + self._si][
             :len(self._target_code_utilities.x_observable) // 2] = self._target_code_utilities.x_observable[:len(self._target_code_utilities.x_observable) // 2]
-        control_symplectic_matrix_expanded[-self._distance + 1 + self._si][
+        control_symplectic_matrix_expanded[-self._num_cat_states + 1 + self._si][
             control_symplectic_matrix_expanded.shape[1] // 2:control_symplectic_matrix_expanded.shape[1] //2 + len(self._target_code_utilities.x_observable) // 2] \
             = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
         combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
@@ -183,12 +186,12 @@ class SimulateCx:
                 circuit=self.generate_task_circuit(physical_error_rate=p),
                 json_metadata={
                     'physical_error_rate': p,
-                    'distance': self._distance,
+                    'distance': self._num_cat_states,
                 },
             )
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
-        control_subregister_indices = [self._control_code_utilities.data_indices[i * self._distance:(i + 1) * self._distance] for i in range(self._distance)]
+        control_subregister_indices = [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
         all_data_indices = self._control_code_utilities.data_indices + self._target_code_utilities.data_indices
 
         # TODO: allow for targets NOT logical gates with not only CX operations
@@ -202,7 +205,7 @@ class SimulateCx:
             targets = subregister[1:]
             indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
             cat_states_circuit.append('CX', indices)
-        modified_ancilla = self._control_code_utilities.ancilla_indices[-self._distance + 1 + self._si]
+        modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
         modified_stabilizer = f"""
             H {modified_ancilla}
             CX {' '.join(str(j) for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i)}
@@ -243,6 +246,6 @@ class SimulateCx:
 
 if __name__ == '__main__':
     # target_code = get_3_repetition_code_utilities()
-    target_code = get_shor_code_utilities(distance=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    # target_code = get_15_1_3_reed_solomon_code_utilities()
-    SimulateCx(target_code_utilities=target_code, si=0).run_main()
+    # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
+    target_code = get_15_1_3_reed_solomon_code_utilities()
+    SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()
