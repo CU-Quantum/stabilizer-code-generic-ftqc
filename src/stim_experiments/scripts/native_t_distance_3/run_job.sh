@@ -7,9 +7,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
-#SBATCH --job-name=universal_t
-#SBATCH --error=results/universal_t/universal_t_%j.err
-#SBATCH --output=results/universal_t/universal_t_%j.out
+#SBATCH --job-name=native_t_distance_3
+#SBATCH --error=results/native_t_distance_3/native_t_distance_3_%j.err
+#SBATCH --output=results/native_t_distance_3/native_t_distance_3_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -26,4 +26,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/src/cirq_experiments/scripts/universal_t/universal_t.py
+python ~/workspace/stim-experiments/src/stim_experiments/scripts/native_t_distance_3/native_t_distance_3.py

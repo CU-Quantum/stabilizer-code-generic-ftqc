@@ -26,4 +26,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/universal_cnot/universal_cnot.py
+python ~/workspace/stim-experiments/src/cirq_experiments/scripts/universal_cnot/universal_cnot.py

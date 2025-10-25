@@ -26,4 +26,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/simple_measurement/simple_measurement.py
+python ~/workspace/stim-experiments/src/cirq_experiments/scripts/simple_measurement/simple_measurement.py

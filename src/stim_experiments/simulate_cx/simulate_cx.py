@@ -5,10 +5,10 @@ from sinter import CSV_HEADER, Task, collect, plot_error_rate
 from stim import Circuit
 
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
-from predefined_check_matrix_values import get_check_matrix_values_tetrahedral
-from stim_experiments.surface_code.cx_from_gsch import CxFromGsch
-from stim_experiments.surface_code.decoder_by_matrix import DecoderByMatrix
-from stim_experiments.surface_code.stabilizer_code_utilities import StabilizerCodeUtilities
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_tetrahedral
+from stim_experiments.simulate_cx.cx_from_gsch import CxFromGsch
+from stim_experiments.simulate_cx.decoder_by_matrix import DecoderByMatrix
+from stim_experiments.simulate_cx.stabilizer_code_utilities import StabilizerCodeUtilities
 
 
 def get_shor_h_observable_z(distance: int) -> NDArray:
@@ -77,6 +77,23 @@ def get_15_1_3_reed_solomon_code_utilities():
     )
 
 
+def get_five_qubit_code_utilities():
+    anticommutators = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    observable_z = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    observable_x = np.array([1, 1, 1, 1, 1, 0, 0, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=get_check_matrix_values_5_qubit(),
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
 def get_3_repetition_code_utilities():
     symplectic_matrix = np.array([
         [0, 0, 0, 1, 1, 0],
@@ -108,7 +125,7 @@ class SimulateCx:
             num_qubits_per_cat_state=self._num_qubits_per_cat_state,
             z_observable=get_shor_h_observable_z(self._num_cat_states),
             x_observable=get_shor_h_observable_x(self._num_cat_states),
-            qubit_id_start=self._target_code_utilities.ancilla_indices[-1]+1,
+            qubit_id_start=self._target_code_utilities.z_observable_ancilla + 1,
             row_coord_start=2,
         )
 
@@ -117,8 +134,8 @@ class SimulateCx:
 
         samples = collect(
             num_workers=5,
-            max_shots=1_000_000_000,
-            max_errors=100_000,
+            max_shots=100_000_000,
+            max_errors=10_000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._num_cat_states, observables=np.array([observable]))},
@@ -192,7 +209,7 @@ class SimulateCx:
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
         control_subregister_indices = [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
-        all_data_indices = self._control_code_utilities.data_indices + self._target_code_utilities.data_indices
+        all_data_indices = self._target_code_utilities.data_indices + self._control_code_utilities.data_indices
 
         # TODO: allow for targets NOT logical gates with not only CX operations
         cx_from_gsch = CxFromGsch(control_qubit_indices=control_subregister_indices[0],
@@ -246,6 +263,7 @@ class SimulateCx:
 
 if __name__ == '__main__':
     # target_code = get_3_repetition_code_utilities()
+    # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    target_code = get_15_1_3_reed_solomon_code_utilities()
+    target_code = get_five_qubit_code_utilities()
     SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()

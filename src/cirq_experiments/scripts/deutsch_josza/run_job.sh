@@ -25,4 +25,4 @@ cd ~/workspace/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/scripts/deutsch_josza_ler_surface_code/deutsch_josza_ler_surface_code.py
+python ~/workspace/stim-experiments/src/cirq_experiments/scripts/deutsch_joszae/deutsch_josza.py

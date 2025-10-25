@@ -42,7 +42,20 @@ class StabilizerCodeUtilities:
             M {' '.join(map(str, self.ancilla_indices))}
             {anticommutator_circuit}
             R {' '.join(map(str, self.ancilla_indices))}
+            
+            {self._encode_z_observable()}
         """)
+
+    def _encode_z_observable(self):
+        ancilla_index = self.z_observable_ancilla
+        circuit = Circuit()
+        circuit.append('H', ancilla_index)
+        self.apply_stabilizer(self.z_observable, circuit, ancilla_index)
+        circuit.append('H', ancilla_index)
+        circuit.append('M', ancilla_index)
+        self.apply_stabilizer(self.x_observable, circuit, ancilla_index)
+        circuit.append('R', ancilla_index)
+        return circuit
 
     def get_stabilizers(self) -> Circuit:
         circuit = Circuit()
@@ -59,6 +72,10 @@ class StabilizerCodeUtilities:
             circuit.append('CX', list(j for i in zip([ancilla_index] * len(x_qubits), np.array(self.data_indices)[x_qubits]) for j in i))
         if len(z_qubits):
             circuit.append('CZ', list(j for i in zip([ancilla_index] * len(z_qubits), np.array(self.data_indices)[z_qubits]) for j in i))
+
+    @property
+    def z_observable_ancilla(self) -> int:
+        return self.ancilla_indices[-1] + 1
 
     @property
     def ancilla_indices(self) -> list[int]:
