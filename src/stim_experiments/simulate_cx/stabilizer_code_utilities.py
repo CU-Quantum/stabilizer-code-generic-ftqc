@@ -2,6 +2,9 @@ import numpy as np
 from numpy._typing import NDArray
 from stim import Circuit
 
+from generalized_shor_code_generators import GeneralizedShorCodeGenerators
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_tetrahedral
+
 
 class StabilizerCodeUtilities:
     def __init__(self,
@@ -87,3 +90,105 @@ class StabilizerCodeUtilities:
     def data_indices(self) -> list[int]:
         num_data_qubits = self.symplectic_matrix.shape[1] // 2
         return list(range(self._qubit_id_start, self._qubit_id_start + num_data_qubits))
+
+
+def get_shor_h_observable_z(distance: int) -> NDArray:
+    return np.concatenate([np.zeros(distance ** 2), *[np.concatenate([[1], np.zeros(distance - 1)])] * distance])
+
+
+def get_shor_h_observable_x(distance: int) -> NDArray:
+    return np.concatenate([np.ones(distance), np.zeros(distance * (distance - 1) + distance ** 2)])
+
+
+def get_shor_code_utilities(num_cat_states: int,
+                            num_qubits_per_cat_state: int,
+                            z_observable: NDArray,
+                            x_observable: NDArray,
+                            qubit_id_start: int = 0,
+                            row_coord_start: int = 0
+                            ) -> StabilizerCodeUtilities:
+    shor_code_generators = GeneralizedShorCodeGenerators(num_cats=num_cat_states, num_qubits_per_cat=num_qubits_per_cat_state)
+    shor_code_symplectic_matrix = shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators()
+    shor_anticommutors = [
+        np.concatenate(
+            [np.ones(np.argmax(shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:])),
+             np.zeros(len(shor_code_symplectic_matrix[0]) - np.argmax(
+                 shor_code_symplectic_matrix[i][-len(shor_code_symplectic_matrix[0]) // 2 - 1:]))])
+        if i <= len(shor_code_symplectic_matrix) - num_cat_states
+        else np.concatenate([np.zeros(len(shor_code_symplectic_matrix[0]) // 2), [
+            int(not j % num_qubits_per_cat_state and j // num_qubits_per_cat_state < i - (
+                        len(shor_code_symplectic_matrix) - num_cat_states)) for j in
+            range(len(shor_code_symplectic_matrix[0]) // 2)]])
+        for i in range(len(shor_code_symplectic_matrix))
+    ]
+    return StabilizerCodeUtilities(
+        symplectic_matrix=np.array(shor_code_symplectic_matrix),
+        generator_anticommutators=np.array(shor_anticommutors),
+        z_observable=z_observable,
+        x_observable=x_observable,
+        qubit_id_start=qubit_id_start,
+        row_coord_start=row_coord_start
+    )
+
+
+def get_15_1_3_reed_solomon_code_utilities():
+    t_native_anticommutators = np.array([
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    observable_z = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    observable_x = np.array([1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=get_check_matrix_values_tetrahedral(),
+        generator_anticommutators=t_native_anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
+def get_five_qubit_code_utilities():
+    anticommutators = np.array([
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+        [0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+        [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    observable_z = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    observable_x = np.array([1, 1, 1, 1, 1, 0, 0, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=get_check_matrix_values_5_qubit(),
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
+def get_3_repetition_code_utilities():
+    symplectic_matrix = np.array([
+        [0, 0, 0, 1, 1, 0],
+        [0, 0, 0, 0, 1, 1],
+    ])
+    anticommutators = np.array([
+        [1, 0, 0, 0, 0, 0],
+        [0, 0, 1, 0, 0, 0],
+    ])
+    observable_z = np.array([0, 0, 0, 1, 1, 1])
+    observable_x = np.array([1, 1, 1, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
