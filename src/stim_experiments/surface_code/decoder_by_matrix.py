@@ -5,7 +5,7 @@ from numpy._typing import NDArray
 from sinter import CompiledDecoder, Decoder
 from stim import DetectorErrorModel
 
-from stim_experiments.surface_code.surface_code_stim.compiled_decoder_by_matrix import CompiledDecoderByMatrix
+from stim_experiments.surface_code.compiled_decoder_by_matrix import CompiledDecoderByMatrix
 
 
 class DecoderByMatrix(Decoder):

@@ -1,5 +1,5 @@
 # https://www.coursera.org/learn/quantum-error-correction/ungradedLab/Ygy3i/surface-code-in-stim-lab/lab?path=%2Fedit%2Fdont_look%2Fcorrect_surface_code.py
-from stim_experiments.surface_code.surface_code_stim.utilities import adjacent_coords, coord_circuit, index_string, \
+from stim_experiments.surface_code.utilities import adjacent_coords, coord_circuit, index_string, \
     prepare_coords
 
 

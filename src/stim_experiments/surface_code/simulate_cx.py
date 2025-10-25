@@ -6,9 +6,9 @@ from stim import Circuit
 
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 from predefined_check_matrix_values import get_check_matrix_values_tetrahedral
-from stim_experiments.surface_code.surface_code_stim.cx_from_gsch import CxFromGsch
-from stim_experiments.surface_code.surface_code_stim.decoder_by_matrix import DecoderByMatrix
-from stim_experiments.surface_code.surface_code_stim.stabilizer_code_utilities import StabilizerCodeUtilities
+from stim_experiments.surface_code.cx_from_gsch import CxFromGsch
+from stim_experiments.surface_code.decoder_by_matrix import DecoderByMatrix
+from stim_experiments.surface_code.stabilizer_code_utilities import StabilizerCodeUtilities
 
 
 def get_shor_h_observable_z(distance: int) -> NDArray:
