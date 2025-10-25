@@ -114,8 +114,8 @@ class SimulateCx:
 
         samples = collect(
             num_workers=5,
-            max_shots=1_000_000,
-            max_errors=1_000,
+            max_shots=100_000_000,
+            max_errors=10000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._distance, observables=np.array([observable]))},
@@ -178,7 +178,7 @@ class SimulateCx:
         return combined_symplectic_matrix, observable
 
     def generate_example_tasks(self):
-        for p in [1e-4, 5e-4, 0.001, 0.005, 0.01]:
+        for p in [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01]:
             yield Task(
                 circuit=self.generate_task_circuit(physical_error_rate=p),
                 json_metadata={
