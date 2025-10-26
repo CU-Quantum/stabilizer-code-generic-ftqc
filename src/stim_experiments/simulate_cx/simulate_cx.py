@@ -104,6 +104,16 @@ class SimulateCx:
         modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
             if self._si < self._last_si else []
 
+        qec_rounds = [f"""
+            TICK
+            {self._target_code_utilities.get_stabilizers()}
+            {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
+        
+            TICK
+            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
+            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
+        """] * self._num_cat_states
+
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
@@ -118,13 +128,15 @@ class SimulateCx:
             {cx_from_gsch_all[-1].perform_cx()}
             DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
 
-            TICK
-            {self._target_code_utilities.get_stabilizers()}
-            {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
-            TICK
-
-            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
-            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
+            REPEAT {self._num_cat_states} {{
+                TICK
+                {self._target_code_utilities.get_stabilizers()}
+                {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
+            
+                TICK
+                {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
+                {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
+            }}
 
             TICK
             MR {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]])}
