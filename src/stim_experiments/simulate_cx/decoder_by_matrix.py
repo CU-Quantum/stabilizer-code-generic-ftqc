@@ -28,12 +28,20 @@ class DecoderByMatrix(Decoder):
             dem: DetectorErrorModel,
     ) -> CompiledDecoder:
         if self._cache is None:
-            possible_combos = [combo
-                               for i in range(1, self._num_correctable_errors + 1)
-                               for combo in combinations(range(self._symplectic_matrix.shape[1]), i)]
+            block_1 = list(range(self._num_target_data_qubits)) + list(range(self._num_data_qubits, self._num_data_qubits + self._num_target_data_qubits))
+            block_2 = list(range(self._num_target_data_qubits, self._num_data_qubits)) + list(range(self._num_data_qubits + self._num_target_data_qubits, self._symplectic_matrix.shape[1]))
+            possible_combos_per_block = [
+                [combo for i in range(1, self._num_correctable_errors + 1) for combo in combinations(block, i)]
+                for block in (block_1, block_2)
+            ]
+            possible_combos_all = possible_combos_per_block[0] + \
+                                  possible_combos_per_block[1] + \
+                                  [combo_1 + combo_2
+                                   for combo_1 in possible_combos_per_block[0]
+                                   for combo_2 in possible_combos_per_block[1]]
             syndrome_to_noise = {
                 tuple(syndrome): noise
-                for combo in possible_combos
+                for combo in possible_combos_all
                 for syndrome, noise in list(self._syndrome_and_noise_from_non_y_combo(combo))
                 if syndrome.max()
             }
