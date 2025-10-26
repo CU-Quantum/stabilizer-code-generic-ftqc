@@ -37,7 +37,12 @@ class SimulateCx:
             max_errors=10_000,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix, distance=self._num_cat_states, observables=np.array([observable]))},
+            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
+                                                                  distance=self._num_cat_states,
+                                                                  observables=np.array([observable]),
+                                                                  modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si,
+                                                                  num_target_data_qubits=self._num_target_data_qubits
+                                                                  )},
         )
 
         return samples
@@ -56,15 +61,15 @@ class SimulateCx:
         target_symplectic_matrix_solo = self._target_code_utilities.symplectic_matrix
         control_symplectic_matrix_solo = self._control_code_utilities.symplectic_matrix
         target_symplectic_matrix_expanded = np.concatenate([
-            target_symplectic_matrix_solo[:, :target_symplectic_matrix_solo.shape[1] // 2],
+            target_symplectic_matrix_solo[:, :self._num_target_data_qubits],
             np.zeros((target_symplectic_matrix_solo.shape[0], control_symplectic_matrix_solo.shape[1] // 2)),
-            target_symplectic_matrix_solo[:, target_symplectic_matrix_solo.shape[1] // 2:],
+            target_symplectic_matrix_solo[:, self._num_target_data_qubits:],
             np.zeros((target_symplectic_matrix_solo.shape[0], control_symplectic_matrix_solo.shape[1] // 2)),
         ], axis=1)
         control_symplectic_matrix_expanded = np.concatenate([
-            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
+            np.zeros((control_symplectic_matrix_solo.shape[0], self._num_target_data_qubits)),
             control_symplectic_matrix_solo[:, :control_symplectic_matrix_solo.shape[1] // 2],
-            np.zeros((control_symplectic_matrix_solo.shape[0], target_symplectic_matrix_solo.shape[1] // 2)),
+            np.zeros((control_symplectic_matrix_solo.shape[0], self._num_target_data_qubits)),
             control_symplectic_matrix_solo[:, control_symplectic_matrix_solo.shape[1] // 2:],
         ], axis=1)
         if self._si < self._last_si:
@@ -104,16 +109,6 @@ class SimulateCx:
         modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
             if self._si < self._last_si else []
 
-        qec_rounds = [f"""
-            TICK
-            {self._target_code_utilities.get_stabilizers()}
-            {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
-        
-            TICK
-            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
-            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
-        """] * self._num_cat_states
-
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
@@ -125,8 +120,8 @@ class SimulateCx:
 
             TICK
             {'\n'.join([cx_from_gsch.perform_cx() for cx_from_gsch in cx_from_gsch_all[:-1]])}
-            {cx_from_gsch_all[-1].perform_cx()}
             DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
+            {cx_from_gsch_all[-1].perform_cx()}
 
             REPEAT {self._num_cat_states} {{
                 TICK
@@ -146,13 +141,17 @@ class SimulateCx:
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
 
+    @property
+    def _num_target_data_qubits(self):
+        return len(self._target_code_utilities.data_indices)
+
 
 if __name__ == '__main__':
     # target_code = get_3_repetition_code_utilities()
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=2).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)
