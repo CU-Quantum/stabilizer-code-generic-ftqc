@@ -101,7 +101,8 @@ class SimulateCx:
             indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
             cat_states_circuit.append('CX', indices)
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
-        modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i]
+        modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
+            if self._si < self._last_si else []
 
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         circuit = Circuit(f"""
@@ -139,7 +140,7 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=2).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)
