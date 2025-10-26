@@ -61,6 +61,7 @@ class CatParityCode(StabilizerCode):
             )
         return None
 
+    # TODO: include forward propagation errors
     def get_modified_stabilizers_error_correction_circuit(self,
                                                           subregister_index: int,
                                                           target_operations: list[Operation],

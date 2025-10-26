@@ -46,24 +46,25 @@ class DecoderByMatrix(Decoder):
 
     def _syndrome_and_noise_from_non_y_combo(self, combo):
         yield self._syndrome_and_noise_from_combo(combo=combo)
-        yield from self._phase_propagation_syndromes_and_noises(combo=np.array(combo))
+        yield from self._propagation_syndromes_and_noises(combo=np.array(combo))
 
         y_additions = [(np.array(c) + self._num_data_qubits) % self._symplectic_matrix.shape[1] for i in range(len(combo)) for c in combinations(combo, i+1)]
         for y_addition in y_additions:
             y_combo = set(combo).union(set(y_addition))
             yield self._syndrome_and_noise_from_combo(y_combo)
-            yield from self._phase_propagation_syndromes_and_noises(combo=np.array(tuple(y_combo)))
+            yield from self._propagation_syndromes_and_noises(combo=np.array(tuple(y_combo)))
 
-    def _phase_propagation_syndromes_and_noises(self, combo):
-        yield from self._forward_phase_propagation(combo)
-        yield from self._backward_phase_propagation(combo)
+    def _propagation_syndromes_and_noises(self, combo):
+        if self._modified_index < len(self._symplectic_matrix):
+            yield from self._forward_propagation(combo)
+            yield from self._backward_propagation(combo)
 
-    def _forward_phase_propagation(self, combo):
+    def _forward_propagation(self, combo):
         errors_in_target_x = combo[combo < self._num_target_data_qubits]
         errors_in_target_z = combo[(self._num_data_qubits <= combo) & (combo < self._num_data_qubits + self._num_target_data_qubits)] % self._num_data_qubits
         num_corrected_target_errors = len(errors_in_target_x) + len(errors_in_target_z)
         additional_num_correctable_control_errors = self._num_correctable_errors - num_corrected_target_errors
-        if additional_num_correctable_control_errors > 0 and self._modified_index < len(self._symplectic_matrix):
+        if additional_num_correctable_control_errors > 0:
             x_errors_on_control_register = combo[self._num_data_qubits + self._num_target_data_qubits <= combo]
             if len(x_errors_on_control_register):
                 modified_row = self._symplectic_matrix[self._modified_index]
@@ -76,12 +77,12 @@ class DecoderByMatrix(Decoder):
                     expanded_combo = set(combo).union(set(additional_control_indices))
                     yield self._syndrome_and_noise_from_combo(combo=expanded_combo)
 
-    def _backward_phase_propagation(self, combo):
+    def _backward_propagation(self, combo):
         errors_in_control_x = combo[(self._num_target_data_qubits <= combo) & (combo < self._num_data_qubits)]
         errors_in_control_z = combo[self._num_data_qubits + self._num_target_data_qubits <= combo] % self._num_data_qubits
         num_corrected_control_errors = len(errors_in_control_x) + len(errors_in_control_z)
         additional_num_correctable_control_errors = self._num_correctable_errors - num_corrected_control_errors
-        if additional_num_correctable_control_errors > 0 and self._modified_index < len(self._symplectic_matrix):
+        if additional_num_correctable_control_errors > 0:
             modified_row = self._symplectic_matrix[self._modified_index]
             noise_on_target = combo[(combo < self._num_target_data_qubits) | (combo >= self._num_data_qubits + self._num_target_data_qubits)]
             if len(modified_row[noise_on_target]):
