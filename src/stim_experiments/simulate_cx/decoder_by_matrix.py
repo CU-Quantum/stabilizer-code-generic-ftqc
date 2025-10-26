@@ -50,13 +50,13 @@ class DecoderByMatrix(Decoder):
 
         y_additions = [(np.array(c) + self._num_data_qubits) % self._symplectic_matrix.shape[1] for i in range(len(combo)) for c in combinations(combo, i+1)]
         for y_addition in y_additions:
-            y_combo = set(np.concatenate([combo, y_addition]))
+            y_combo = set(combo).union(set(y_addition))
             yield self._syndrome_and_noise_from_combo(y_combo)
             yield from self._phase_propagation_syndromes_and_noises(combo=np.array(tuple(y_combo)))
 
     def _phase_propagation_syndromes_and_noises(self, combo):
         num_errors_in_control_x = combo[(self._num_target_data_qubits <= combo) & (combo < self._num_data_qubits)]
-        num_errors_in_control_z = combo[self._num_data_qubits + self._num_target_data_qubits <= combo]
+        num_errors_in_control_z = combo[self._num_data_qubits + self._num_target_data_qubits <= combo] % self._num_data_qubits
         num_corrected_control_errors = np.count_nonzero(num_errors_in_control_x) + np.count_nonzero(num_errors_in_control_z)
         additional_num_correctable_control_errors = self._num_correctable_errors - num_corrected_control_errors
         if additional_num_correctable_control_errors > 0 and self._modified_index < len(self._symplectic_matrix):
