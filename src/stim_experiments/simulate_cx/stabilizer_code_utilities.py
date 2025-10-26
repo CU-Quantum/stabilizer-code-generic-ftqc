@@ -25,24 +25,22 @@ class StabilizerCodeUtilities:
     def get_init(self):
         anticommutator_circuit = Circuit()
         for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
-            self.apply_stabilizer(anticommutator, anticommutator_circuit, ancilla_index)
+            self.apply_stabilizer(anticommutator, anticommutator_circuit, [ancilla_index] * self.num_measurement_ancillas)
 
         return Circuit(f"""
             {'\n'.join([f'QUBIT_COORDS({self.row_coord_start}, {i}) {q_index}' for i, q_index in enumerate(self.data_indices)])}
-            {'\n'.join([f'QUBIT_COORDS({self.row_coord_start + 1}, {i}) {q_index}' for i, q_index in enumerate(self.ancilla_indices)])}
+            {'\n'.join([f'QUBIT_COORDS({self.row_coord_start + 1}, {i}) {q_index}' for i, q_index in enumerate(self.all_ancilla_qubits)])}
             R {' '.join(map(str, self.data_indices))}
-            R {' '.join(map(str, self.ancilla_indices))}
+            R {' '.join(map(str, self.all_ancilla_qubits))}
         """)
 
     def get_encoding_by_stabilizer(self):
         anticommutator_circuit = Circuit()
         for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
-            self.apply_stabilizer(anticommutator, anticommutator_circuit, ancilla_index)
+            self.apply_stabilizer(anticommutator, anticommutator_circuit, [ancilla_index] * self.num_measurement_ancillas)
 
         return Circuit(f"""
             {self.get_stabilizers()}
-
-            M {' '.join(map(str, self.ancilla_indices))}
             {anticommutator_circuit}
             R {' '.join(map(str, self.ancilla_indices))}
             
@@ -52,29 +50,60 @@ class StabilizerCodeUtilities:
     def _encode_z_observable(self):
         ancilla_index = self.z_observable_ancilla
         circuit = Circuit()
-        circuit.append('H', ancilla_index)
-        self.apply_stabilizer(self.z_observable, circuit, ancilla_index)
-        circuit.append('H', ancilla_index)
+        self.prepare_cat_state(ancilla_index, circuit)
+        self.apply_stabilizer(self.z_observable, circuit, [ancilla_index] + self.measurement_ancillas)
+        self.unprepare_cat_state(ancilla_index, circuit)
         circuit.append('M', ancilla_index)
-        self.apply_stabilizer(self.x_observable, circuit, ancilla_index)
-        circuit.append('R', ancilla_index)
+        self.apply_stabilizer(self.x_observable, circuit, [ancilla_index] * self.num_measurement_ancillas)
+        circuit.append('R', [ancilla_index] + self.measurement_ancillas)
         return circuit
 
-    def get_stabilizers(self) -> Circuit:
+    def get_stabilizers(self, modified_targets: list[int] = None, modified_ancilla: int = None) -> Circuit:
         circuit = Circuit()
         for ancilla_index, stabilizer in zip(self.ancilla_indices, self.symplectic_matrix):
-            circuit.append('H', ancilla_index)
-            self.apply_stabilizer(stabilizer, circuit, ancilla_index)
-            circuit.append('H', ancilla_index)
+            self.prepare_cat_state(ancilla_index, circuit)
+            self.apply_stabilizer(stabilizer, circuit, [ancilla_index] + self.measurement_ancillas)
+            if modified_targets and modified_ancilla == ancilla_index:
+                circuit.append('CX', modified_targets)
+            self.unprepare_cat_state(ancilla_index, circuit)
+            circuit.append('M', ancilla_index)
+            circuit.append('R', self.measurement_ancillas)
         return circuit
 
-    def apply_stabilizer(self, stabilizer, circuit, ancilla_index):
+    def prepare_cat_state(self, ancilla_index: int, circuit: Circuit):
+        circuit.append('H', ancilla_index)
+        for measurement_index in self.measurement_ancillas:
+            circuit.append('CX', [ancilla_index, measurement_index])
+
+    def unprepare_cat_state(self, ancilla_index: int, circuit: Circuit):
+        for measurement_index in self.measurement_ancillas:
+            circuit.append('CX', [ancilla_index, measurement_index])
+        circuit.append('H', ancilla_index)
+
+    def apply_stabilizer(self, stabilizer, circuit, ancillas):
         x_qubits = np.argwhere(stabilizer[:len(self.data_indices)] == 1).flatten()
         z_qubits = np.argwhere(stabilizer[len(self.data_indices):] == 1).flatten()
         if len(x_qubits):
-            circuit.append('CX', list(j for i in zip([ancilla_index] * len(x_qubits), np.array(self.data_indices)[x_qubits]) for j in i))
+            circuit.append('CX', list(j for i in zip(ancillas, np.array(self.data_indices)[x_qubits]) for j in i))
         if len(z_qubits):
-            circuit.append('CZ', list(j for i in zip([ancilla_index] * len(z_qubits), np.array(self.data_indices)[z_qubits]) for j in i))
+            circuit.append('CZ', list(j for i in zip(ancillas, np.array(self.data_indices)[z_qubits]) for j in i))
+
+    @property
+    def last_qubit_index(self):
+        return self.measurement_ancillas[-1]
+
+    @property
+    def all_ancilla_qubits(self):
+        return self.ancilla_indices + [self.z_observable_ancilla] + self.measurement_ancillas
+
+    @property
+    def measurement_ancillas(self):
+        last_non_measurement_ancilla = self.z_observable_ancilla
+        return list(range(last_non_measurement_ancilla + 1, last_non_measurement_ancilla + 1 + self.num_measurement_ancillas))
+
+    @property
+    def num_measurement_ancillas(self):
+        return max(np.count_nonzero(self.z_observable), np.count_nonzero(self.x_observable), *np.count_nonzero(self.symplectic_matrix, axis=1))
 
     @property
     def z_observable_ancilla(self) -> int:

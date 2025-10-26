@@ -24,7 +24,7 @@ class SimulateCx:
             num_qubits_per_cat_state=self._num_qubits_per_cat_state,
             z_observable=get_shor_h_observable_z(self._num_cat_states),
             x_observable=get_shor_h_observable_x(self._num_cat_states),
-            qubit_id_start=self._target_code_utilities.z_observable_ancilla + 1,
+            qubit_id_start=self._target_code_utilities.last_qubit_index + 1,
             row_coord_start=2,
         )
 
@@ -101,11 +101,7 @@ class SimulateCx:
             indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
             cat_states_circuit.append('CX', indices)
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
-        modified_stabilizer = f"""
-            H {modified_ancilla}
-            CX {' '.join(str(j) for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i)}
-            H {modified_ancilla}
-        """ if self._si < self._last_si else ""
+        modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i]
 
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         circuit = Circuit(f"""
@@ -123,11 +119,8 @@ class SimulateCx:
 
             TICK
             {self._target_code_utilities.get_stabilizers()}
-            {self._control_code_utilities.get_stabilizers()}
-            {modified_stabilizer}
+            {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
             TICK
-            {f'MR {' '.join(map(str, self._target_code_utilities.ancilla_indices))}'}
-            {f'MR {' '.join(map(str, self._control_code_utilities.ancilla_indices))}'}
 
             {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
             {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
@@ -146,7 +139,7 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=1).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)
