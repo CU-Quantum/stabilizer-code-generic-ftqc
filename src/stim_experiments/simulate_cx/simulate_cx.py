@@ -98,7 +98,7 @@ class SimulateCx:
 
         cx_from_gsch_all = [
             CxFromGsch(control_qubit_indices=control_subregister_indices[i],
-                       target_code_utilities=self._target_code_utilities).perform_cx()
+                       target_code_utilities=self._target_code_utilities)
             for i in range(self._si + 1)
         ]
 
