@@ -72,7 +72,7 @@ class SimulateCx:
             np.zeros((control_symplectic_matrix_solo.shape[0], self._num_target_data_qubits)),
             control_symplectic_matrix_solo[:, control_symplectic_matrix_solo.shape[1] // 2:],
         ], axis=1)
-        if self._si < self._last_si:
+        if self._stabilizers_are_modified:
             control_symplectic_matrix_expanded[-self._num_cat_states + 1 + self._si][
                 :len(self._target_code_utilities.x_observable) // 2] = self._target_code_utilities.x_observable[:len(self._target_code_utilities.x_observable) // 2]
             control_symplectic_matrix_expanded[-self._num_cat_states + 1 + self._si][
@@ -107,39 +107,56 @@ class SimulateCx:
             cat_states_circuit.append('CX', indices)
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
         modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
-            if self._si < self._last_si else []
+            if self._stabilizers_are_modified else []
 
+        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}" if modified_targets else ""
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
+        observables = f"""
+            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]])}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + len(target_measurement_indices) + self._si)])}
+        """ if self._cx_is_performed else f"""
+            M {' '.join(list(map(str, target_measurement_indices)))}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(len(target_measurement_indices))])}
+            
+            CX {' '.join([str(j) for i in zip([control_subregister_indices[0][0]] * len(control_subregister_indices[0]), control_subregister_indices[0][1:]) for j in i])}
+            H {control_subregister_indices[0][0]}
+            M {control_subregister_indices[0][0]}
+            OBSERVABLE_INCLUDE(1) rec[-1]
+        """
+
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
 
-            TICK
             {self._target_code_utilities.get_encoding_by_stabilizer()}
             {cat_states_circuit}
 
-            TICK
             {'\n'.join([cx_from_gsch.perform_cx() for cx_from_gsch in cx_from_gsch_all[:-1]])}
-            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
-            {cx_from_gsch_all[-1].perform_cx()}
+            {cx_error}
+            {cx_from_gsch_all[-1].perform_cx() if self._stabilizers_are_modified else ''}
 
+            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
             REPEAT {self._num_cat_states} {{
-                TICK
                 {self._target_code_utilities.get_stabilizers()}
                 {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
             
-                TICK
                 {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
             }}
 
-            TICK
-            MR {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]])}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + len(target_measurement_indices) + self._si)])}
+            {observables}
         """)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
+
+    @property
+    def _stabilizers_are_modified(self):
+        return self._cx_is_performed and self._si < self._last_si
+
+    @property
+    def _cx_is_performed(self):
+        return 0 <= self._si
 
     @property
     def _num_target_data_qubits(self):
@@ -151,7 +168,7 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=2).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=-1).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)
