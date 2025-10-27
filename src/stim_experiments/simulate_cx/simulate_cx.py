@@ -7,7 +7,7 @@ from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
 from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
-    get_five_qubit_code_utilities, get_shor_code_utilities, \
+    get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
     get_shor_h_observable_z
 
@@ -166,24 +166,22 @@ class SimulateCx:
 
 if __name__ == '__main__':
     run_configuration = RunConfiguration(
-        max_shots=100_000_000,
-        max_errors=10_000,
-        depolarization_probabilities=[1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01],
+        max_shots=1_000_000,
+        max_errors=1_000,
+        depolarization_probabilities=[1e-4, 5e-4, 0.001, 0.005, 0.01],
         num_workers=5
     )
 
     # target_code = get_3_repetition_code_utilities()
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=-1, run_configuration=run_configuration).run_main()
+    target_code = get_dodecacode_utilities()
+    samples = SimulateCx(num_cat_states=5, target_code_utilities=target_code, si=1, run_configuration=run_configuration).run_main()
 
-    # Print samples as CSV data.
     print(CSV_HEADER)
     for sample in samples:
         print(sample.to_csv_line())
 
-    # Render a matplotlib plot of the data.
     fig, ax = plt.subplots(1, 1)
     plot_error_rate(
         ax=ax,
@@ -199,6 +197,4 @@ if __name__ == '__main__':
     ax.set_xlabel('Physical Error Rate')
     ax.legend()
 
-    # Save to file and also open in a window.
-    # fig.savefig('plot.png')
     plt.show()

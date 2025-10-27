@@ -13,7 +13,5 @@ class CxFromGsch:
     def perform_cx(self, ):
         circuit = Circuit()
         x_observable = self._target_code_utilities.x_observable
-        control_stack = reversed(self._control_qubit_indices.copy())
-        controls = [next(control_stack) if i else -1 for i in x_observable]
-        self._target_code_utilities.apply_stabilizer(stabilizer=x_observable, circuit=circuit, ancillas=controls)
+        self._target_code_utilities.apply_stabilizer(stabilizer=x_observable, circuit=circuit, ancillas=self._control_qubit_indices)
         return circuit
