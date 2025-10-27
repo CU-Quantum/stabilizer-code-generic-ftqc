@@ -96,18 +96,19 @@ class SimulateCx:
         control_subregister_indices = [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
         all_data_indices = self._target_code_utilities.data_indices + self._control_code_utilities.data_indices
 
-        # TODO: allow for targets NOT logical gates with not only CX operations
         cx_from_gsch_all = [
             CxFromGsch(control_qubit_indices=control_subregister_indices[i],
-                       target_qubit_indices=self._target_code_utilities.data_indices[:len(self._target_code_utilities.x_observable)])
+                       target_code_utilities=self._target_code_utilities).perform_cx()
             for i in range(self._si + 1)
         ]
+
         cat_states_circuit = Circuit()
         for subregister in control_subregister_indices:
             cat_states_circuit.append('H', subregister[0])
             targets = subregister[1:]
             indices = [j for i in zip([subregister[0]] * len(targets), targets) for j in i]
             cat_states_circuit.append('CX', indices)
+
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
         modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
             if self._stabilizers_are_modified else []
