@@ -110,8 +110,10 @@ class SimulateCx:
             cat_states_circuit.append('CX', indices)
 
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
-        modify_stabilizer = Circuit()
-        self._target_code_utilities.apply_stabilizer(self._target_code_utilities.x_observable, modify_stabilizer, [modified_ancilla] * np.count_nonzero(self._target_code_utilities.x_observable))
+        modify_stabilizer = None
+        if self._stabilizers_are_modified:
+            modify_stabilizer = Circuit()
+            self._target_code_utilities.apply_stabilizer(self._target_code_utilities.x_observable, modify_stabilizer, [modified_ancilla] * np.count_nonzero(self._target_code_utilities.x_observable))
 
         cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
 
@@ -176,7 +178,8 @@ if __name__ == '__main__':
     # target_code = get_3_repetition_code_utilities()
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    target_code = get_dodecacode_utilities()
+    target_code = get_five_qubit_code_utilities()
+    # target_code = get_dodecacode_utilities()
     samples = SimulateCx(num_cat_states=5, target_code_utilities=target_code, si=0, run_configuration=run_configuration).run_main()
 
     print(CSV_HEADER)

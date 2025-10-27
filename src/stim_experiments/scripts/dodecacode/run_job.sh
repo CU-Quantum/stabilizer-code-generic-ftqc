@@ -8,8 +8,8 @@
 #SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
 #SBATCH --job-name=dodecacode
-#SBATCH --error=results/dodecacode/dodecacode%j.err
-#SBATCH --output=results/dodecacode/dodecacode%j.out
+#SBATCH --error=results/dodecacode/dodecacode_%j.err
+#SBATCH --output=results/dodecacode/dodecacode_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
