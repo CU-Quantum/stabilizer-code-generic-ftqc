@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, Task, collect, plot_error_rate
@@ -11,11 +13,20 @@ from stim_experiments.simulate_cx.support.stabilizer_code_utilities import Stabi
     get_shor_h_observable_z
 
 
+@dataclass
+class RunConfiguration:
+    max_shots: int
+    max_errors: int
+    depolarization_probabilities: list[float]
+    num_workers: int
+
+
 class SimulateCx:
-    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int):
+    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int, run_configuration: RunConfiguration):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
+        self._run_configuration = run_configuration
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
@@ -32,9 +43,9 @@ class SimulateCx:
         combined_symplectic_matrix, observable = self.get_combined_symplectic()
 
         samples = collect(
-            num_workers=5,
-            max_shots=100_000_000,
-            max_errors=10_000,
+            num_workers=self._run_configuration.num_workers,
+            max_shots=self._run_configuration.max_shots,
+            max_errors=self._run_configuration.max_errors,
             tasks=self.generate_example_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
@@ -48,7 +59,7 @@ class SimulateCx:
         return samples
 
     def generate_example_tasks(self):
-        for p in [1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01]:
+        for p in self._run_configuration.depolarization_probabilities:
             yield Task(
                 circuit=self.generate_task_circuit(physical_error_rate=p),
                 json_metadata={
@@ -162,11 +173,18 @@ class SimulateCx:
 
 
 if __name__ == '__main__':
+    run_configuration = RunConfiguration(
+        max_shots=100_000_000,
+        max_errors=10_000,
+        depolarization_probabilities=[1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01],
+        num_workers=5
+    )
+
     # target_code = get_3_repetition_code_utilities()
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=-1).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=-1, run_configuration=run_configuration).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)
