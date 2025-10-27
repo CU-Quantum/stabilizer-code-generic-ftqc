@@ -132,7 +132,6 @@ class SimulateCx:
             {cx_from_gsch_all[-1].perform_cx() if self._cx_is_performed else ''}
 
             DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
-            # X_ERROR(0.75) 0
             REPEAT {self._num_cat_states} {{
                 {self._target_code_utilities.get_stabilizers()}
                 {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}

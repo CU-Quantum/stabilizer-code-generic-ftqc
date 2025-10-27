@@ -22,7 +22,8 @@ class FiveQubit:
             is_baseline = not i
             if is_baseline:
                 plot_args['linestyle'] = '--'
-            label = f"$CX_{{s{i},L1}}$" if is_baseline else "No CX"
+                plot_args['zorder'] = 1
+            label = "No CX" if is_baseline else f"$CX_{{s{i-1},L1}}$"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
