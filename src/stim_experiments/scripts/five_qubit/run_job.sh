@@ -7,9 +7,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
-#SBATCH --job-name=native_t_distance_3
-#SBATCH --error=results/native_t_distance_3/native_t_distance_3_%j.err
-#SBATCH --output=results/native_t_distance_3/native_t_distance_3_%j.out
+#SBATCH --job-name=five_qubits
+#SBATCH --error=results/five_qubits/five_qubits%j.err
+#SBATCH --output=results/five_qubits/five_qubits%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
