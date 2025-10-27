@@ -3,7 +3,8 @@ from numpy._typing import NDArray
 from stim import Circuit
 
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
-from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_tetrahedral
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_dodecacode, \
+    get_check_matrix_values_tetrahedral
 
 
 class StabilizerCodeUtilities:
@@ -217,6 +218,29 @@ def get_3_repetition_code_utilities():
     observable_x = np.array([1, 1, 1, 0, 0, 0])
     return StabilizerCodeUtilities(
         symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
+def get_dodecacode_utilities():
+    anticommutators = np.array([
+        [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ])
+    observable_z = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    observable_x = np.array([1, 1, 1, 1, 1, 0, 0, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=get_check_matrix_values_dodecacode(),
         generator_anticommutators=anticommutators,
         z_observable=observable_z,
         x_observable=observable_x
