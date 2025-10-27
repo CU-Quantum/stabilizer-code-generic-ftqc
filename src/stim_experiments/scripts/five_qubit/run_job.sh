@@ -7,9 +7,9 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=10
 #SBATCH --qos=normal
-#SBATCH --job-name=five_qubits
-#SBATCH --error=results/five_qubits/five_qubits%j.err
-#SBATCH --output=results/five_qubits/five_qubits%j.out
+#SBATCH --job-name=five_qubit
+#SBATCH --error=results/five_qubit/five_qubit%j.err
+#SBATCH --output=results/five_qubit/five_qubit%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
