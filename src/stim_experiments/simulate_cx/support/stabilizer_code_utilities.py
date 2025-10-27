@@ -59,13 +59,13 @@ class StabilizerCodeUtilities:
         circuit.append('R', [ancilla_index] + self.measurement_ancillas)
         return circuit
 
-    def get_stabilizers(self, modified_targets: list[int] = None, modified_ancilla: int = None) -> Circuit:
+    def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_ancilla: int = None) -> Circuit:
         circuit = Circuit()
         for ancilla_index, stabilizer in zip(self.ancilla_indices, self.symplectic_matrix):
             self.prepare_cat_state(ancilla_index, circuit)
             self.apply_stabilizer(stabilizer, circuit, [ancilla_index] + self.measurement_ancillas)
-            if modified_targets and modified_ancilla == ancilla_index:
-                circuit.append('CX', modified_targets)
+            if modify_stabilizer and modified_ancilla == ancilla_index:
+                circuit.append_from_stim_program_text(str(modify_stabilizer))
             self.unprepare_cat_state(ancilla_index, circuit)
             circuit.append('M', ancilla_index)
             circuit.append('R', self.measurement_ancillas)

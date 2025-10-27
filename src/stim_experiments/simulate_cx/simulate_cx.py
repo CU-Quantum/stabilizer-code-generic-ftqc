@@ -98,7 +98,7 @@ class SimulateCx:
 
         cx_from_gsch_all = [
             CxFromGsch(control_qubit_indices=control_subregister_indices[i],
-                       target_code_utilities=self._target_code_utilities)
+                       target_code_utilities=self._target_code_utilities).perform_cx()
             for i in range(self._si + 1)
         ]
 
@@ -110,9 +110,10 @@ class SimulateCx:
             cat_states_circuit.append('CX', indices)
 
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
-        modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
-            if self._stabilizers_are_modified else []
-        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}" if self._cx_is_performed else ""
+        modify_stabilizer = Circuit()
+        self._target_code_utilities.apply_stabilizer(self._target_code_utilities.x_observable, modify_stabilizer, [modified_ancilla] * np.count_nonzero(self._target_code_utilities.x_observable))
+
+        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
 
         num_subregister_to_uncat = self._num_cat_states - self._si - 1
         uncat_subregisters = Circuit()
@@ -130,14 +131,14 @@ class SimulateCx:
             {self._target_code_utilities.get_encoding_by_stabilizer()}
             {cat_states_circuit}
 
-            {'\n'.join([cx_from_gsch.perform_cx() for cx_from_gsch in cx_from_gsch_all[:-1]])}
-            {cx_error}
-            {cx_from_gsch_all[-1].perform_cx() if self._cx_is_performed else ''}
+            {'\n'.join(map(str, cx_from_gsch_all[:-1]))}
+            {cx_error if self._cx_is_performed else ""}
+            {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
 
-            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
+            {cx_error}
             REPEAT {self._num_cat_states} {{
                 {self._target_code_utilities.get_stabilizers()}
-                {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
+                {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_ancilla=modified_ancilla)}
             
                 {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
@@ -176,7 +177,7 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_dodecacode_utilities()
-    samples = SimulateCx(num_cat_states=5, target_code_utilities=target_code, si=1, run_configuration=run_configuration).run_main()
+    samples = SimulateCx(num_cat_states=5, target_code_utilities=target_code, si=0, run_configuration=run_configuration).run_main()
 
     print(CSV_HEADER)
     for sample in samples:
