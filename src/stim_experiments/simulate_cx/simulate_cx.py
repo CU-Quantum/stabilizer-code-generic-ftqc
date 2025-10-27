@@ -97,7 +97,7 @@ class SimulateCx:
         observable[len(observable) // 2:len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
         # control observable
         observable[[len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(1 + self._si)]] = np.ones(1 + self._si)
-        observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(observable) // 2] = np.ones((self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state)  # z errors effect uncatted states. putting here to anticommute with observable, even though the actual observable does not MX all of them.
+        observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(observable) // 2] = np.ones((self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state)
 
         return combined_symplectic_matrix, observable
 
