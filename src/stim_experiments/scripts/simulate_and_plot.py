@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from multiprocessing import cpu_count
 
 from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, plot_error_rate
