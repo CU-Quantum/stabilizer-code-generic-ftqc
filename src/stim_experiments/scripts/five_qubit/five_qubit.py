@@ -2,7 +2,7 @@ from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, plot_error_rate
 
 from stim_experiments.simulate_cx.simulate_cx import SimulateCx
-from stim_experiments.simulate_cx.stabilizer_code_utilities import get_five_qubit_code_utilities
+from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_five_qubit_code_utilities
 
 
 class FiveQubit:
@@ -16,17 +16,17 @@ class FiveQubit:
             for sample in samples:
                 print(sample.to_csv_line())
 
-        # Render a matplotlib plot of the data.
         fig, ax = plt.subplots(1, 1)
         for i, samples in enumerate(samples_list):
             plot_args = {'color': f'C{i}'}
             is_baseline = not i
             if is_baseline:
                 plot_args['linestyle'] = '--'
+            label = f"$CX_{{s{i},L1}}$" if is_baseline else "No CX"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
-                group_func=lambda stat: f"$CX_{{s{i},L1}}$",
+                group_func=lambda stat: label,
                 x_func=lambda stat: stat.json_metadata['physical_error_rate'],
                 plot_args_func=lambda index, curve_id: plot_args
             )
@@ -38,8 +38,7 @@ class FiveQubit:
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
 
-        # Save to file and also open in a window.
-        # fig.savefig('plot.png')
+        fig.savefig('five_qubit.pdf')
         plt.show()
 
 

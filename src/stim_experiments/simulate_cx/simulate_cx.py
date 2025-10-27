@@ -3,9 +3,9 @@ from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, Task, collect, plot_error_rate
 from stim import Circuit
 
-from stim_experiments.simulate_cx.cx_from_gsch import CxFromGsch
-from stim_experiments.simulate_cx.decoder_by_matrix import DecoderByMatrix
-from stim_experiments.simulate_cx.stabilizer_code_utilities import StabilizerCodeUtilities, \
+from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
+from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
+from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
     get_shor_h_observable_z

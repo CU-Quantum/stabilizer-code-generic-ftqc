@@ -1,5 +1,5 @@
 from stim_experiments.simulate_cx.simulate_cx import SimulateCx
-from stim_experiments.simulate_cx.stabilizer_code_utilities import get_15_1_3_reed_solomon_code_utilities
+from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_15_1_3_reed_solomon_code_utilities
 
 
 class NativeTDistance3:
