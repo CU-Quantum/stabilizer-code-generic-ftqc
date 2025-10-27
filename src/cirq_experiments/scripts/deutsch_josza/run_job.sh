@@ -20,7 +20,7 @@ conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:~/workspace/stim-experiments
+export PYTHONPATH=$PYTHONPATH:~/workspace/stim-experiments/src
 cd ~/workspace/stim-experiments
 
 
