@@ -22,8 +22,9 @@ class FiveQubit:
             plot_error_rate(
                 ax=ax,
                 stats=samples,
-                group_func=lambda stat: f"After $CX_{{s{i},L1}}$",
+                group_func=lambda stat: f"$CX_{{s{i},L1}}$",
                 x_func=lambda stat: stat.json_metadata['physical_error_rate'],
+                plot_args_func=lambda index, curve_id: {'color': f'C{i}'}
             )
         ax.loglog()
         ax.set_ylim(1e-10, 1e-1)
