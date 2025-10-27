@@ -40,7 +40,7 @@ class SimulateCx:
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
                                                                   distance=self._num_cat_states,
                                                                   observables=np.array([observable]),
-                                                                  modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si,
+                                                                  modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits
                                                                   )},
         )
@@ -85,7 +85,7 @@ class SimulateCx:
         observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
         observable[len(observable) // 2:len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
         # control observable
-        observable[[len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(self._si + 1)]] = np.ones(self._si + 1)
+        observable[[len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(self._num_cat_states)]] = np.ones(self._num_cat_states)
 
         return combined_symplectic_matrix, observable
 
@@ -108,22 +108,17 @@ class SimulateCx:
         modified_ancilla = self._control_code_utilities.ancilla_indices[-self._num_cat_states + 1 + self._si]
         modified_targets = [j for i in zip([modified_ancilla] * len(self._target_code_utilities.x_observable), self._target_code_utilities.data_indices[:np.count_nonzero(self._target_code_utilities.x_observable)]) for j in i] \
             if self._stabilizers_are_modified else []
+        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}" if self._cx_is_performed else ""
 
-        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}" if modified_targets else ""
+        num_subregister_to_uncat = self._num_cat_states - self._si - 1
+        uncat_subregisters = Circuit()
+        if num_subregister_to_uncat:
+            for subregister in control_subregister_indices[-num_subregister_to_uncat:]:
+                indices = [j for i in zip([subregister[0]] * len(subregister), subregister[1:]) for j in i]
+                uncat_subregisters.append('CX', indices)
+                uncat_subregisters.append('H', subregister[0])
+
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
-        observables = f"""
-            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:self._si + 1]])}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(1 + len(target_measurement_indices) + self._si)])}
-        """ if self._cx_is_performed else f"""
-            M {' '.join(list(map(str, target_measurement_indices)))}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(len(target_measurement_indices))])}
-            
-            CX {' '.join([str(j) for i in zip([control_subregister_indices[0][0]] * len(control_subregister_indices[0]), control_subregister_indices[0][1:]) for j in i])}
-            H {control_subregister_indices[0][0]}
-            M {control_subregister_indices[0][0]}
-            OBSERVABLE_INCLUDE(1) rec[-1]
-        """
-
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
@@ -133,9 +128,10 @@ class SimulateCx:
 
             {'\n'.join([cx_from_gsch.perform_cx() for cx_from_gsch in cx_from_gsch_all[:-1]])}
             {cx_error}
-            {cx_from_gsch_all[-1].perform_cx() if self._stabilizers_are_modified else ''}
+            {cx_from_gsch_all[-1].perform_cx() if self._cx_is_performed else ''}
 
             DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}
+            # X_ERROR(0.75) 0
             REPEAT {self._num_cat_states} {{
                 {self._target_code_utilities.get_stabilizers()}
                 {self._control_code_utilities.get_stabilizers(modified_targets=modified_targets, modified_ancilla=modified_ancilla)}
@@ -144,7 +140,9 @@ class SimulateCx:
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._control_code_utilities.ancilla_indices))])}
             }}
 
-            {observables}
+            {uncat_subregisters}
+            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices])}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(len(target_measurement_indices) + len(control_subregister_indices))])}
         """)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
@@ -168,7 +166,7 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=-1).run_main()
+    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0).run_main()
 
     # Print samples as CSV data.
     print(CSV_HEADER)

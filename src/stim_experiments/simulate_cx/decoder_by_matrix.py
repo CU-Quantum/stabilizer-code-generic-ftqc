@@ -63,7 +63,7 @@ class DecoderByMatrix(Decoder):
             yield from self._propagation_syndromes_and_noises(combo=np.array(tuple(y_combo)))
 
     def _propagation_syndromes_and_noises(self, combo):
-        if self._modified_index < len(self._symplectic_matrix):
+        if self._modified_index is not None and self._modified_index < len(self._symplectic_matrix):
             yield from self._forward_propagation(combo)
             yield from self._backward_propagation(combo)
 
