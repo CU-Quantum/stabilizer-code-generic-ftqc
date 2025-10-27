@@ -5,7 +5,7 @@ from stim import Circuit
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_dodecacode, \
     get_check_matrix_values_tetrahedral
-from stim_experiments.anticommutators_finder import anticommutators_for_generators
+from anticommutators_finder import anticommutators_for_generators
 
 
 class StabilizerCodeUtilities:
