@@ -8,7 +8,7 @@ from stim_experiments.simulate_cx.stabilizer_code_utilities import get_five_qubi
 class FiveQubit:
     def run_main(self):
         target_code = get_five_qubit_code_utilities()
-        samples_list = [SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=i).run_main() for i in range(3)]
+        samples_list = [SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=i).run_main() for i in range(-1, 3)]
 
         # Print samples as CSV data.
         print(CSV_HEADER)
@@ -19,12 +19,16 @@ class FiveQubit:
         # Render a matplotlib plot of the data.
         fig, ax = plt.subplots(1, 1)
         for i, samples in enumerate(samples_list):
+            plot_args = {'color': f'C{i}'}
+            is_baseline = not i
+            if is_baseline:
+                plot_args['linestyle'] = '--'
             plot_error_rate(
                 ax=ax,
                 stats=samples,
                 group_func=lambda stat: f"$CX_{{s{i},L1}}$",
                 x_func=lambda stat: stat.json_metadata['physical_error_rate'],
-                plot_args_func=lambda index, curve_id: {'color': f'C{i}'}
+                plot_args_func=lambda index, curve_id: plot_args
             )
         ax.loglog()
         ax.set_ylim(1e-10, 1e-1)
