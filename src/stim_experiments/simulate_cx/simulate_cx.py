@@ -134,10 +134,8 @@ class SimulateCx:
             {cat_states_circuit}
 
             {'\n'.join(map(str, cx_from_gsch_all[:-1]))}
-            {cx_error if self._cx_is_performed else ""}
-            {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
-
             {cx_error}
+            {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
             REPEAT {self._num_cat_states} {{
                 {self._target_code_utilities.get_stabilizers()}
                 {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_ancilla=modified_ancilla)}
