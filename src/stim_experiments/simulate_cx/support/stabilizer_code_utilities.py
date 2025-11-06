@@ -16,6 +16,7 @@ class StabilizerCodeUtilities:
                  generator_anticommutators: NDArray[NDArray[int]],
                  z_observable: NDArray[int],
                  x_observable: NDArray[int],
+                 target_code_utilities: 'StabilizerCodeUtilities' = None,
                  qubit_id_start: int = 0,
                  row_coord_start: int = 0,
                  existing_ancilla_indices: list[int] = None,):
@@ -27,62 +28,53 @@ class StabilizerCodeUtilities:
 
         self._generator_anticommutators = generator_anticommutators
         self._qubit_id_start = qubit_id_start
+        self._target_code_utilities = target_code_utilities
 
     def get_init(self):
-        anticommutator_circuit = Circuit()
-        for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
-            self.apply_stabilizer(anticommutator, anticommutator_circuit, [ancilla_index] * self.num_measurement_ancillas)
-
         return Circuit(f"""
-            {'\n'.join([f'QUBIT_COORDS({self.row_coord_start}, {i}) {q_index}' for i, q_index in enumerate(self.data_indices)])}
-            {'\n'.join([f'QUBIT_COORDS({self.row_coord_start + 1}, {i}) {q_index}' for i, q_index in enumerate(self.all_ancilla_qubits)])}
             R {' '.join(map(str, self.data_indices))}
             R {' '.join(map(str, self.all_ancilla_qubits))}
         """)
 
     def get_encoding_by_stabilizer(self):
-        anticommutator_circuit = Circuit()
-        for ancilla_index, anticommutator in zip(self.ancilla_indices, self._generator_anticommutators):
-            self.apply_stabilizer(anticommutator, anticommutator_circuit, [ancilla_index] * self.num_measurement_ancillas)
-
         return Circuit(f"""
-            {self.get_stabilizers()}
-            {anticommutator_circuit}
-            R {' '.join(map(str, self.ancilla_indices))}
-            
+            {self.get_stabilizers(is_encoding=True)}
             {self._encode_z_observable()}
         """)
 
     def _encode_z_observable(self):
-        ancilla_index = self.z_observable_ancilla
+        ancilla_index = self.stabilizer_ancilla
         circuit = Circuit()
         self.prepare_cat_state(ancilla_index, circuit)
-        self.apply_stabilizer(self.z_observable, circuit, [ancilla_index] + self.measurement_ancillas)
+        self.apply_stabilizer(self.z_observable, circuit, [ancilla_index] + self.cat_applier_ancillas)
         self.unprepare_cat_state(ancilla_index, circuit)
         circuit.append('M', ancilla_index)
-        self.apply_stabilizer(self.x_observable, circuit, [ancilla_index] * self.num_measurement_ancillas)
-        circuit.append('R', [ancilla_index] + self.measurement_ancillas)
+        self.apply_stabilizer(self.x_observable, circuit, [ancilla_index] * self.num_cat_appier_ancillas)
+        circuit.append('R', [ancilla_index] + self.cat_applier_ancillas)
         return circuit
 
-    def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_ancilla: int = None) -> Circuit:
+    def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_generator: int = None, is_encoding: bool = False) -> Circuit:
         circuit = Circuit()
-        for ancilla_index, stabilizer in zip(self.ancilla_indices, self.symplectic_matrix):
+        ancilla_index = self.stabilizer_ancilla
+        for generator_num, (stabilizer, anticommutator) in enumerate(zip(self.symplectic_matrix, self._generator_anticommutators)):
             self.prepare_cat_state(ancilla_index, circuit)
-            self.apply_stabilizer(stabilizer, circuit, [ancilla_index] + self.measurement_ancillas)
-            if modify_stabilizer and modified_ancilla == ancilla_index:
+            self.apply_stabilizer(stabilizer, circuit, [ancilla_index] + self.cat_applier_ancillas)
+            if modify_stabilizer and modified_generator == generator_num:
                 circuit.append_from_stim_program_text(str(modify_stabilizer))
             self.unprepare_cat_state(ancilla_index, circuit)
             circuit.append('M', ancilla_index)
-            circuit.append('R', self.measurement_ancillas)
+            if is_encoding:
+                self.apply_stabilizer(anticommutator, circuit, [ancilla_index] * self.num_cat_appier_ancillas)
+            circuit.append('R', [ancilla_index] + self.cat_applier_ancillas)
         return circuit
 
     def prepare_cat_state(self, ancilla_index: int, circuit: Circuit):
         circuit.append('H', ancilla_index)
-        for measurement_index in self.measurement_ancillas:
+        for measurement_index in self.cat_applier_ancillas:
             circuit.append('CX', [ancilla_index, measurement_index])
 
     def unprepare_cat_state(self, ancilla_index: int, circuit: Circuit):
-        for measurement_index in self.measurement_ancillas:
+        for measurement_index in self.cat_applier_ancillas:
             circuit.append('CX', [ancilla_index, measurement_index])
         circuit.append('H', ancilla_index)
 
@@ -90,9 +82,9 @@ class StabilizerCodeUtilities:
         x_qubits = np.argwhere(stabilizer[:len(self.data_indices)] == 1).flatten()
         z_qubits = np.argwhere(stabilizer[len(self.data_indices):] == 1).flatten()
         if len(x_qubits):
-            circuit.append('CX', list(j for i in zip(ancillas, np.array(self.data_indices)[x_qubits]) for j in i))
+            circuit.append('CX', list(j for i in zip(ancillas[:len(x_qubits)], np.array(self.data_indices)[x_qubits]) for j in i))
         if len(z_qubits):
-            circuit.append('CZ', list(j for i in zip(ancillas, np.array(self.data_indices)[z_qubits]) for j in i))
+            circuit.append('CZ', list(j for i in zip(ancillas[len(x_qubits):], np.array(self.data_indices)[z_qubits]) for j in i))
 
     @property
     def last_qubit_index(self):
@@ -100,31 +92,29 @@ class StabilizerCodeUtilities:
 
     @property
     def all_ancilla_qubits(self):
-        return self.ancilla_indices + [self.z_observable_ancilla] + self.measurement_ancillas
+        return [self.stabilizer_ancilla] + self.cat_applier_ancillas
 
     @cached_property
-    def measurement_ancillas(self):
-        return [self.ancillas_pool.popleft() for _ in range(self.num_measurement_ancillas)]
+    def cat_applier_ancillas(self):
+        return [self.ancillas_pool.popleft() for _ in range(self.num_cat_appier_ancillas)]
 
     @cached_property
-    def z_observable_ancilla(self) -> int:
+    def stabilizer_ancilla(self) -> int:
         return self.ancillas_pool.popleft()
 
     @cached_property
-    def ancilla_indices(self) -> list[int]:
-        num_ancillas = self.symplectic_matrix.shape[0]
-        return [self.ancillas_pool.popleft() for _ in range(num_ancillas)]
-
-    @cached_property
     def ancillas_pool(self) -> deque[int]:
-        num_ancillas = self.symplectic_matrix.shape[0]
-        existing_ancillas = self.existing_ancilla_indices[:num_ancillas]
+        num_ancillas = 1
         start_ancilla_index = self.data_indices[-1] + 1
-        return deque(existing_ancillas + list(range(start_ancilla_index, start_ancilla_index + num_ancillas + self.num_measurement_ancillas + 1)))
+        return deque(self.existing_ancilla_indices + list(range(start_ancilla_index, start_ancilla_index + num_ancillas + self.num_cat_appier_ancillas + 1)))
 
     @property
-    def num_measurement_ancillas(self):
-        return max(np.count_nonzero(self.z_observable), np.count_nonzero(self.x_observable), *np.count_nonzero(self.symplectic_matrix, axis=1))
+    def num_cat_appier_ancillas(self):
+        num_for_self = max(np.count_nonzero(self.z_observable),
+                   np.count_nonzero(self.x_observable),
+                   *np.count_nonzero(self.symplectic_matrix, axis=1))
+        num_for_target = np.count_nonzero(self._target_code_utilities.x_observable) if self._target_code_utilities else 0
+        return num_for_self + num_for_target
 
     @property
     def data_indices(self) -> list[int]:
@@ -144,6 +134,7 @@ def get_shor_code_utilities(num_cat_states: int,
                             num_qubits_per_cat_state: int,
                             z_observable: NDArray,
                             x_observable: NDArray,
+                            target_code_utilities: StabilizerCodeUtilities = None,
                             qubit_id_start: int = 0,
                             row_coord_start: int = 0,
                             existing_ancilla_indices: list[int] = None
@@ -167,6 +158,7 @@ def get_shor_code_utilities(num_cat_states: int,
         generator_anticommutators=np.array(shor_anticommutors),
         z_observable=z_observable,
         x_observable=x_observable,
+        target_code_utilities=target_code_utilities,
         qubit_id_start=qubit_id_start,
         row_coord_start=row_coord_start,
         existing_ancilla_indices=existing_ancilla_indices,
