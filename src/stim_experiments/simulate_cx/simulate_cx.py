@@ -139,6 +139,7 @@ class SimulateCx:
             {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
             REPEAT {self._num_cat_states} {{
                 {self._target_code_utilities.get_stabilizers()}
+                 R {' '.join(map(str, self._target_code_utilities.ancilla_indices))}
                 {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_ancilla=modified_ancilla)}
             
                 {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.ancilla_indices) - len(self._control_code_utilities.ancilla_indices) + i}]' for i in range(len(self._target_code_utilities.ancilla_indices))])}
