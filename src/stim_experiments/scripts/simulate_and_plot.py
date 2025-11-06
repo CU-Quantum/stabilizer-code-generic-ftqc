@@ -61,7 +61,10 @@ class SimulateAndPlot:
 
         fig, ax = plt.subplots(1, 1)
         for i, samples in enumerate(samples_list):
-            plot_args = {'color': f'C{i}'}
+            plot_args = {
+                'color': f'C{i}',
+                'zorder': len(samples_list) - i,
+            }
             is_baseline = not i
             if is_baseline:
                 plot_args['linestyle'] = '--'

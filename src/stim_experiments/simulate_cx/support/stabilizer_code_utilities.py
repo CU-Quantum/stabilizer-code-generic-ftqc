@@ -1,3 +1,6 @@
+from collections import deque
+from functools import cached_property
+
 import numpy as np
 from numpy._typing import NDArray
 from stim import Circuit
@@ -14,11 +17,13 @@ class StabilizerCodeUtilities:
                  z_observable: NDArray[int],
                  x_observable: NDArray[int],
                  qubit_id_start: int = 0,
-                 row_coord_start: int = 0,):
+                 row_coord_start: int = 0,
+                 existing_ancilla_indices: list[int] = None,):
         self.symplectic_matrix = symplectic_matrix
         self.row_coord_start = row_coord_start
         self.z_observable = z_observable
         self.x_observable = x_observable
+        self.existing_ancilla_indices = existing_ancilla_indices or []
 
         self._generator_anticommutators = generator_anticommutators
         self._qubit_id_start = qubit_id_start
@@ -91,30 +96,35 @@ class StabilizerCodeUtilities:
 
     @property
     def last_qubit_index(self):
-        return self.measurement_ancillas[-1]
+        return self.all_ancilla_qubits[-1]
 
     @property
     def all_ancilla_qubits(self):
         return self.ancilla_indices + [self.z_observable_ancilla] + self.measurement_ancillas
 
-    @property
+    @cached_property
     def measurement_ancillas(self):
-        last_non_measurement_ancilla = self.z_observable_ancilla
-        return list(range(last_non_measurement_ancilla + 1, last_non_measurement_ancilla + 1 + self.num_measurement_ancillas))
+        return [self.ancillas_pool.popleft() for _ in range(self.num_measurement_ancillas)]
+
+    @cached_property
+    def z_observable_ancilla(self) -> int:
+        return self.ancillas_pool.popleft()
+
+    @cached_property
+    def ancilla_indices(self) -> list[int]:
+        num_ancillas = self.symplectic_matrix.shape[0]
+        return [self.ancillas_pool.popleft() for _ in range(num_ancillas)]
+
+    @cached_property
+    def ancillas_pool(self) -> deque[int]:
+        num_ancillas = self.symplectic_matrix.shape[0]
+        existing_ancillas = self.existing_ancilla_indices[:num_ancillas]
+        start_ancilla_index = self.data_indices[-1] + 1
+        return deque(existing_ancillas + list(range(start_ancilla_index, start_ancilla_index + num_ancillas + self.num_measurement_ancillas + 1)))
 
     @property
     def num_measurement_ancillas(self):
         return max(np.count_nonzero(self.z_observable), np.count_nonzero(self.x_observable), *np.count_nonzero(self.symplectic_matrix, axis=1))
-
-    @property
-    def z_observable_ancilla(self) -> int:
-        return self.ancilla_indices[-1] + 1
-
-    @property
-    def ancilla_indices(self) -> list[int]:
-        num_ancillas = self.symplectic_matrix.shape[0]
-        start_ancilla_index = self._qubit_id_start + len(self.data_indices)
-        return list(range(start_ancilla_index, start_ancilla_index + num_ancillas))
 
     @property
     def data_indices(self) -> list[int]:
@@ -135,7 +145,8 @@ def get_shor_code_utilities(num_cat_states: int,
                             z_observable: NDArray,
                             x_observable: NDArray,
                             qubit_id_start: int = 0,
-                            row_coord_start: int = 0
+                            row_coord_start: int = 0,
+                            existing_ancilla_indices: list[int] = None
                             ) -> StabilizerCodeUtilities:
     shor_code_generators = GeneralizedShorCodeGenerators(num_cats=num_cat_states, num_qubits_per_cat=num_qubits_per_cat_state)
     shor_code_symplectic_matrix = shor_code_generators.get_z_generators() + shor_code_generators.get_x_generators()
@@ -157,7 +168,8 @@ def get_shor_code_utilities(num_cat_states: int,
         z_observable=z_observable,
         x_observable=x_observable,
         qubit_id_start=qubit_id_start,
-        row_coord_start=row_coord_start
+        row_coord_start=row_coord_start,
+        existing_ancilla_indices=existing_ancilla_indices,
     )
 
 

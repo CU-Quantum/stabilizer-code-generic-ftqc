@@ -28,6 +28,7 @@ class SimulateCx:
             x_observable=get_shor_h_observable_x(self._num_cat_states),
             qubit_id_start=self._target_code_utilities.last_qubit_index + 1,
             row_coord_start=2,
+            existing_ancilla_indices=target_code_utilities.all_ancilla_qubits,
         )
 
     def run_main(self):
