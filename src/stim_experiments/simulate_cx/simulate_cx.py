@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Optional
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, Task, collect, plot_error_rate
@@ -13,11 +16,12 @@ from stim_experiments.simulate_cx.support.stabilizer_code_utilities import Stabi
 
 
 class SimulateCx:
-    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int, run_configuration: RunConfiguration):
+    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int, run_configuration: RunConfiguration, decode_lookup_table_filepath: Optional[Path] = None):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
+        self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
@@ -45,7 +49,8 @@ class SimulateCx:
                                                                   distance=self._num_cat_states,
                                                                   observables=np.array([observable]),
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                                                                  num_target_data_qubits=self._num_target_data_qubits
+                                                                  num_target_data_qubits=self._num_target_data_qubits,
+                                                                  decode_lookup_table=self._decode_lookup_table_filepath
                                                                   )},
         )
 

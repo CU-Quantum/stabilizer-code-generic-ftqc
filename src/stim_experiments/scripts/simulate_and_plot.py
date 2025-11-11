@@ -1,5 +1,7 @@
 from argparse import ArgumentParser
 from multiprocessing import cpu_count
+from pathlib import Path
+from typing import Optional
 
 from matplotlib import pyplot as plt
 from sinter import CSV_HEADER, plot_error_rate
@@ -37,12 +39,14 @@ class SimulateAndPlot:
                  target_code: StabilizerCodeUtilities,
                  num_cat_states: int,
                  code_title: str,
-                 filename: str):
+                 filename: str,
+                 decode_lookup_table_filepath: Optional[Path] = None,):
         self._run_configuration = run_configuration
         self._target_code = target_code
         self._num_cat_states = num_cat_states
         self._code_title = code_title
         self._filename = filename
+        self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
     def run_main(self):
         target_code = self._target_code
@@ -50,6 +54,7 @@ class SimulateAndPlot:
                                    target_code_utilities=target_code,
                                    si=i,
                                    run_configuration=self._run_configuration,
+                                   decode_lookup_table_filepath=self._decode_lookup_table_filepath,
                                    ).run_main()
                         for i in range(-1, self._num_cat_states)]
 

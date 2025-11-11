@@ -1,4 +1,6 @@
+import pickle
 from itertools import combinations
+from pathlib import Path
 
 import numpy as np
 from numpy._typing import NDArray
@@ -14,12 +16,14 @@ class DecoderByMatrix(Decoder):
                  distance: int,
                  observables: NDArray[int],
                  modified_index: int,
-                 num_target_data_qubits: int,):
+                 num_target_data_qubits: int,
+                 decode_lookup_table: Path = None,):
         self._symplectic_matrix = symplectic_matrix
         self._distance = distance
         self._observables = observables
         self._modified_index = modified_index
         self._num_target_data_qubits = num_target_data_qubits
+        self._decode_lookup_table = decode_lookup_table
         self._cache = None
 
     def compile_decoder_for_dem(
@@ -28,23 +32,27 @@ class DecoderByMatrix(Decoder):
             dem: DetectorErrorModel,
     ) -> CompiledDecoder:
         if self._cache is None:
-            block_1 = list(range(self._num_target_data_qubits)) + list(range(self._num_data_qubits, self._num_data_qubits + self._num_target_data_qubits))
-            block_2 = list(range(self._num_target_data_qubits, self._num_data_qubits)) + list(range(self._num_data_qubits + self._num_target_data_qubits, self._symplectic_matrix.shape[1]))
-            possible_combos_per_block = [
-                [combo for i in range(1, self._num_correctable_errors + 1) for combo in combinations(block, i)]
-                for block in (block_1, block_2)
-            ]
-            possible_combos_all = possible_combos_per_block[0] + \
-                                  possible_combos_per_block[1] + \
-                                  [combo_1 + combo_2
-                                   for combo_1 in possible_combos_per_block[0]
-                                   for combo_2 in possible_combos_per_block[1]]
-            syndrome_to_noise = {
-                tuple(syndrome): noise
-                for combo in possible_combos_all
-                for syndrome, noise in list(self._syndrome_and_noise_from_non_y_combo(combo))
-                if syndrome.max()
-            }
+            if self._decode_lookup_table:
+                with open(self._decode_lookup_table, 'rb') as f:
+                    syndrome_to_noise = pickle.load(f)
+            else:
+                block_1 = list(range(self._num_target_data_qubits)) + list(range(self._num_data_qubits, self._num_data_qubits + self._num_target_data_qubits))
+                block_2 = list(range(self._num_target_data_qubits, self._num_data_qubits)) + list(range(self._num_data_qubits + self._num_target_data_qubits, self._symplectic_matrix.shape[1]))
+                possible_combos_per_block = [
+                    [combo for i in range(1, self._num_correctable_errors + 1) for combo in combinations(block, i)]
+                    for block in (block_1, block_2)
+                ]
+                possible_combos_all = possible_combos_per_block[0] + \
+                                      possible_combos_per_block[1] + \
+                                      [combo_1 + combo_2
+                                       for combo_1 in possible_combos_per_block[0]
+                                       for combo_2 in possible_combos_per_block[1]]
+                syndrome_to_noise = {
+                    tuple(syndrome): noise
+                    for combo in possible_combos_all
+                    for syndrome, noise in list(self._syndrome_and_noise_from_non_y_combo(combo))
+                    if syndrome.max()
+                }
             self._cache = CompiledDecoderByMatrix(
                 syndrome_to_noise=syndrome_to_noise,
                 distance=self._distance,
