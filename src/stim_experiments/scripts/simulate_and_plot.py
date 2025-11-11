@@ -68,11 +68,18 @@ class SimulateAndPlot:
         for i, samples in enumerate(samples_list):
             plot_args = {
                 'color': f'C{i}',
-                'zorder': len(samples_list) - i,
+                'zorder': list(range(3, 8))[i - 1],
+                'linestyle': [
+                    (i*.05, ()),         # solid
+                    (i*.05, (1, 1)),     # densely dotted
+                    (i*.05, (5, 4)),     # densely dashed
+                    (i*.05, (5, 7)),     # mediumly dashed
+                    (i * .05, (5, 10)),  # loosely dashed
+                    (i * .05, (1, 10)),  # loosely dotted
+                ][i - 1],
+                'marker': ['o', 's', '^', 'D', ''][i - 1],
             }
             is_baseline = not i
-            if is_baseline:
-                plot_args['linestyle'] = '--'
             label = "No CX" if is_baseline else f"$CX_{{s{i-1},L1}}$"
             plot_error_rate(
                 ax=ax,
