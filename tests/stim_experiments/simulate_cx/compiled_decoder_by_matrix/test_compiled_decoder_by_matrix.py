@@ -28,4 +28,7 @@ class TestCompiledDecoderByMatrix:
         # syndrome = [True, True, False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False]
         # wrong_noise =    [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         # expected_noise = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        # TODO: it looks like the prediction is correct. Fix circuit observables. Also perhaps do multiple observables.
+        """
+        TODO: it looks like the prediction is correct. Fix circuit observables. Also perhaps do multiple observables.
+        After a second look, it appears fine. Probably there was an uncorrectable amount of noise. Find a way to determine the actual noise that occurred.
+        """
