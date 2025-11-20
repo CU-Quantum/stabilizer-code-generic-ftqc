@@ -37,7 +37,7 @@ class SimulateCx:
         )
 
     def run_main(self):
-        combined_symplectic_matrix, observable = self.get_combined_symplectic()
+        combined_symplectic_matrix, observables = self.get_combined_symplectic()
 
         samples = collect(
             num_workers=self._run_configuration.num_workers,
@@ -47,7 +47,7 @@ class SimulateCx:
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
                                                                   distance=self._num_cat_states,
-                                                                  observables=np.array([observable]),
+                                                                  observables=observables,
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
                                                                   decode_lookup_table=self._decode_lookup_table_filepath
@@ -89,15 +89,19 @@ class SimulateCx:
                 = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
         combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
 
-        observable = np.zeros(combined_symplectic_matrix.shape[1])
+        num_observables = 1
+        observables = np.zeros((num_observables, combined_symplectic_matrix.shape[1]), dtype=int)
+        first_observable = observables[0]
         # target observable
-        observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
-        observable[len(observable) // 2:len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
+        first_observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
+        first_observable[len(first_observable) // 2:len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
         # control observable
-        observable[[len(observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(1 + self._si)]] = np.ones(1 + self._si)
-        observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(observable) // 2] = np.ones((self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state)
+        first_observable[[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(1 + self._si)]] = np.ones(1 + self._si)
 
-        return combined_symplectic_matrix, observable
+        # second_observable = observables[1]
+        # second_observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(second_observable) // 2] = np.ones((self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state)
+
+        return combined_symplectic_matrix, observables
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
         control_subregister_indices = [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
@@ -124,15 +128,9 @@ class SimulateCx:
 
         cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
 
-        num_subregister_to_uncat = self._num_cat_states - self._si - 1
-        uncat_subregisters = Circuit()
-        if num_subregister_to_uncat:
-            for subregister in control_subregister_indices[-num_subregister_to_uncat:]:
-                indices = [j for i in zip([subregister[0]] * len(subregister), subregister[1:]) for j in i]
-                uncat_subregisters.append('CX', indices)
-                uncat_subregisters.append('H', subregister[0])
-
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
+        num_second_observable = self._num_cat_states - self._si - 1
+        num_first_observable = len(target_measurement_indices) + len(control_subregister_indices) - num_second_observable
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
@@ -151,10 +149,22 @@ class SimulateCx:
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
             }}
 
-            {uncat_subregisters}
-            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices])}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(len(target_measurement_indices) + len(control_subregister_indices))])}
+            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:-num_second_observable if num_second_observable else None]])}
+            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(num_first_observable)])}
         """)
+
+        # num_subregister_to_uncat = self._num_cat_states - self._si - 1
+        # uncat_subregisters = Circuit()
+        # if num_subregister_to_uncat:
+        #     for subregister in control_subregister_indices[-num_subregister_to_uncat:]:
+        #         indices = [j for i in zip([subregister[0]] * len(subregister), subregister[1:]) for j in i]
+        #         uncat_subregisters.append('CX', indices)
+        #         uncat_subregisters.append('H', subregister[0])
+        # circuit.append_from_stim_program_text(f"""
+        #     {uncat_subregisters}
+        #     M {' '.join([str(subreg[0]) for subreg in control_subregister_indices[-num_second_observable:]])}
+        #     OBSERVABLE_INCLUDE(1) {' '.join([f'rec[-{i+1}]' for i in range(num_first_observable, num_first_observable + num_second_observable)])}
+        # """)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
@@ -184,8 +194,19 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
     target_code = get_five_qubit_code_utilities()
+    samples = SimulateCx(num_cat_states=3,
+                         target_code_utilities=target_code,
+                         si=2,
+                         run_configuration=run_configuration,
+                         ).run_main()
+
     # target_code = get_dodecacode_utilities()
-    samples = SimulateCx(num_cat_states=3, target_code_utilities=target_code, si=0, run_configuration=run_configuration).run_main()
+    # samples = SimulateCx(num_cat_states=5,
+    #                      target_code_utilities=target_code,
+    #                      si=0,
+    #                      run_configuration=run_configuration,
+    #                      decode_lookup_table_filepath=Path('/Users/nicholaspapadopoulos/workspace_cu/quantum/stim_experiments/src/stim_experiments/scripts/dodecacode/decode_lookup_table_dodeca.pickle'),
+    #                      ).run_main()
 
     print(CSV_HEADER)
     for sample in samples:
