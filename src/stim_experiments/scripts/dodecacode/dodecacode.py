@@ -12,5 +12,5 @@ if __name__ == "__main__":
         num_cat_states=5,
         code_title='Dodecacode',
         filename='dodecacode.pdf',
-        decode_lookup_table_filepath=Path(path.dirname(path.realpath(__file__)), 'decode_lookup_table_dodeca.pickle')
+        decode_lookup_table_filepath=Path(__file__).parent / 'decode_lookup_table_dodeca'
     ).run_main()

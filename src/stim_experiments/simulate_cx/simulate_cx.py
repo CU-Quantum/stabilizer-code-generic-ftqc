@@ -38,7 +38,7 @@ class SimulateCx:
 
     def run_main(self):
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
-
+        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle')
         samples = collect(
             num_workers=self._run_configuration.num_workers,
             max_shots=self._run_configuration.max_shots,
@@ -50,7 +50,7 @@ class SimulateCx:
                                                                   observables=observables,
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
-                                                                  decode_lookup_table=self._decode_lookup_table_filepath
+                                                                  decode_lookup_table=decoder_file
                                                                   )},
         )
 
@@ -193,20 +193,21 @@ if __name__ == '__main__':
     # target_code = get_3_repetition_code_utilities()
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
-    target_code = get_five_qubit_code_utilities()
-    samples = SimulateCx(num_cat_states=3,
+
+    # target_code = get_five_qubit_code_utilities()
+    # samples = SimulateCx(num_cat_states=3,
+    #                      target_code_utilities=target_code,
+    #                      si=-1,
+    #                      run_configuration=run_configuration,
+    #                      ).run_main()
+
+    target_code = get_dodecacode_utilities()
+    samples = SimulateCx(num_cat_states=5,
                          target_code_utilities=target_code,
                          si=-1,
                          run_configuration=run_configuration,
+                         decode_lookup_table_filepath=Path(__file__).parent.parent / 'scripts' / 'dodecacode' / 'decode_lookup_table_dodeca',
                          ).run_main()
-
-    # target_code = get_dodecacode_utilities()
-    # samples = SimulateCx(num_cat_states=5,
-    #                      target_code_utilities=target_code,
-    #                      si=0,
-    #                      run_configuration=run_configuration,
-    #                      decode_lookup_table_filepath=Path('/Users/nicholaspapadopoulos/workspace_cu/quantum/stim_experiments/src/stim_experiments/scripts/dodecacode/decode_lookup_table_dodeca.pickle'),
-    #                      ).run_main()
 
     print(CSV_HEADER)
     for sample in samples:
