@@ -52,6 +52,7 @@ class SimulateCx:
                                                                   num_target_data_qubits=self._num_target_data_qubits,
                                                                   decode_lookup_table=decoder_file
                                                                   )},
+            print_progress=True,
         )
 
         return samples
