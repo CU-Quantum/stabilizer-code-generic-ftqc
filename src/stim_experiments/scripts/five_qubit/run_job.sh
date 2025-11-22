@@ -16,14 +16,14 @@
 
 # Create and activate a virtual environment
 module load anaconda/2023.09
-conda env create -f ~/workspace/stim-experiments/environment.yml
+conda env create -f /scratch/alpine/nipa4599/stim-experiments/environment.yml
 conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:~/workspace/stim-experiments/src
-cd ~/workspace/stim-experiments
+export PYTHONPATH=$PYTHONPATH:/scratch/alpine/nipa4599/stim-experiments/src
+cd /scratch/alpine/nipa4599/stim-experiments
 
 
 # Run
-python ~/workspace/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py -s 10_000_000_000 -e 100_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
+python /scratch/alpine/nipa4599/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py -s 10_000_000_000 -e 100_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
