@@ -46,6 +46,7 @@ class SimulateCx:
     def run_main(self):
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle')
+        save_resume_file = Path(f'{self._save_resume_filepath}_{self._si}.csv')
         samples = collect(
             num_workers=self._run_configuration.num_workers,
             max_shots=self._run_configuration.max_shots,
@@ -60,7 +61,7 @@ class SimulateCx:
                                                                   decode_lookup_table=decoder_file if self._decode_lookup_table_filepath else None
                                                                   )},
             print_progress=True,
-            save_resume_filepath=self._save_resume_filepath,
+            save_resume_filepath=save_resume_file,
         )
 
         return samples

@@ -12,6 +12,6 @@ if __name__ == "__main__":
         num_cat_states=3,
         code_title='Five Qubit Code',
         output_graph_filename='five_qubit.pdf',
-        save_resume_filepath=Path(__file__).parent / 'save_resume.csv',
+        save_resume_filepath=Path(__file__).parent / 'save_resume',
         ymin_order=10
     ).run_main()

@@ -13,6 +13,6 @@ if __name__ == "__main__":
         code_title='Dodecacode',
         output_graph_filename='dodecacode.pdf',
         ymin_order=12,
-        save_resume_filepath=Path(__file__).parent / 'save_resume.csv',
+        save_resume_filepath=Path(__file__).parent / 'save_resume',
         decode_lookup_table_filepath=Path(__file__).parent / 'decode_lookup_table_dodeca'
     ).run_main()
