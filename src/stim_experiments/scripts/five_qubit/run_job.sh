@@ -26,4 +26,4 @@ cd /scratch/alpine/nipa4599/stim-experiments
 
 
 # Run
-python /scratch/alpine/nipa4599/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py -s 10_000_000_000 -e 100_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
+python /scratch/alpine/nipa4599/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py -s 10_000_000_000 -e 10_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
