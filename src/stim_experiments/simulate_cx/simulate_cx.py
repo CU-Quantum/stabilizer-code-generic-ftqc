@@ -57,7 +57,7 @@ class SimulateCx:
                                                                   observables=observables,
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
-                                                                  decode_lookup_table=decoder_file
+                                                                  decode_lookup_table=decoder_file if self._decode_lookup_table_filepath else None
                                                                   )},
             print_progress=True,
             save_resume_filepath=self._save_resume_filepath,
