@@ -39,13 +39,17 @@ class SimulateAndPlot:
                  target_code: StabilizerCodeUtilities,
                  num_cat_states: int,
                  code_title: str,
-                 filename: str,
-                 decode_lookup_table_filepath: Optional[Path] = None,):
+                 output_graph_filename: str,
+                 save_resume_filepath: Optional[Path] = None,
+                 ymin_order: int = 10,
+                 decode_lookup_table_filepath: Optional[Path] = None, ):
         self._run_configuration = run_configuration
         self._target_code = target_code
         self._num_cat_states = num_cat_states
         self._code_title = code_title
-        self._filename = filename
+        self._output_graph_filename = output_graph_filename
+        self._ymin_order = ymin_order
+        self._save_resume_filepath = save_resume_filepath
         self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
     def run_main(self):
@@ -55,6 +59,7 @@ class SimulateAndPlot:
                                    si=i,
                                    run_configuration=self._run_configuration,
                                    decode_lookup_table_filepath=self._decode_lookup_table_filepath,
+                                   save_resume_filepath=self._save_resume_filepath,
                                    ).run_main()
                         for i in range(-1, self._num_cat_states)]
 
@@ -89,12 +94,12 @@ class SimulateAndPlot:
                 plot_args_func=lambda index, curve_id: plot_args
             )
         ax.loglog()
-        ax.set_ylim(1e-10, 1e-1)
+        ax.set_ylim(1 * 10**-self._ymin_order, 1e-1)
         ax.grid()
         ax.set_title(f'LER of CX Controlled by GSCH Targeting {self._code_title}')
         ax.set_ylabel('Logical Error Probability (per shot)')
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
 
-        fig.savefig(self._filename)
+        fig.savefig(self._output_graph_filename)
         plt.show()

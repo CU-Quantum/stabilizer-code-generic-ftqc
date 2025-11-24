@@ -16,11 +16,18 @@ from stim_experiments.simulate_cx.support.stabilizer_code_utilities import Stabi
 
 
 class SimulateCx:
-    def __init__(self, num_cat_states: int, target_code_utilities: StabilizerCodeUtilities, si: int, run_configuration: RunConfiguration, decode_lookup_table_filepath: Optional[Path] = None):
+    def __init__(self,
+                 num_cat_states: int,
+                 target_code_utilities: StabilizerCodeUtilities,
+                 si: int,
+                 run_configuration: RunConfiguration,
+                 save_resume_filepath: Optional[Path] = None,
+                 decode_lookup_table_filepath: Optional[Path] = None):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
+        self._save_resume_filepath = save_resume_filepath
         self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
@@ -53,6 +60,7 @@ class SimulateCx:
                                                                   decode_lookup_table=decoder_file
                                                                   )},
             print_progress=True,
+            save_resume_filepath=self._save_resume_filepath,
         )
 
         return samples

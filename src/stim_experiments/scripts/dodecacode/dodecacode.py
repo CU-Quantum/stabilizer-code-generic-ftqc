@@ -11,6 +11,8 @@ if __name__ == "__main__":
         target_code=get_dodecacode_utilities(),
         num_cat_states=5,
         code_title='Dodecacode',
-        filename='dodecacode.pdf',
+        output_graph_filename='dodecacode.pdf',
+        ymin_order=12,
+        save_resume_filepath=Path(__file__).parent / 'save_resume.csv',
         decode_lookup_table_filepath=Path(__file__).parent / 'decode_lookup_table_dodeca'
     ).run_main()
