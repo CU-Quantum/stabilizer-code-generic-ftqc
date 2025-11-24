@@ -16,14 +16,14 @@
 
 # Create and activate a virtual environment
 module load anaconda/2023.09
-conda env create -f /scratch/alpine/nipa4599/stim-experiments/environment.yml
+conda env create -f /projects/nipa4599/stim-experiments/environment.yml
 conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:/scratch/alpine/nipa4599/stim-experiments/src
-cd /scratch/alpine/nipa4599/stim-experiments
+export PYTHONPATH=$PYTHONPATH:/projects/nipa4599/stim-experiments/src
+cd /projects/nipa4599/stim-experiments
 
 
 # Run
-python /scratch/alpine/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py -s 10_000_000_000 -e 10_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
+python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py -s 10_000_000_000 -e 10_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2

@@ -16,14 +16,14 @@
 
 # Create and activate a virtual environment
 module load anaconda/2023.09
-conda env create -f /scratch/alpine/nipa4599/stim-experiments/environment.yml
+conda env create -f /projects/nipa4599/stim-experiments/environment.yml
 conda activate stim-experiments-venv
 
 
 # Setup workspace
-export PYTHONPATH=$PYTHONPATH:/scratch/alpine/nipa4599/stim-experiments/src
-cd /scratch/alpine/nipa4599/stim-experiments
+export PYTHONPATH=$PYTHONPATH:/projects/nipa4599/stim-experiments/src
+cd /projects/nipa4599/stim-experiments
 
 
 # Run
-python /scratch/alpine/nipa4599/stim-experiments/src/cirq_experiments/scripts/universal_hadamard/universal_hadamard.py
+python /projects/nipa4599/stim-experiments/src/cirq_experiments/scripts/universal_hadamard/universal_hadamard.py
