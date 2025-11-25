@@ -1,4 +1,7 @@
+beliefmatching~=0.2.0
 cirq~=1.4.1
 dacite~=1.9.2
-stim~=1.14.0
+pymatching~=2.3.1
+sinter~=1.16.dev1758926350
+stim~=1.16.dev1758926350
 qsimcirq~=0.22.0
