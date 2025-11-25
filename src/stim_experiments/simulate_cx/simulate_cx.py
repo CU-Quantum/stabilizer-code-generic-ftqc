@@ -108,7 +108,7 @@ class SimulateCx:
         first_observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
         first_observable[len(first_observable) // 2:len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
         # control observable
-        first_observable[[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(1 + self._si)]] = np.ones(1 + self._si)
+        first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
 
         for i in range(1, num_observables):
             observable = observables[i]
@@ -143,7 +143,7 @@ class SimulateCx:
 
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         num_second_observable = self._num_cat_states - self._si - 1
-        num_first_observable = len(target_measurement_indices) + len(control_subregister_indices) - num_second_observable
+        num_first_observable = len(target_measurement_indices) + (len(control_subregister_indices) - num_second_observable) * self._num_qubits_per_cat_state
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
@@ -162,7 +162,7 @@ class SimulateCx:
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
             }}
 
-            M {' '.join(list(map(str, target_measurement_indices)) + [str(subreg[0]) for subreg in control_subregister_indices[:-num_second_observable if num_second_observable else None]])}
+            M {' '.join(list(map(str, target_measurement_indices)) + [str(ind) for subreg in control_subregister_indices[:-num_second_observable if num_second_observable else None] for ind in subreg])}
             OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(num_first_observable)])}
         """)
 
@@ -208,20 +208,20 @@ if __name__ == '__main__':
     # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
 
-    # target_code = get_five_qubit_code_utilities()
-    # samples = SimulateCx(num_cat_states=3,
+    target_code = get_five_qubit_code_utilities()
+    samples = SimulateCx(num_cat_states=3,
+                         target_code_utilities=target_code,
+                         si=2,
+                         run_configuration=run_configuration,
+                         ).run_main()
+
+    # target_code = get_dodecacode_utilities()
+    # samples = SimulateCx(num_cat_states=5,
     #                      target_code_utilities=target_code,
     #                      si=-1,
     #                      run_configuration=run_configuration,
+    #                      decode_lookup_table_filepath=Path(__file__).parent.parent / 'scripts' / 'dodecacode' / 'decode_lookup_table_dodeca',
     #                      ).run_main()
-
-    target_code = get_dodecacode_utilities()
-    samples = SimulateCx(num_cat_states=5,
-                         target_code_utilities=target_code,
-                         si=-1,
-                         run_configuration=run_configuration,
-                         decode_lookup_table_filepath=Path(__file__).parent.parent / 'scripts' / 'dodecacode' / 'decode_lookup_table_dodeca',
-                         ).run_main()
 
     print(CSV_HEADER)
     for sample in samples:
