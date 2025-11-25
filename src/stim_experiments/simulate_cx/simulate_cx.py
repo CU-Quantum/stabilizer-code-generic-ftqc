@@ -51,7 +51,7 @@ class SimulateCx:
             num_workers=self._run_configuration.num_workers,
             max_shots=self._run_configuration.max_shots,
             max_errors=self._run_configuration.max_errors,
-            tasks=self.generate_example_tasks(),
+            tasks=self.generate_sinter_tasks(),
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
                                                                   distance=self._num_cat_states,
@@ -62,11 +62,13 @@ class SimulateCx:
                                                                   )},
             print_progress=True,
             save_resume_filepath=save_resume_file,
+            count_observable_error_combos=True,
+            count_detection_events=True,
         )
 
         return samples
 
-    def generate_example_tasks(self):
+    def generate_sinter_tasks(self):
         for p in self._run_configuration.depolarization_probabilities:
             yield Task(
                 circuit=self.generate_task_circuit(physical_error_rate=p),
@@ -99,7 +101,7 @@ class SimulateCx:
                 = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
         combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
 
-        num_observables = 2
+        num_observables = self._num_cat_states - self._si
         observables = np.zeros((num_observables, combined_symplectic_matrix.shape[1]), dtype=int)
         first_observable = observables[0]
         # target observable
@@ -108,8 +110,9 @@ class SimulateCx:
         # control observable
         first_observable[[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2 + i * self._num_qubits_per_cat_state for i in range(1 + self._si)]] = np.ones(1 + self._si)
 
-        second_observable = observables[1]
-        second_observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(second_observable) // 2] = np.ones((self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state)
+        for i in range(1, num_observables):
+            observable = observables[i]
+            observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i):self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i) + self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
 
         return combined_symplectic_matrix, observables
 
@@ -172,9 +175,10 @@ class SimulateCx:
                 uncat_subregisters.append('H', subregister[0])
         circuit.append_from_stim_program_text(f"""
             {uncat_subregisters}
-            M {' '.join([str(subreg[0]) for subreg in control_subregister_indices[-num_second_observable:]])}
-            OBSERVABLE_INCLUDE(1) {' '.join([f'rec[-{i+1}]' for i in range(num_second_observable)])}
         """)
+        for i in range(self._si + 1, self._num_cat_states):
+            circuit.append('M', control_subregister_indices[i][0])
+            circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({i - self._si}) rec[-1]')
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
