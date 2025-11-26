@@ -73,7 +73,7 @@ class TestUniversalHadamard:
             initial_data_state=initial_state,
         ).state
 
-        expected_state = (
+        expected_state = (1 / np.sqrt(2)) * (
                 (initial_coefficients[0] + initial_coefficients[1]) * computational_basis_states[0]
                 + (initial_coefficients[0] - initial_coefficients[1]) * computational_basis_states[1]
                 + (initial_coefficients[2] + initial_coefficients[3]) * computational_basis_states[2]
