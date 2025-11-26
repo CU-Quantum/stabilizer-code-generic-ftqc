@@ -15,7 +15,7 @@ def get_run_configuration() -> RunConfiguration:
     parser = ArgumentParser()
     parser.add_argument('-s', '--max-shots', type=int, default=100_000_000,
                         help='Maximum number of shots to run the algorithm for.')
-    parser.add_argument('-e', '--max-errors', type=int, default=10_000,
+    parser.add_argument('-e', '--max-errors', type=int, default=1_000,
                         help='Maximum number of errors.')
     parser.add_argument('-p', '--depolarization-probabilities', type=float, nargs='+',
                         default=[1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01],

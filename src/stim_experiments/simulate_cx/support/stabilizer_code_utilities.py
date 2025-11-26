@@ -43,15 +43,19 @@ class StabilizerCodeUtilities:
         """)
 
     def _encode_z_observable(self):
-        ancilla_index = self.stabilizer_ancilla
         circuit = Circuit()
-        self.prepare_cat_state(ancilla_index, circuit)
-        self.apply_stabilizer(self.z_observable, circuit, [ancilla_index] + self.cat_applier_ancillas)
-        self.unprepare_cat_state(ancilla_index, circuit)
-        circuit.append('M', ancilla_index)
+        self.measure_stabilizer_using_cat_state(self.z_observable, circuit)
+        ancilla_index = self.stabilizer_ancilla
         self.apply_stabilizer(self.x_observable, circuit, [ancilla_index] * self.num_cat_appier_ancillas)
         circuit.append('R', [ancilla_index] + self.cat_applier_ancillas)
         return circuit
+
+    def measure_stabilizer_using_cat_state(self, stabilizer, circuit):
+        ancilla_index = self.stabilizer_ancilla
+        self.prepare_cat_state(ancilla_index, circuit)
+        self.apply_stabilizer(stabilizer, circuit, [ancilla_index] + self.cat_applier_ancillas)
+        self.unprepare_cat_state(ancilla_index, circuit)
+        circuit.append('M', ancilla_index)
 
     def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_generator: int = None, is_encoding: bool = False) -> Circuit:
         circuit = Circuit()

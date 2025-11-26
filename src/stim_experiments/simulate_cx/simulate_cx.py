@@ -45,8 +45,8 @@ class SimulateCx:
 
     def run_main(self):
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
-        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle')
-        save_resume_file = Path(f'{self._save_resume_filepath}_{self._si}.csv')
+        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
+        save_resume_file = Path(f'{self._save_resume_filepath}_{self._si}.csv') if self._save_resume_filepath else None
         samples = collect(
             num_workers=self._run_configuration.num_workers,
             max_shots=self._run_configuration.max_shots,
@@ -58,7 +58,7 @@ class SimulateCx:
                                                                   observables=observables,
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
-                                                                  decode_lookup_table=decoder_file if self._decode_lookup_table_filepath else None
+                                                                  decode_lookup_table=decoder_file
                                                                   )},
             print_progress=True,
             save_resume_filepath=save_resume_file,
@@ -167,18 +167,13 @@ class SimulateCx:
         """)
 
         num_subregister_to_uncat = self._num_cat_states - self._si - 1
-        uncat_subregisters = Circuit()
         if num_subregister_to_uncat:
-            for subregister in control_subregister_indices[-num_subregister_to_uncat:]:
-                indices = [j for i in zip([subregister[0]] * len(subregister), subregister[1:]) for j in i]
-                uncat_subregisters.append('CX', indices)
-                uncat_subregisters.append('H', subregister[0])
-        circuit.append_from_stim_program_text(f"""
-            {uncat_subregisters}
-        """)
-        for i in range(self._si + 1, self._num_cat_states):
-            circuit.append('M', control_subregister_indices[i][0])
-            circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({i - self._si}) rec[-1]')
+            for i in range(num_subregister_to_uncat):
+                observable = np.zeros(2 * len(self._control_code_utilities.data_indices))
+                observable[len(self._control_code_utilities.data_indices) - (i + 1) * self._num_qubits_per_cat_state:len(self._control_code_utilities.data_indices) - i * self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
+                self._control_code_utilities.measure_stabilizer_using_cat_state(observable, circuit)
+                circuit.append('R', self._control_code_utilities.stabilizer_ancilla)
+                circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({i + 1}) rec[-1]')
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
@@ -211,7 +206,7 @@ if __name__ == '__main__':
     target_code = get_five_qubit_code_utilities()
     samples = SimulateCx(num_cat_states=3,
                          target_code_utilities=target_code,
-                         si=2,
+                         si=-1,
                          run_configuration=run_configuration,
                          ).run_main()
 
