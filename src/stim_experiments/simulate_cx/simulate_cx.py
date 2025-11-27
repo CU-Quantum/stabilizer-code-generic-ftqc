@@ -172,8 +172,8 @@ class SimulateCx:
                 observable = np.zeros(2 * len(self._control_code_utilities.data_indices))
                 observable[len(self._control_code_utilities.data_indices) - (i + 1) * self._num_qubits_per_cat_state:len(self._control_code_utilities.data_indices) - i * self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
                 self._control_code_utilities.measure_stabilizer_using_cat_state(observable, circuit)
-                circuit.append('R', self._control_code_utilities.stabilizer_ancilla)
-                circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({i + 1}) rec[-1]')
+                circuit.append('R', self._control_code_utilities.all_ancilla_qubits)
+                circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({num_subregister_to_uncat - i}) rec[-1]')
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     target_code = get_five_qubit_code_utilities()
     samples = SimulateCx(num_cat_states=3,
                          target_code_utilities=target_code,
-                         si=-1,
+                         si=0,
                          run_configuration=run_configuration,
                          ).run_main()
 
