@@ -101,7 +101,7 @@ class SimulateCx:
                 = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
         combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
 
-        num_observables = self._num_cat_states - self._si
+        num_observables = 1 + int(self._si < self._last_si)
         observables = np.zeros((num_observables, combined_symplectic_matrix.shape[1]), dtype=int)
         first_observable = observables[0]
         # target observable
@@ -110,9 +110,9 @@ class SimulateCx:
         # control observable
         first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
 
-        for i in range(1, num_observables):
-            observable = observables[i]
-            observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i):self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i) + self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
+        if num_observables > 1:
+            second_observable = observables[1]
+            second_observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + 1):len(second_observable) // 2] = np.ones(self._num_qubits_per_cat_state * (self._num_cat_states - self._si - 1))
 
         return combined_symplectic_matrix, observables
 
@@ -173,7 +173,7 @@ class SimulateCx:
                 observable[len(self._control_code_utilities.data_indices) - (i + 1) * self._num_qubits_per_cat_state:len(self._control_code_utilities.data_indices) - i * self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
                 self._control_code_utilities.measure_stabilizer_using_cat_state(observable, circuit)
                 circuit.append('R', self._control_code_utilities.all_ancilla_qubits)
-                circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({num_subregister_to_uncat - i}) rec[-1]')
+            circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE(1) {' '.join([f'rec[-{i+1}]' for i in range(num_subregister_to_uncat)])}')
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
