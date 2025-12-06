@@ -2,11 +2,11 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-#SBATCH --partition=amilan
-#SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=10
-#SBATCH --qos=normal
+#SBATCH --partition=amem
+#SBATCH --nodes=4
+#SBATCH --ntasks=8
+#SBATCH --cpus-per-task=16
+#SBATCH --qos=mem
 #SBATCH --job-name=dodecacode
 #SBATCH --error=results/dodecacode/dodecacode_%j.err
 #SBATCH --output=results/dodecacode/dodecacode_%j.out
