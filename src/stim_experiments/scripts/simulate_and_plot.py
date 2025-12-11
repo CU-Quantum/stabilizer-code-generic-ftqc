@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from multiprocessing import cpu_count
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -20,16 +21,28 @@ def get_run_configuration() -> RunConfiguration:
     parser.add_argument('-p', '--depolarization-probabilities', type=float, nargs='+',
                         default=[1e-5, 5e-5, 1e-4, 5e-4, 0.001, 0.005, 0.01],
                         help='Maximum number of errors.')
-    parser.add_argument('-w', '--num-workers', type=int, default=cpu_count(),
-                        help='The number of processes to run in parallel.'
-                             ' Default is the number of CPUs available on the machine.')
+    # Respect SLURM_CPUS_PER_TASK if present; otherwise fall back to local cpu_count().
+    slurm_cpus = int(os.environ.get('SLURM_CPUS_PER_TASK', '0') or '0')
+    default_workers = slurm_cpus if slurm_cpus > 0 else cpu_count()
+    parser.add_argument('-w', '--num-workers', type=int, default=default_workers,
+                        help='The number of processes to run in parallel. '
+                             'Default is $SLURM_CPUS_PER_TASK if set, else the local CPU count.')
+    # Sharding across multiple jobs (e.g., SLURM array). Default from SLURM env if available.
+    default_num_shards = int(os.environ.get('SLURM_ARRAY_TASK_COUNT', '1') or '1')
+    default_shard_index = int(os.environ.get('SLURM_ARRAY_TASK_ID', '0') or '0')
+    parser.add_argument('--num-shards', type=int, default=default_num_shards,
+                        help='Total number of shards (e.g., SLURM array size). Default from $SLURM_ARRAY_TASK_COUNT or 1.')
+    parser.add_argument('--shard-index', type=int, default=default_shard_index,
+                        help='Index of this shard (e.g., SLURM array task ID). Default from $SLURM_ARRAY_TASK_ID or 0.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")
     return RunConfiguration(
         max_shots=args.max_shots,
         max_errors=args.max_errors,
         depolarization_probabilities=args.depolarization_probabilities,
-        num_workers=args.num_workers
+        num_workers=args.num_workers,
+        num_shards=args.num_shards,
+        shard_index=args.shard_index,
     )
 
 

@@ -4,8 +4,9 @@
 #SBATCH --time=24:00:00
 #SBATCH --partition=amem
 #SBATCH --nodes=4
-#SBATCH --ntasks=8
-#SBATCH --cpus-per-task=16
+# Use an array to launch multiple shards in parallel across tasks/nodes
+#SBATCH --array=0-31
+#SBATCH --ntasks=1
 #SBATCH --qos=mem
 #SBATCH --job-name=dodecacode
 #SBATCH --error=results/dodecacode/dodecacode_%j.err
@@ -26,4 +27,7 @@ cd /projects/nipa4599/stim-experiments
 
 
 # Run
-python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py -s 10_000_000_000 -e 10_000 -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
+# The script auto-detects $SLURM_CPUS_PER_TASK and $SLURM_ARRAY_TASK_COUNT/ID.
+python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
+  -s 10_000_000_000 -e 10_000 \
+  -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
