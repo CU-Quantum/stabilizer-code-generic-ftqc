@@ -78,13 +78,8 @@ class SimulateCx:
         return samples
 
     def generate_sinter_tasks(self):
-        # Shard the depolarization probabilities across shards/nodes.
         probs = self._run_configuration.depolarization_probabilities
-        num_shards = max(1, int(self._run_configuration.num_shards))
-        shard_index = int(self._run_configuration.shard_index) % num_shards
         for idx, p in enumerate(probs):
-            if (idx % num_shards) != shard_index:
-                continue
             yield Task(
                 circuit=self.generate_task_circuit(physical_error_rate=p),
                 json_metadata={
