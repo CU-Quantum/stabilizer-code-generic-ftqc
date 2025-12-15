@@ -5,7 +5,7 @@
 #SBATCH --partition=amilan
 #SBATCH --nodes=1
 # Use an array to launch multiple shards in parallel across tasks/nodes
-#SBATCH --array=0-7
+#SBATCH --array=0-9
 # One task per array element; adjust as needed for your partition
 #SBATCH --ntasks=1
 #SBATCH --qos=normal
@@ -31,5 +31,5 @@ cd /projects/nipa4599/stim-experiments
 # The script auto-detects $SLURM_CPUS_PER_TASK and $SLURM_ARRAY_TASK_COUNT/ID.
 # You can still override with --num-workers/--num-shards/--shard-index if desired.
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py \
-  -s 100_000_000_000 -e 10_000 \
+  -s 10_000_000_000 -e 10_000 \
   -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
