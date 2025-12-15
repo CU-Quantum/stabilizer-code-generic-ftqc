@@ -2,13 +2,11 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-#SBATCH --partition=amilan
-#SBATCH --nodes=1
-# Use an array to launch multiple shards in parallel across tasks/nodes
 #SBATCH --array=0-9
-# One task per array element; adjust as needed for your partition
-#SBATCH --ntasks=1
+#SBATCH --partition=amilan
 #SBATCH --qos=normal
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
 #SBATCH --job-name=five_qubit
 #SBATCH --error=results/five_qubit/five_qubit_%j.err
 #SBATCH --output=results/five_qubit/five_qubit_%j.out

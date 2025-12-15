@@ -2,7 +2,6 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-# Use an array to launch multiple shards in parallel across tasks/nodes
 #SBATCH --array=0-9
 #SBATCH --partition=amem
 #SBATCH --qos=mem
