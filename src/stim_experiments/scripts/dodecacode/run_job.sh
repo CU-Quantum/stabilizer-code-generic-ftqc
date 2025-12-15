@@ -2,13 +2,13 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-#SBATCH --partition=amem
-#SBATCH --nodes=4
 # Use an array to launch multiple shards in parallel across tasks/nodes
 #SBATCH --array=0-9
-#SBATCH --ntasks=8
-#SBATCH --cpus-per-task=16
+#SBATCH --partition=amem
 #SBATCH --qos=mem
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --mem=0
 #SBATCH --job-name=dodecacode
 #SBATCH --error=results/dodecacode/dodecacode_%j.err
 #SBATCH --output=results/dodecacode/dodecacode_%j.out
