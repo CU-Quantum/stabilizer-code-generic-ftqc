@@ -23,11 +23,12 @@ conda activate stim-experiments-venv
 
 # Setup workspace
 export PYTHONPATH=$PYTHONPATH:/projects/nipa4599/stim-experiments/src
-cd /projects/nipa4599/stim-experiments
+cd /projects/nipa4599/stim-experiments || exit
 
 
 # Run
 # The script auto-detects $SLURM_CPUS_PER_TASK and $SLURM_ARRAY_TASK_COUNT/ID.
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
-  -s 1_000_000_000 -e 10_000 \
+  -s 1_000_000_000 \
+  -e 10_000 \
   -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2

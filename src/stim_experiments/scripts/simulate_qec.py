@@ -4,9 +4,6 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from matplotlib import pyplot as plt
-from sinter import CSV_HEADER, plot_error_rate
-
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.simulate_cx import SimulateCx
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities
@@ -46,13 +43,12 @@ def get_run_configuration() -> RunConfiguration:
     )
 
 
-class SimulateAndPlot:
+class SimulateQec:
     def __init__(self,
                  run_configuration: RunConfiguration,
                  target_code: StabilizerCodeUtilities,
                  num_cat_states: int,
                  code_title: str,
-                 output_graph_filename: str,
                  save_resume_filepath: Optional[Path] = None,
                  ymin_order: int = 10,
                  decode_lookup_table_filepath: Optional[Path] = None, ):
@@ -60,59 +56,17 @@ class SimulateAndPlot:
         self._target_code = target_code
         self._num_cat_states = num_cat_states
         self._code_title = code_title
-        self._output_graph_filename = output_graph_filename
         self._ymin_order = ymin_order
         self._save_resume_filepath = save_resume_filepath
         self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
     def run_main(self):
         target_code = self._target_code
-        samples_list = [SimulateCx(num_cat_states=self._num_cat_states,
-                                   target_code_utilities=target_code,
-                                   si=i,
-                                   run_configuration=self._run_configuration,
-                                   decode_lookup_table_filepath=self._decode_lookup_table_filepath,
-                                   save_resume_filepath=self._save_resume_filepath,
-                                   ).run_main()
-                        for i in range(-1, self._num_cat_states)]
-
-        # Print samples as CSV data.
-        print(CSV_HEADER)
-        for samples in samples_list:
-            for sample in samples:
-                print(sample.to_csv_line())
-
-        fig, ax = plt.subplots(1, 1)
-        for i, samples in enumerate(samples_list):
-            plot_args = {
-                'color': f'C{i}',
-                'zorder': list(range(3, 9))[i - 1],
-                'linestyle': [
-                    (i*.05, ()),         # solid
-                    (i*.05, (1, 1)),     # densely dotted
-                    (i*.05, (5, 4)),     # densely dashed
-                    (i*.05, (5, 7)),     # mediumly dashed
-                    (i * .05, (5, 10)),  # loosely dashed
-                    (i * .05, (1, 10)),  # loosely dotted
-                ][i - 1],
-                'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
-            }
-            is_baseline = not i
-            label = "No CX" if is_baseline else f"$CX_{{s{i-1},L1}}$"
-            plot_error_rate(
-                ax=ax,
-                stats=samples,
-                group_func=lambda stat: label,
-                x_func=lambda stat: stat.json_metadata['physical_error_rate'],
-                plot_args_func=lambda index, curve_id: plot_args
-            )
-        ax.loglog()
-        ax.set_ylim(1 * 10**-self._ymin_order, 1e-1)
-        ax.grid()
-        ax.set_title(f'LER of CX Controlled by GSCH Targeting {self._code_title}')
-        ax.set_ylabel('Logical Error Probability (per shot)')
-        ax.set_xlabel('Physical Error Rate')
-        ax.legend()
-
-        fig.savefig(self._output_graph_filename)
-        plt.show()
+        for i in range(-1, self._num_cat_states):
+            SimulateCx(num_cat_states=self._num_cat_states,
+                       target_code_utilities=target_code,
+                       si=i,
+                       run_configuration=self._run_configuration,
+                       decode_lookup_table_filepath=self._decode_lookup_table_filepath,
+                       save_resume_filepath=self._save_resume_filepath,
+                       ).run_main()
