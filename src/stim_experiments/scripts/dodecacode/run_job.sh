@@ -7,7 +7,7 @@
 #SBATCH --qos=mem
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=256G
+#SBATCH --mem=512G
 #SBATCH --job-name=dodecacode
 #SBATCH --error=results/dodecacode/dodecacode_%j.err
 #SBATCH --output=results/dodecacode/dodecacode_%j.out
