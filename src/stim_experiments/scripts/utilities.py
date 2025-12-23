@@ -1,13 +1,13 @@
 from collections import defaultdict
 from pathlib import Path
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 from sinter import TaskStats, stats_from_csv_files
 
 from stim_experiments.scripts import dodecacode, five_qubit
 
 
-def get_shard_merge_paths(files_in_dirs: list[str]) -> dict[Path, list[Path]]:
+def get_shard_merge_paths(files_in_dirs: Optional[list[str]] = None) -> dict[Path, list[Path]]:
     if files_in_dirs is None:
         files_in_dirs = [five_qubit.__file__, dodecacode.__file__]
     merge_paths = defaultdict(list)
@@ -19,6 +19,7 @@ def get_shard_merge_paths(files_in_dirs: list[str]) -> dict[Path, list[Path]]:
             output_path = shard_filepath.parent / f'{'_'.join(output_path_pieces)}.csv'
             merge_paths[output_path].append(shard_filepath)
     return merge_paths
+
 
 def merge_csvs(input_paths: Iterable[Path]) -> List[TaskStats]:
     return stats_from_csv_files(*input_paths)

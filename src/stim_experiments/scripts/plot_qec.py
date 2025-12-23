@@ -32,7 +32,7 @@ PLOT_CONFIGS = [
 ]
 
 
-class Main():
+class Main:
     def main(self):
         for plot_config in PLOT_CONFIGS:
             merge_paths = get_shard_merge_paths(files_in_dirs=[plot_config.stats_dir])
