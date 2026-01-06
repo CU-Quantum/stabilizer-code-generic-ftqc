@@ -2,7 +2,7 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-#SBATCH --array=0-99
+#SBATCH --array=0-999
 #SBATCH --partition=amilan
 #SBATCH --qos=normal
 #SBATCH --nodes=1
