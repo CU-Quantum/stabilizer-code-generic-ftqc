@@ -46,12 +46,21 @@ class SimulateCx:
     def run_main(self):
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
-        save_resume_file = Path(f'{self._save_resume_filepath}_{self._si}.csv') if self._save_resume_filepath else None
+        # Ensure unique resume file per shard to avoid cross-node contention
+        shard_suffix = f"_shard{self._run_configuration.shard_index}-of-{self._run_configuration.num_shards}"
+        save_resume_file = (
+            Path(f'{self._save_resume_filepath}_{self._si}{shard_suffix}.csv')
+            if self._save_resume_filepath else None
+        )
+        # Materialize tasks to handle the case where this shard has no work.
+        task_list = list(self.generate_sinter_tasks())
+        if not task_list:
+            return []
         samples = collect(
             num_workers=self._run_configuration.num_workers,
             max_shots=self._run_configuration.max_shots,
             max_errors=self._run_configuration.max_errors,
-            tasks=self.generate_sinter_tasks(),
+            tasks=task_list,
             decoders=['decoder_by_matrix'],
             custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
                                                                   distance=self._num_cat_states,
@@ -69,7 +78,8 @@ class SimulateCx:
         return samples
 
     def generate_sinter_tasks(self):
-        for p in self._run_configuration.depolarization_probabilities:
+        probs = self._run_configuration.depolarization_probabilities
+        for idx, p in enumerate(probs):
             yield Task(
                 circuit=self.generate_task_circuit(physical_error_rate=p),
                 json_metadata={

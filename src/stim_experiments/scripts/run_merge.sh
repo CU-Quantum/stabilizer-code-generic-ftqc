@@ -2,15 +2,13 @@
 
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
-#SBATCH --array=0-999
-#SBATCH --partition=amem
-#SBATCH --qos=mem
+#SBATCH --partition=amilan
+#SBATCH --qos=normal
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=512G
-#SBATCH --job-name=dodecacode
-#SBATCH --error=results/dodecacode/dodecacode_%j.err
-#SBATCH --output=results/dodecacode/dodecacode_%j.out
+#SBATCH --job-name=merge
+#SBATCH --error=results/merge/merge_%j.err
+#SBATCH --output=results/merge/merge_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -25,9 +23,5 @@ conda activate stim-experiments-venv
 export PYTHONPATH=$PYTHONPATH:/projects/nipa4599/stim-experiments/src
 cd /projects/nipa4599/stim-experiments || exit
 
+python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/merge_results.py
 
-# Run
-python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
-  -s 1_000_000_000 \
-  -e 10_000 \
-  -p 1e-6 5e-6 1e-5 5e-5 1e-4 5e-4 1e-3 5e-3 1e-2
