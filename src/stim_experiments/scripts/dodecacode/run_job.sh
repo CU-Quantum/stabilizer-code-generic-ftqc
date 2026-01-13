@@ -27,7 +27,6 @@ cd /projects/nipa4599/stim-experiments || exit
 
 
 # Run
-# The script auto-detects $SLURM_CPUS_PER_TASK and $SLURM_ARRAY_TASK_COUNT/ID.
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
   -s 1_000_000_000 \
   -e 10_000 \

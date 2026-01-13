@@ -26,8 +26,6 @@ cd /projects/nipa4599/stim-experiments || exit
 
 
 # Run
-# The script auto-detects $SLURM_CPUS_PER_TASK and $SLURM_ARRAY_TASK_COUNT/ID.
-# You can still override with --num-workers/--num-shards/--shard-index if desired.
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/five_qubit/five_qubit.py \
   -s 1_000_000_000 \
   -e 10_000 \
