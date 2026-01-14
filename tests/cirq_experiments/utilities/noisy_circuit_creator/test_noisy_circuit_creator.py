@@ -214,7 +214,7 @@ class TestNoisyCircuitCreator:
         assert count.two_qubit == 0
         assert count.i_errors.count + count.x_errors.count + count.y_errors.count + count.z_errors.count == count.one_qubit + count.two_qubit
 
-    # TODO: here is where errors are doubled (re: both single- and double- qubit gates)
+    # TODO: here is where errors are doubled, i.e., both single- and double- qubit gates (LINK1)
     def test_delayed_noise_multiple_gates_and_idle_qubits(self):
         qubits = LineQubit.range(4)
         circuit = Circuit(
