@@ -32,7 +32,7 @@ class ExpectedStatesCatParity(ExpectedStates):
             for cat_values in cat_values
         ]
         basis_states = [tensor(*states) for states in basis_states_by_value]
-        return (2 / np.sqrt(2) ** self.num_cats) * np.sum(basis_states, axis=0)
+        return (1 / np.sqrt(2) ** np.log2(len(basis_states))) * np.sum(basis_states, axis=0)
 
     @property
     def _all_cat_values(self) -> list[list[int]]:

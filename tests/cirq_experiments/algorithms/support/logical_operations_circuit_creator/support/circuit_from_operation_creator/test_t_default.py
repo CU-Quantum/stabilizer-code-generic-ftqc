@@ -41,7 +41,7 @@ class TestTDefault:
             num_data_qubits=len(encoding.data_qubits),
             initial_data_state=KET_PLUS_STATE_VECTOR,
         ).state
-        assert states_are_equal(simulated_state, KET_ZERO_STATE_VECTOR + T_ROTATION * KET_ONE_STATE_VECTOR)
+        assert states_are_equal(simulated_state, (1 / sqrt(2)) * (KET_ZERO_STATE_VECTOR + T_ROTATION * KET_ONE_STATE_VECTOR))
 
     def test_native_t_used_when_encoding_does_implement_t(self):
         encoding = ErrorCorrectingCodeStubWithBadT()
