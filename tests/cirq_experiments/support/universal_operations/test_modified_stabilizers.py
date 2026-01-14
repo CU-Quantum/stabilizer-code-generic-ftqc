@@ -5,7 +5,7 @@ from cirq import Circuit, LineQubit, X, Y, Z
 
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
-from cirq_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import CatParityCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import GeneralizedShorCodeHadamard
 from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
 from cirq_experiments.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
@@ -164,9 +164,9 @@ class TestModifiedStabilizers:
                 operations=target_operations,
                 context=UniversalOperationsContext(
                     ancilla_qubits=[],
-                    cat_parity_code=CatParityCode(num_cats=len(control.subregisters),
-                                                  num_qubits_per_cat=len(control.subregisters[0]),
-                                                  qubits=control.data_qubits,),
+                    cat_parity_code=GeneralizedShorCodeHadamard(num_cats=len(control.subregisters),
+                                                                num_qubits_per_cat=len(control.subregisters[0]),
+                                                                qubits=control.data_qubits, ),
                     multiple_cat_code=control,
                 ),
                 target_code=target,
