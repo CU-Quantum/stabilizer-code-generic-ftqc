@@ -7,7 +7,7 @@ from cirq_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_
 from tests.cirq_experiments.error_correcting_codes.expected_states.expected_states import ExpectedStates
 
 
-class ExpectedStatesGeneralizedShorCodeHadamard(ExpectedStates):
+class ExpectedStatesGeneralizedShorHadamard(ExpectedStates):
     num_qubits_per_cat = 4
     num_cats = 5
 

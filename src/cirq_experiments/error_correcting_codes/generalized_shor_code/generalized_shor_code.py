@@ -35,8 +35,7 @@ def syndrome_then_recovery_circuit(correction_circuit: CorrectionCircuit) -> Cir
     )
 
 
-# TODO: rename to generalized shor code hadamard
-class MultipleCatCode(GeneralizedShorCodeHadamard):
+class GeneralizedShorCode(GeneralizedShorCodeHadamard):
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(
             TaggedOperation(

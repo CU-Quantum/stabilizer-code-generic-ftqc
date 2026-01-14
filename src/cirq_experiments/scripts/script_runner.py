@@ -23,7 +23,7 @@ from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential imp
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from cirq_experiments.serialization.custom_json_encoder import CustomJsonEncoder
 from cirq_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
 from cirq_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
@@ -222,8 +222,8 @@ class ScriptRunner:
 
     @cached_property
     def _logical_qubits(self) -> list[StabilizerCode]:
-        encoding = MultipleCatCode(num_cats=self._runner_configuration.surface_code_distance,
-                                   num_qubits_per_cat=self._runner_configuration.surface_code_distance)
+        encoding = GeneralizedShorCode(num_cats=self._runner_configuration.surface_code_distance,
+                                       num_qubits_per_cat=self._runner_configuration.surface_code_distance)
         num_qubits_per_encoding = len(encoding.data_qubits)
         data_qubits = LineQubit.range(self._num_logical_qubits * num_qubits_per_encoding)
         return [encoding.create_new(data_qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])

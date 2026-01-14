@@ -12,7 +12,7 @@ from cirq_experiments.support.controlled_single_qubit_gates_applier import \
 from cirq_experiments.support.measurer.measurer import Measurer
 from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
     GeneralizedShorCodeHadamard
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -108,9 +108,9 @@ class UniversalOperationsUtilities:
         num_qubits_per_subregister = max(minimum_qubits_per_subregister, self._num_qubits_for_logical_operations)
         num_qubits_for_subregister_parity_code = num_qubits_per_subregister * self._num_cat_states
         with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
-            multiple_cat_code = MultipleCatCode(num_cats=self._num_cat_states,
-                                                num_qubits_per_cat=self._num_qubits_for_logical_operations,
-                                                qubits=ancilla_qubits)
+            multiple_cat_code = GeneralizedShorCode(num_cats=self._num_cat_states,
+                                                    num_qubits_per_cat=self._num_qubits_for_logical_operations,
+                                                    qubits=ancilla_qubits)
             cat_parity_code = GeneralizedShorCodeHadamard(num_cats=self._num_cat_states,
                                                           num_qubits_per_cat=self._num_qubits_for_logical_operations,
                                                           qubits=ancilla_qubits)

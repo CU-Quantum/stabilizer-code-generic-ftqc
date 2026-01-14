@@ -6,7 +6,7 @@ from cirq import Circuit, LineQubit, X, Y, Z
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
 from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import GeneralizedShorCodeHadamard
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
 from cirq_experiments.globals.active_encodings_store import ActiveEncodingsStore
@@ -135,23 +135,23 @@ class TestModifiedStabilizers:
                 flip_circuit,
             )
 
-        control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
-        target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
+        control = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
+        target = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
         self._correct_with_modified_stabilizers(build_noisy_circuit=build_noisy_circuit, control=control, target=target)
 
     def _correct_with_modified_stabilizers(
             self,
             build_noisy_circuit: Callable[[Circuit, NOISY_CIRCUIT_TYPE], Circuit],
             logical_operation: LogicalOperation = LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0),
-            control: MultipleCatCode = None,
-            target: MultipleCatCode = None,
+            control: GeneralizedShorCode = None,
+            target: GeneralizedShorCode = None,
     ):
         FreshAncillasPool().set_first_ancilla_num(first_ancilla_num=len(self._qubits))
         simulator = ErrorCorrectingSimulatorStateVector()
 
         if control is None or target is None:
-            control = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
-            target = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
+            control = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[:9])
+            target = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3, qubits=self._qubits[9:])
         x_operation_target = target.get_operation_circuit(operation=logical_operation)
         target_operations = list(x_operation_target.all_operations())
 

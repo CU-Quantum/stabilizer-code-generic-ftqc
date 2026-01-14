@@ -14,20 +14,20 @@ from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code im
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
 from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
     GeneralizedShorCodeHadamard
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from tests.cirq_experiments.error_correcting_codes.expected_states.expected_states import ExpectedStates
 from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
-from tests.cirq_experiments.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
+from tests.cirq_experiments.error_correcting_codes.generalized_shor_code.expected_states_generalized_shor import ExpectedStatesGeneralizedShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
-from tests.cirq_experiments.error_correcting_codes.generalized_shor_code.expected_states_generalized_shor_hadamard import \
-    ExpectedStatesGeneralizedShorCodeHadamard
+from tests.cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.expected_states_generalized_shor_hadamard import \
+    ExpectedStatesGeneralizedShorHadamard
 from tests.cirq_experiments.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 from cirq_experiments.utilities.utilities import states_are_equal
 
@@ -40,18 +40,18 @@ class ParametersForLogicalGatesTest:
 
 PARAMETERS = {
     "MultipleCatCode":ParametersForLogicalGatesTest(
-        code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                             num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
-        expected_states=ExpectedStatesMultipleCat(),
+        code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
+                                 num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
+        expected_states=ExpectedStatesGeneralizedShor(),
     ),
     "RepetitionCode": ParametersForLogicalGatesTest(
         code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         expected_states=ExpectedStatesRepetition(),
     ),
     "CatParityCode": ParametersForLogicalGatesTest(
-        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorCodeHadamard().num_cats,
-                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorCodeHadamard().num_qubits_per_cat),
-        expected_states=ExpectedStatesGeneralizedShorCodeHadamard(),
+        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
+                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+        expected_states=ExpectedStatesGeneralizedShorHadamard(),
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
