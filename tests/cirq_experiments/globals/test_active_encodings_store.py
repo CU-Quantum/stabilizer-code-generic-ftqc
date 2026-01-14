@@ -1,11 +1,14 @@
 from typing import Optional
 
-from cirq import Circuit, I, LineQubit
+from cirq import Circuit, I, LineQubit, TaggedOperation, unroll_circuit_op
 
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalOperation
 from cirq_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from cirq_experiments.globals.active_encodings_store import ActiveEncodingsStore
+
+
+CODE_STUB_TAG = 'CODE_STUB_TAG'
 
 
 class CodeStub(ErrorCorrectingCode):
@@ -19,7 +22,7 @@ class CodeStub(ErrorCorrectingCode):
 
     def get_error_correction_circuit(self) -> CorrectionCircuit:
         return CorrectionCircuit(
-            syndrome_circuit=Circuit(I(self.data_qubits[0]))
+            syndrome_circuit=Circuit(TaggedOperation(I(self.data_qubits[0]), f'CODE_STUB_TAG_{self.data_qubits[0]}'))
         )
 
     def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
@@ -37,7 +40,7 @@ class TestActiveEncodingsStore:
         code = CodeStub(qubits=qubits)
         with ActiveEncodingsStore(additional_tracked_encodings=[code]) as encodings_store:
             circuit = encodings_store.get_all_correction_circuits()
-            assert circuit == Circuit(I(qubits[0]))
+            assert 'CODE_STUB_TAG_q(0)' in str(circuit)
 
     def test_register_multiple_encodings(self):
         qubits = LineQubit.range(2)
@@ -45,18 +48,18 @@ class TestActiveEncodingsStore:
         code2 = CodeStub(qubits=qubits[1:])
         with ActiveEncodingsStore(additional_tracked_encodings=[code, code2]) as encodings_store:
             circuit = encodings_store.get_all_correction_circuits()
-            assert list(circuit.all_operations()) == list(Circuit([I(qubit) for qubit in qubits]).all_operations())
+            assert 'CODE_STUB_TAG_q(0)' in str(circuit) and 'CODE_STUB_TAG_q(1)' in str(circuit)
 
     def test_register_using_multiple_stores(self):
         qubits = LineQubit.range(2)
         codes = [CodeStub(qubits=[qubit]) for qubit in qubits]
         with ActiveEncodingsStore(additional_tracked_encodings=codes[:1]) as encodings_store:
             circuit = encodings_store.get_all_correction_circuits()
-            assert list(circuit.all_operations()) == list(Circuit([I(qubit) for qubit in qubits[:1]]).all_operations())
+            assert 'CODE_STUB_TAG_q(0)' in str(circuit) and 'CODE_STUB_TAG_q(1)' not in str(circuit)
 
             with ActiveEncodingsStore(additional_tracked_encodings=codes[1:]) as encodings_store2:
                 circuit = encodings_store2.get_all_correction_circuits()
-                assert list(circuit.all_operations()) == list(Circuit([I(qubit) for qubit in qubits]).all_operations())
+                assert 'CODE_STUB_TAG_q(0)' in str(circuit) and 'CODE_STUB_TAG_q(1)' in str(circuit)
 
             circuit = encodings_store.get_all_correction_circuits()
-            assert list(circuit.all_operations()) == list(Circuit([I(qubit) for qubit in qubits[:1]]).all_operations())
+            assert 'CODE_STUB_TAG_q(0)' in str(circuit) and 'CODE_STUB_TAG_q(1)' not in str(circuit)
