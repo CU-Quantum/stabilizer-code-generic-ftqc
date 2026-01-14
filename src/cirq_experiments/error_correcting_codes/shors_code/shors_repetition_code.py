@@ -5,12 +5,12 @@ from cirq import Circuit, LineQubit
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalOperation
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 
 
 class ShorsRepetitionCode(ErrorCorrectingCode):
     def __init__(self, qubits: Optional[list[LineQubit]] = None,):
-        self._alias = MultipleCatCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits)
+        self._alias = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3, qubits=qubits)
         super().__init__(num_data_qubits=len(self._alias.data_qubits),
                          num_logical_qubits=self._alias.num_logical_qubits,
                          qubits=self._alias.data_qubits)

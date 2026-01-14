@@ -4,7 +4,7 @@ from numpy.ma.core import allequal
 
 from cirq_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
 from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from tests.cirq_experiments.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits, set_seed
 
@@ -18,7 +18,7 @@ class TestDeutschJosza:
 
     def test_deutsch_josza_constant(self):
         num_logical_qubits = 3
-        encoding = MultipleCatCode(num_cats=3, num_qubits_per_cat=3)
+        encoding = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3)
         num_qubits_per_encoding = len(encoding.data_qubits)
         qubits = LineQubit.range(num_logical_qubits * num_qubits_per_encoding)
         logical_qubits = [encoding.create_new(qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])
@@ -35,7 +35,7 @@ class TestDeutschJosza:
 
     def test_deutsch_josza_balanced(self):
         num_logical_qubits = 3
-        encoding = MultipleCatCode(num_cats=3, num_qubits_per_cat=3)
+        encoding = GeneralizedShorCode(num_cats=3, num_qubits_per_cat=3)
         num_qubits_per_encoding = len(encoding.data_qubits)
         qubits = LineQubit.range(num_logical_qubits * num_qubits_per_encoding)
         logical_qubits = [encoding.create_new(qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])

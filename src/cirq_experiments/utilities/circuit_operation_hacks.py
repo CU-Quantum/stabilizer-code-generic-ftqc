@@ -5,19 +5,6 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, MeasurementKey
 from cirq_experiments.conditions import MajorityVote
 
 
-def get_hacked_circuit_operation(subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> CircuitOperation:
-    # TODO remove this
-    """must hack this because CircuitOperation does not recognize that nested MajorityVotes modify the 'desired_key'"""
-    hack_to_add_desired_key_to_list_of_modified_keys(subcircuit, majority_vote)
-    circuit_operation = CircuitOperation(
-        subcircuit,
-        use_repetition_ids=False,
-        repeat_until=majority_vote
-    )
-    circuit_operation.replace = partial(replace_hacked, majority_vote=majority_vote, replace_unhacked=circuit_operation.replace)
-    return circuit_operation
-
-
 def hack_to_add_desired_key_to_list_of_modified_keys(subcircuit: FrozenCircuit, majority_vote: MajorityVote) -> None:
     measurement_keys = set(subcircuit._measurement_key_objs_())
     measurement_keys.add(majority_vote.key)

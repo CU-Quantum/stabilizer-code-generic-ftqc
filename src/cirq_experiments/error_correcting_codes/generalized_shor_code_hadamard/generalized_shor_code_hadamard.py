@@ -18,8 +18,7 @@ from cirq_experiments.support.recovery_combinations_finder import RecoveryCombin
 from cirq_experiments.support.recovery_finder import RecoveryFinder
 
 
-# TODO: rename to generalized shor code hadamard
-class CatParityCode(StabilizerCode):
+class GeneralizedShorCodeHadamard(StabilizerCode):
     def __init__(self, num_cats: int, num_qubits_per_cat: int, qubits: Optional[list[LineQubit]] = None):
         self._num_cats = num_cats
         self._num_qubits_per_cat = max(3, num_qubits_per_cat)

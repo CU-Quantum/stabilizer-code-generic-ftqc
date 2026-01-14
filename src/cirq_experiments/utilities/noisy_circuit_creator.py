@@ -23,7 +23,7 @@ class NoisyChannelType(Enum):
     TWO = auto()
 
 
-# TODO each noisy moment can have either 1 or 2 qubit noise, not both
+# TODO each noisy moment can have either 1 or 2 qubit noise, not both (LINK1)
 class NoisyCircuitCreator:
     def __init__(self, circuit: Circuit):
         self._circuit = circuit
