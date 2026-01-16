@@ -1,12 +1,24 @@
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import UniversalHadamardSingleAncilla
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
-
 # Stabilizer Code-Generic Universal Fault-Tolerant Quantum Computation
 
+
+## Stim Experiments
+
+Data for validating the error rate of logical flip gates controlled by the Hadamard dual
+of the Generalized Shor Code (GSCH) targeting the 5-qubit code and the dodecacode are housed
+in the `src/stim_experiments/scripts/dodecacode` and `src/stim_experiments/scripts/dodecacode`
+directories, respectively.
+Plotting scripts are housed in the `src/stim_experiments/scripts` directory.
+
+
 ## Cirq Experiments
+
+Validating the effects of the stabilizer code-generic gates are housed in the
+`tests/cirq_experiments/support/universal_operations` directory.
+Validating the fault-tolerant Deutsch-Jozsa algorithm is housed in the
+`tests/cirq_experiments/algorithms/deutsch_josza/test_deutsch_josza.py` directory.
+
+
+## Run Universal Fault-Tolerant Quantum Computations
 
 A Python package for quantum error correction experiments using Cirq and Stim.
 
