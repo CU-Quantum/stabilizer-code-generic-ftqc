@@ -1,18 +1,32 @@
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import StabilizerStandardizedCode
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_controlled_operation.universal_controlled_operation import UniversalControlledOperation
-from stim_experiments.error_correcting_codes.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import UniversalHadamardSingleAncilla
-from stim_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+# Stabilizer Code-Generic Universal Fault-Tolerant Quantum Computation
 
-# Stim Experiments
+
+## Stim Experiments
+
+Data for validating the error rate of logical flip gates controlled by the Hadamard dual
+of the Generalized Shor Code (GSCH) targeting the 5-qubit code and the dodecacode are housed
+in the `src/stim_experiments/scripts/dodecacode` and `src/stim_experiments/scripts/dodecacode`
+directories, respectively.
+Plotting scripts are housed in the `src/stim_experiments/scripts` directory.
+
+
+## Cirq Experiments
+
+Validating the effects of the stabilizer code-generic gates are housed in the
+`tests/cirq_experiments/support/universal_operations` directory.
+Validating the fault-tolerant Deutsch-Jozsa algorithm is housed in the
+`tests/cirq_experiments/algorithms/deutsch_josza/test_deutsch_josza.py` directory.
+
+
+## Run Universal Fault-Tolerant Quantum Computations
 
 A Python package for quantum error correction experiments using Cirq and Stim.
 
-## Description
+### Description
 
 This project provides tools and utilities for experimenting with quantum error correction codes, with a focus on stabilizer circuits. It uses Cirq for quantum circuit creation and simulation, and Stim for fast stabilizer circuit simulation.
 
-## Installation
+### Installation
 
 1. Clone the repository:
 ```bash
@@ -25,9 +39,9 @@ cd stim_experiments
 pip install -r requirements.txt
 ```
 
-## Getting Started with Cirq Simulator
+### Getting Started with Cirq Simulator
 
-### Basic Circuit Creation and Simulation
+#### Basic Circuit Creation and Simulation
 
 Here's a simple example of creating and simulating a quantum circuit using Cirq:
 
@@ -53,7 +67,7 @@ print(result)
 
 This example creates a Bell state, which is a maximally entangled state between two qubits.
 
-### Using the Project's Simulator for Error Correction Simulation
+#### Using the Project's Simulator for Error Correction Simulation
 
 The project provides a `LogicalOperationsCircuitCreator` for creating circuits with logical operations:
 
@@ -105,7 +119,7 @@ print("Final state:", result.state)
 print("Measurements:", result.logical_qubit_measurements)
 ```
 
-## Configuration Settings
+### Configuration Settings
 
 The project provides a configuration system that allows you to customize various aspects of the error correction process. You can access and modify the configuration using the `ConfigurationErrorCorrectingCodeManager`:
 
@@ -151,7 +165,7 @@ Available configuration options:
 8. `majority_vote_repetitions`: Number of repetitions for majority vote measurement (default: `3`)
 
 
-## Creating Your Own Error Correcting Code
+### Creating Your Own Error Correcting Code
 
 You can create your own error correcting code by extending the `ErrorCorrectingCode` abstract base class and implementing the required methods:
 
@@ -257,7 +271,7 @@ result = utilities.run_simulation(
 )
 ```
 
-## Creating Your Own Controlled Operations
+### Creating Your Own Controlled Operations
 
 You can specify your own method for controlled operations.
 As a default, the simulator will use a universal, fault-tolerant method (UniversalControlledOperationFaultTolerant).

@@ -21,7 +21,7 @@ PLOT_CONFIGS = [
         code_title='Dodecacode',
         output_graph_filename=Path(dodecacode.__file__).parent / 'dodecacode.pdf',
         stats_dir=dodecacode.__file__,
-        ymin_order=12,
+        ymin_order=10,
     ),
     PlotConfig(
         code_title='Five-qubit',
@@ -59,7 +59,7 @@ class Main:
                 'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
             }
             is_baseline = not i
-            label = "No CX" if is_baseline else f"$CX_{{s{i - 1},L1}}$"
+            label = "No CX" if is_baseline else f"$CX_{{\\mathcal{{S}}_{i - 1},L1}}$"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
@@ -68,7 +68,8 @@ class Main:
                 plot_args_func=lambda index, curve_id: plot_args
             )
         ax.loglog()
-        ax.set_ylim(1 * 10 ** -plot_config.ymin_order, 1e-1)
+        ax.set_ylim(10 ** -plot_config.ymin_order, 1e-1)
+        ax.set_xlim(5e-5)
         ax.grid()
         ax.set_title(f'LER of CX Controlled by GSCH Targeting {plot_config.code_title}')
         ax.set_ylabel('Logical Error Probability (per shot)')

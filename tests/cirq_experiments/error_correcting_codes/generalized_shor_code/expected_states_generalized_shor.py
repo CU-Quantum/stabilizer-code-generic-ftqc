@@ -5,7 +5,7 @@ from tests.cirq_experiments.error_correcting_codes.expected_states.expected_stat
 from tests.cirq_experiments.utilities_for_tests import get_cat_state_vector
 
 
-class ExpectedStatesMultipleCat(ExpectedStates):
+class ExpectedStatesGeneralizedShor(ExpectedStates):
     arbitrary_num_qubits_per_cat = 4
     arbitrary_num_cats = 5
 

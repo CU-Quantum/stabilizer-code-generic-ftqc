@@ -9,17 +9,17 @@ from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from cirq_experiments.error_correcting_codes.cat_parity_code.cat_parity_code import \
-    CatParityCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
+    GeneralizedShorCodeHadamard
 
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from cirq_experiments.utilities.utilities import KET_ONE_DENSITY_MATRIX, KET_ONE_STATE_VECTOR, KET_ZERO_DENSITY_MATRIX, \
     KET_ZERO_STATE_VECTOR, \
     TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, states_are_equal, tensor
 from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_states_five_qubit import ExpectedStatesFiveQubit
-from tests.cirq_experiments.error_correcting_codes.multiple_cat_code.expected_states_multiple_cat import ExpectedStatesMultipleCat
+from tests.cirq_experiments.error_correcting_codes.generalized_shor_code.expected_states_generalized_shor import ExpectedStatesGeneralizedShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_steane import \
@@ -29,8 +29,8 @@ from predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
-from tests.cirq_experiments.error_correcting_codes.cat_parity_code.expected_states_cat_parity import \
-    ExpectedStatesCatParity
+from tests.cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.expected_states_generalized_shor_hadamard import \
+    ExpectedStatesGeneralizedShorHadamard
 from tests.cirq_experiments.utilities_for_tests import set_configuration_to_reduce_ancilla_qubits
 
 
@@ -50,16 +50,16 @@ class StateParameters:
 PARAMETERS = {
     "MultipleCatCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                                 num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
-            expected_state=ExpectedStatesMultipleCat().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat * ExpectedStatesMultipleCat().arbitrary_num_cats),
+            code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
+                                     num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
+            expected_state=ExpectedStatesGeneralizedShor().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat * ExpectedStatesGeneralizedShor().arbitrary_num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=MultipleCatCode(num_cats=ExpectedStatesMultipleCat().arbitrary_num_cats,
-                                 num_qubits_per_cat=ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat),
-            expected_state=ExpectedStatesMultipleCat().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesMultipleCat().arbitrary_num_qubits_per_cat - 1))] * ExpectedStatesMultipleCat().arbitrary_num_cats),
+            code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
+                                     num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
+            expected_state=ExpectedStatesGeneralizedShor().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[tensor(KET_ONE_STATE_VECTOR, *[KET_ZERO_STATE_VECTOR] * (ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat - 1))] * ExpectedStatesGeneralizedShor().arbitrary_num_cats),
         ),
     ),
     "RepetitionCode": StateParameters(
@@ -76,14 +76,14 @@ PARAMETERS = {
     ),
     "CatParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats, num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
-            expected_state=ExpectedStatesCatParity().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats),
+            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
+            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=CatParityCode(num_cats=ExpectedStatesCatParity().num_cats, num_qubits_per_cat=ExpectedStatesCatParity().num_qubits_per_cat),
-            expected_state=ExpectedStatesCatParity().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesCatParity().num_qubits_per_cat * ExpectedStatesCatParity().num_cats),
+            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
+            initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),
     ),
     "GenericStabilizerCodeFiveQubit": StateParameters(

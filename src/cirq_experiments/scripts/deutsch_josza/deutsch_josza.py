@@ -12,7 +12,7 @@ from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential imp
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from cirq_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
 from cirq_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
-from cirq_experiments.error_correcting_codes.multiple_cat_code.multiple_cat_code import MultipleCatCode
+from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
@@ -42,7 +42,7 @@ class DeutschJosza:
         num_logical_qubits = self._num_input_qubits + num_oracle_qubits
         oracle_qubit_index = self._num_input_qubits
 
-        encoding = MultipleCatCode(num_cats=self._surface_code_distance, num_qubits_per_cat=self._surface_code_distance)
+        encoding = GeneralizedShorCode(num_cats=self._surface_code_distance, num_qubits_per_cat=self._surface_code_distance)
         num_qubits_per_encoding = len(encoding.data_qubits)
         qubits = LineQubit.range(num_logical_qubits * num_qubits_per_encoding)
         logical_qubits = [encoding.create_new(qubits[i * num_qubits_per_encoding:(i + 1) * num_qubits_per_encoding])

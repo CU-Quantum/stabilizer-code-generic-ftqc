@@ -7,7 +7,7 @@ from cirq_experiments.utilities.utilities import KET_ONE_STATE_VECTOR, KET_ZERO_
 from tests.cirq_experiments.error_correcting_codes.expected_states.expected_states import ExpectedStates
 
 
-class ExpectedStatesCatParity(ExpectedStates):
+class ExpectedStatesGeneralizedShorHadamard(ExpectedStates):
     num_qubits_per_cat = 4
     num_cats = 5
 
@@ -32,7 +32,7 @@ class ExpectedStatesCatParity(ExpectedStates):
             for cat_values in cat_values
         ]
         basis_states = [tensor(*states) for states in basis_states_by_value]
-        return (2 / np.sqrt(2) ** self.num_cats) * np.sum(basis_states, axis=0)
+        return (1 / np.sqrt(2) ** np.log2(len(basis_states))) * np.sum(basis_states, axis=0)
 
     @property
     def _all_cat_values(self) -> list[list[int]]:
