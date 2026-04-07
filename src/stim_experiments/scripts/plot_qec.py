@@ -59,7 +59,7 @@ class Main:
                 'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
             }
             is_baseline = not i
-            label = "No CX" if is_baseline else f"$CX_{{s{i - 1},L1}}$"
+            label = "No CX" if is_baseline else f"$CX_{{\\mathcal{{S}}_{i - 1},L1}}$"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
