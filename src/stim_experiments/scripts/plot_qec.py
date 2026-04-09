@@ -46,7 +46,14 @@ class Main:
         fig, ax = plt.subplots(1, 1)
         for i, samples in enumerate(stats):
             plot_args = {
-                'color': f'C{i}',
+                'color': [
+                    '#D55E00',
+                    '#009E73',
+                    '#882255',
+                    '#332288',
+                    '#999933',
+                    '#0072B2',
+                ][i - 1],
                 'zorder': list(range(3, 9))[i - 1],
                 'linestyle': [
                     (i * .05, ()),  # solid
