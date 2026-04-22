@@ -8,9 +8,8 @@ import sympy
 
 from cirq_experiments.custom_dataclasses.configuration_error_correcing_code import ConfigurationErrorCorrectingCode
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from cirq_experiments.custom_dataclasses.simulation_operation import TargetEncoding
-from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip import \
-    UniversalControlledOperation
+from cirq_experiments.custom_dataclasses.simulation_operation import LogicalEncodingIndex
+from cirq_experiments.support.universal_operations.universal_hadamard.universal_hadamard import UniversalHadamard
 from cirq_experiments.support.measurer.measurer import Measurer
 from cirq_experiments.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from cirq_experiments.support.universal_operations.universal_t.universal_t import UniversalT
@@ -49,11 +48,30 @@ class UniversalTFaultTolerant(UniversalT):
             ]
 
     def _cx_code_to_tetrahedral(self, context: UniversalTFaultTolerantContext) -> OP_TREE:
-        target_encoding = TargetEncoding(operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0),
-                                         encoding=context.tetrahedral)
+        zz_measurement_key = MeasurementKeyWithStableHash(f'UNIVERSAL_T_ZZ_MEASUREMENT_{uuid4().hex}')
+        control_logical_z = list(self._encoding.encoding.get_operation_circuit(
+            operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=self._encoding.qubit_index_relative)
+        ).all_operations())
+        target_logical_z = list(context.tetrahedral.get_operation_circuit(
+            operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
+        ).all_operations())
+        target_logical_x = list(context.tetrahedral.get_operation_circuit(
+            operation=LogicalOperation(gate=LogicalGateLabel.X, qubit_index=0)
+        ).all_operations())
         with ActiveEncodingsStore(additional_tracked_encodings=[context.tetrahedral]) as encodings_store:
             return [
-                self._universal_controlled_operation_type(control=self._encoding, target=target_encoding).get_controlled_operation_circuit(),
+                self._universal_hadamard_type(
+                    code=LogicalEncodingIndex(encoding=context.tetrahedral, qubit_index_relative=0)
+                ).get_hadamard_circuit(),
+                encodings_store.get_all_correction_circuits(),
+                self._measurer_type(
+                    observables=[control_logical_z + target_logical_z],
+                    measurement_keys=[zz_measurement_key],
+                ).get_measurement_circuit(),
+                encodings_store.get_all_correction_circuits(),
+                CircuitOperation(
+                    FrozenCircuit(target_logical_x)
+                ).with_classical_controls(zz_measurement_key),
                 encodings_store.get_all_correction_circuits(),
             ]
 
@@ -107,8 +125,8 @@ class UniversalTFaultTolerant(UniversalT):
             )
 
     @property
-    def _universal_controlled_operation_type(self) -> type[UniversalControlledOperation]:
-        return ConfigurationErrorCorrectingCodeManager().get_configuration().universal_controlled_operation_type
+    def _universal_hadamard_type(self) -> type[UniversalHadamard]:
+        return self._configuration.universal_hadamard_type
 
     @property
     def _measurer_type(self) -> type[Measurer]:
