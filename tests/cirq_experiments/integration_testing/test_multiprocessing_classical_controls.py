@@ -1,4 +1,5 @@
-from multiprocessing import Pool
+import multiprocessing
+from multiprocessing import Pool, get_context
 from typing import Tuple
 
 import pytest
@@ -50,14 +51,24 @@ class TestMultiprocessingClassicalControls:
         ErrorCorrectingRunnerClifford().run_circuit(circuit)
 
     def test_multiprocessing_basic_classical_control_fails(self):
+        """
+        With 'spawn', the subprocess starts a fresh Python interpreter with a different hash seed.
+        cirq.MeasurementKey caches its hash in _hash (a dataclass field), so when the key is
+        pickled from the parent process the stale cached hash travels with it. In the subprocess
+        the dict lookup uses the stale hash and misses, raising KeyError.
+
+        This does NOT reproduce with 'fork' (Linux default) because the child inherits the
+        parent's memory — including the same hash seed — so the cached value stays valid.
+        """
         arbitrary_measurement_key = MeasurementKey('arbitrary_key')
         qubits = LineQubit.range(1)
         circuit = Circuit(
             M(qubits[0], key=arbitrary_measurement_key),
             X(qubits[0]).with_classical_controls(arbitrary_measurement_key)
         )
+        ctx = multiprocessing.get_context('spawn')
         with pytest.raises(KeyError):
-            with Pool(processes=1) as pool:
+            with ctx.Pool(processes=1) as pool:
                 pool.map(ErrorCorrectingRunnerClifford().run_circuit, [circuit])
 
     def test_multiprocessing_basic_classical_control_succeeds_when_circuit_built_inside_thread(self):
