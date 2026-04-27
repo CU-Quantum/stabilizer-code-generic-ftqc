@@ -79,7 +79,7 @@ class Main:
         ax.set_xlim(5e-5)
         ax.grid()
         ax.set_title(f'LER of CX Controlled by GSCH Targeting {plot_config.code_title}')
-        ax.set_ylabel('Logical Error Probability (per shot)')
+        ax.set_ylabel('Logical Error Rate (per shot)')
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
 
