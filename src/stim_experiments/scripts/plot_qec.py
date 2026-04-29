@@ -66,7 +66,7 @@ class Main:
                 'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
             }
             is_baseline = not i
-            label = "No CX" if is_baseline else f"$CX_{{\\mathcal{{S}}_{i - 1},L1}}$"
+            label = "No $\\overline{{CX}}$" if is_baseline else f"$\\overline{{CX}}_{{\\mathcal{{S}}_{i - 1},L1}}$"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
@@ -78,7 +78,7 @@ class Main:
         ax.set_ylim(10 ** -plot_config.ymin_order, 1e-1)
         ax.set_xlim(5e-5)
         ax.grid()
-        ax.set_title(f'LER of CX Controlled by GSCH Targeting {plot_config.code_title}')
+        ax.set_title(f'LER of $\\overline{{CX}}$ Controlled by GSCH Targeting {plot_config.code_title}')
         ax.set_ylabel('Logical Error Rate (per shot)')
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
