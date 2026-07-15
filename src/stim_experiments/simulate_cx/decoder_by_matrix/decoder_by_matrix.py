@@ -17,13 +17,15 @@ class DecoderByMatrix(Decoder):
                  observables: NDArray[int],
                  modified_index: int,
                  num_target_data_qubits: int,
-                 decode_lookup_table: Path = None,):
+                 decode_lookup_table: Path = None,
+                 final_detector_generator_indices: list[int] = None,):
         self._symplectic_matrix = symplectic_matrix
         self._distance = distance
         self._observables = observables
         self._modified_index = modified_index
         self._num_target_data_qubits = num_target_data_qubits
         self._decode_lookup_table = decode_lookup_table
+        self._final_detector_generator_indices = final_detector_generator_indices
         self._cache = None
 
     def compile_decoder_for_dem(
@@ -56,7 +58,8 @@ class DecoderByMatrix(Decoder):
             self._cache = CompiledDecoderByMatrix(
                 syndrome_to_noise=syndrome_to_noise,
                 distance=self._distance,
-                observables=self._observables
+                observables=self._observables,
+                final_detector_generator_indices=self._final_detector_generator_indices
             )
         return self._cache
 

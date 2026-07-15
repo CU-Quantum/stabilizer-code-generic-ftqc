@@ -67,7 +67,8 @@ class SimulateCx:
                                                                   observables=observables,
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
-                                                                  decode_lookup_table=decoder_file
+                                                                  decode_lookup_table=decoder_file,
+                                                                  final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)]
                                                                   )},
             print_progress=True,
             save_resume_filepath=save_resume_file,
@@ -127,7 +128,7 @@ class SimulateCx:
         return combined_symplectic_matrix, observables
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
-        control_subregister_indices = [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
+        control_subregister_indices = self._control_subregister_indices
         all_data_indices = self._target_code_utilities.data_indices + self._control_code_utilities.data_indices
 
         cx_from_gsch_all = [
@@ -164,9 +165,10 @@ class SimulateCx:
         all_data_depolarizing_one_noise = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
         depolarizing_one_and_two_noise = f"{data_error}\n{cx_error}"
 
-        target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
+        target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
         num_second_observable = self._num_cat_states - self._si - 1
         num_first_observable = len(target_measurement_indices) + (len(control_subregister_indices) - num_second_observable) * self._num_qubits_per_cat_state
+        measured_data_qubits = self._measured_data_qubits
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
@@ -186,15 +188,15 @@ class SimulateCx:
                 {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
             }}
-            REPEAT {1} {{
-                {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
-                {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
-            
-                {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
-                {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
-            }}
+        
+            {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
+            {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
 
-            M {' '.join(list(map(str, target_measurement_indices)) + [str(ind) for subreg in control_subregister_indices[:-num_second_observable if num_second_observable else None] for ind in subreg])}
+            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
+            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
+
+            M {' '.join(map(str, measured_data_qubits))}
+            {self._final_round_detectors(measured_data_qubits)}
             OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(num_first_observable)])}
         """)
 
@@ -210,9 +212,45 @@ class SimulateCx:
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
 
+    def _final_detector_generators(self, measured_data_qubits: list[int]):
+        num_target_generators = len(self._target_code_utilities.symplectic_matrix)
+        for generator_offset, code_utilities in (
+                (0, self._target_code_utilities),
+                (num_target_generators, self._control_code_utilities),
+        ):
+            num_data_qubits = len(code_utilities.data_indices)
+            for generator_num, generator in enumerate(code_utilities.symplectic_matrix):
+                if np.any(generator[:num_data_qubits]):
+                    continue
+                support = [code_utilities.data_indices[q] for q in np.where(generator[num_data_qubits:] == 1)[0]]
+                if not all(qubit in measured_data_qubits for qubit in support):
+                    continue
+                yield generator_offset + generator_num, support
+
+    def _final_round_detectors(self, measured_data_qubits: list[int]) -> str:
+        num_measured = len(measured_data_qubits)
+        num_generators = len(self._target_code_utilities.symplectic_matrix) + len(self._control_code_utilities.symplectic_matrix)
+        lines = []
+        for global_generator_num, support in self._final_detector_generators(measured_data_qubits):
+            recs = [f'rec[{-(num_measured - measured_data_qubits.index(qubit))}]' for qubit in support]
+            recs.append(f'rec[{-(num_measured + num_generators - global_generator_num)}]')
+            lines.append(f"DETECTOR {' '.join(recs)}")
+        return '\n'.join(lines)
+
     @property
     def _stabilizers_are_modified(self):
         return self._cx_is_performed and self._si < self._last_si
+
+    @property
+    def _control_subregister_indices(self):
+        return [self._control_code_utilities.data_indices[i * self._num_qubits_per_cat_state:(i + 1) * self._num_qubits_per_cat_state] for i in range(self._num_cat_states)]
+
+    @property
+    def _measured_data_qubits(self):
+        target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
+        num_second_observable = self._num_cat_states - self._si - 1
+        return [self._target_code_utilities.data_indices[q] for q in target_measurement_indices] + \
+               [ind for subreg in self._control_subregister_indices[:-num_second_observable if num_second_observable else None] for ind in subreg]
 
     @property
     def _cx_is_performed(self):
