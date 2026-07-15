@@ -68,7 +68,8 @@ class SimulateCx:
                                                                   modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                                                   num_target_data_qubits=self._num_target_data_qubits,
                                                                   decode_lookup_table=decoder_file,
-                                                                  final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)]
+                                                                  final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)] +
+                                                                                                    [generator_num for generator_num, _ in self._final_x_detector_generators()]
                                                                   )},
             print_progress=True,
             save_resume_filepath=save_resume_file,
@@ -208,6 +209,9 @@ class SimulateCx:
                 self._control_code_utilities.measure_stabilizer_using_cat_state(observable, circuit)
                 circuit.append('R', self._control_code_utilities.all_ancilla_qubits)
                 circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({num_subregister_to_uncat - i}) rec[-1]')
+            x_detectors = self._final_x_round_detectors(num_data_measurements=len(measured_data_qubits))
+            if x_detectors:
+                circuit.append_from_stim_program_text(x_detectors)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
@@ -234,6 +238,24 @@ class SimulateCx:
         for global_generator_num, support in self._final_detector_generators(measured_data_qubits):
             recs = [f'rec[{-(num_measured - measured_data_qubits.index(qubit))}]' for qubit in support]
             recs.append(f'rec[{-(num_measured + num_generators - global_generator_num)}]')
+            lines.append(f"DETECTOR {' '.join(recs)}")
+        return '\n'.join(lines)
+
+    def _final_x_detector_generators(self):
+        num_target_generators = len(self._target_code_utilities.symplectic_matrix)
+        num_z_generators = len(self._control_code_utilities.symplectic_matrix) - (self._num_cat_states - 1)
+        for i in range(self._si + 1, self._num_cat_states - 1):
+            yield num_target_generators + num_z_generators + i, i
+
+    def _final_x_round_detectors(self, num_data_measurements: int) -> str:
+        num_uncat = self._num_cat_states - self._si - 1
+        num_target_generators = len(self._target_code_utilities.symplectic_matrix)
+        num_control_generators = len(self._control_code_utilities.symplectic_matrix)
+        lines = []
+        for global_generator_num, subregister_num in self._final_x_detector_generators():
+            control_generator_num = global_generator_num - num_target_generators
+            recs = [f'rec[{-(subregister_num - self._si)}]', f'rec[{-(subregister_num + 1 - self._si)}]']
+            recs.append(f'rec[{-(num_uncat + num_data_measurements + num_control_generators - control_generator_num)}]')
             lines.append(f"DETECTOR {' '.join(recs)}")
         return '\n'.join(lines)
 
