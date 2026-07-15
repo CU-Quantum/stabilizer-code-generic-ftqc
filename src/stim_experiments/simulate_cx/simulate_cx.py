@@ -149,7 +149,18 @@ class SimulateCx:
             modify_stabilizer = Circuit()
             self._target_code_utilities.apply_stabilizer(self._target_code_utilities.x_observable, modify_stabilizer, list(reversed([self._control_code_utilities.stabilizer_ancilla] + self._control_code_utilities.cat_applier_ancillas)))
 
-        cx_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
+        cx_error = Circuit()
+        cx_error_qubits = set()
+        applied_cx_circuits = cx_from_gsch_all if self._cx_is_performed else cx_from_gsch_all[:-1]
+        for cx_circuit in applied_cx_circuits:
+            for instruction in cx_circuit:
+                if instruction.name in ('CX', 'CZ'):
+                    targets = instruction.targets_copy()
+                    cx_error_qubits.update(target.value for target in targets)
+                    cx_error.append('DEPOLARIZE2', targets, physical_error_rate)
+
+        data_error_indices = [index for index in all_data_indices if index not in cx_error_qubits]
+        data_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, data_error_indices))}" if data_error_indices else ''
 
         target_measurement_indices = set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices))
         num_second_observable = self._num_cat_states - self._si - 1
@@ -162,11 +173,12 @@ class SimulateCx:
             {cat_states_circuit}
 
             {'\n'.join(map(str, cx_from_gsch_all[:-1]))}
-            {cx_error}
             {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
             REPEAT {self._num_cat_states} {{
-                {self._target_code_utilities.get_stabilizers()}
-                {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator)}
+                {data_error}
+                {cx_error}
+                {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
+                {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
             
                 {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
                 {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
