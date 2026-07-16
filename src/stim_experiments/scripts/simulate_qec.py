@@ -32,7 +32,7 @@ def get_run_configuration() -> RunConfiguration:
     parser.add_argument('--shard-index', type=int, default=default_shard_index,
                         help='Index of this shard (e.g., SLURM array task ID). Default from $SLURM_ARRAY_TASK_ID or 0.')
     parser.add_argument('-d', '--decoder', type=str, default='decoder_by_matrix',
-                        choices=['decoder_by_matrix', 'bposd'],
+                        choices=['decoder_by_matrix', 'bposd', 'exact_mw'],
                         help='Decoder to use.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")

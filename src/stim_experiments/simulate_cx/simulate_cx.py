@@ -10,6 +10,7 @@ from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
 from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
 from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
+from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
@@ -75,6 +76,8 @@ class SimulateCx:
     def build_decoder(self):
         if self._decoder_name == 'bposd':
             return BpOsdDecoderForSinter()
+        if self._decoder_name == 'exact_mw':
+            return ExactMwDemDecoder()
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
         return DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
