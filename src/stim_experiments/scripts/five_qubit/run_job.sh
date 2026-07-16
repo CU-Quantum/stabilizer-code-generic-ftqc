@@ -3,8 +3,8 @@
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
 #SBATCH --array=0-999
-#SBATCH --partition=amilan
-#SBATCH --qos=normal
+#SBATCH --partition=acpu
+#SBATCH --qos=cpu-normal
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=five_qubit
