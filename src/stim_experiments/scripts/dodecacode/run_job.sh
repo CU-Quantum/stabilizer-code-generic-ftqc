@@ -3,11 +3,10 @@
 #SBATCH --account=ucb685_asc1
 #SBATCH --time=24:00:00
 #SBATCH --array=0-999
-#SBATCH --partition=amem
-#SBATCH --qos=mem
+#SBATCH --partition=acpu
+#SBATCH --qos=cpu-normal
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --mem=512G
 #SBATCH --job-name=dodecacode
 #SBATCH --error=results/dodecacode/dodecacode_%j.err
 #SBATCH --output=results/dodecacode/dodecacode_%j.out
