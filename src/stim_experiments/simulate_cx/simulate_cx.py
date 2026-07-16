@@ -86,8 +86,7 @@ class SimulateCx:
                                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                                num_target_data_qubits=self._num_target_data_qubits,
                                decode_lookup_table=decoder_file,
-                               final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)] +
-                                                                [generator_num for generator_num, _ in self._final_x_detector_generators()]
+                               final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)]
                                )
 
     def generate_sinter_tasks(self):
@@ -124,7 +123,7 @@ class SimulateCx:
                 = self._target_code_utilities.x_observable[len(self._target_code_utilities.x_observable) // 2:]
         combined_symplectic_matrix = np.concatenate([target_symplectic_matrix_expanded, control_symplectic_matrix_expanded])
 
-        num_observables = self._num_cat_states - self._si
+        num_observables = 1
         observables = np.zeros((num_observables, combined_symplectic_matrix.shape[1]), dtype=int)
         first_observable = observables[0]
         # target observable
@@ -132,10 +131,6 @@ class SimulateCx:
         first_observable[len(first_observable) // 2:len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
         # control observable
         first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
-
-        for i in range(1, num_observables):
-            observable = observables[i]
-            observable[self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i):self._num_target_data_qubits + self._num_qubits_per_cat_state * (self._si + i) + self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
 
         return combined_symplectic_matrix, observables
 
@@ -178,9 +173,11 @@ class SimulateCx:
         depolarizing_one_and_two_noise = f"{data_error}\n{cx_error}"
 
         target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
-        num_second_observable = self._num_cat_states - self._si - 1
-        num_first_observable = len(target_measurement_indices) + (len(control_subregister_indices) - num_second_observable) * self._num_qubits_per_cat_state
         measured_data_qubits = self._measured_data_qubits
+        observable_qubits = [self._target_code_utilities.data_indices[q] for q in target_measurement_indices] + \
+                            [ind for subreg in control_subregister_indices[:self._si + 1] for ind in subreg]
+        num_measured = len(measured_data_qubits)
+        observable_recs = ' '.join([f'rec[{-(num_measured - measured_data_qubits.index(q))}]' for q in observable_qubits])
         stabilizer_round = f"""
             {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
             {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
@@ -213,20 +210,8 @@ class SimulateCx:
 
             M {' '.join(map(str, measured_data_qubits))}
             {self._final_round_detectors(measured_data_qubits)}
-            OBSERVABLE_INCLUDE(0) {' '.join([f'rec[-{i+1}]' for i in range(num_first_observable)])}
+            OBSERVABLE_INCLUDE(0) {observable_recs}
         """)
-
-        num_subregister_to_uncat = self._num_cat_states - self._si - 1
-        if num_subregister_to_uncat:
-            for i in range(num_subregister_to_uncat):
-                observable = np.zeros(2 * len(self._control_code_utilities.data_indices))
-                observable[len(self._control_code_utilities.data_indices) - (i + 1) * self._num_qubits_per_cat_state:len(self._control_code_utilities.data_indices) - i * self._num_qubits_per_cat_state] = np.ones(self._num_qubits_per_cat_state)
-                self._control_code_utilities.measure_stabilizer_using_cat_state(observable, circuit)
-                circuit.append('R', self._control_code_utilities.all_ancilla_qubits)
-                circuit.append_from_stim_program_text(f'OBSERVABLE_INCLUDE({num_subregister_to_uncat - i}) rec[-1]')
-            x_detectors = self._final_x_round_detectors(num_data_measurements=len(measured_data_qubits))
-            if x_detectors:
-                circuit.append_from_stim_program_text(x_detectors)
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
@@ -268,24 +253,6 @@ class SimulateCx:
             lines.append(f"DETECTOR {' '.join(recs)}")
         return '\n'.join(lines)
 
-    def _final_x_detector_generators(self):
-        num_target_generators = len(self._target_code_utilities.symplectic_matrix)
-        num_z_generators = len(self._control_code_utilities.symplectic_matrix) - (self._num_cat_states - 1)
-        for i in range(self._si + 1, self._num_cat_states - 1):
-            yield num_target_generators + num_z_generators + i, i
-
-    def _final_x_round_detectors(self, num_data_measurements: int) -> str:
-        num_uncat = self._num_cat_states - self._si - 1
-        num_target_generators = len(self._target_code_utilities.symplectic_matrix)
-        num_control_generators = len(self._control_code_utilities.symplectic_matrix)
-        lines = []
-        for global_generator_num, subregister_num in self._final_x_detector_generators():
-            control_generator_num = global_generator_num - num_target_generators
-            recs = [f'rec[{-(subregister_num - self._si)}]', f'rec[{-(subregister_num + 1 - self._si)}]']
-            recs.append(f'rec[{-(num_uncat + num_data_measurements + num_control_generators - control_generator_num)}]')
-            lines.append(f"DETECTOR {' '.join(recs)}")
-        return '\n'.join(lines)
-
     @property
     def _stabilizers_are_modified(self):
         return self._cx_is_performed and self._si < self._last_si
@@ -297,9 +264,8 @@ class SimulateCx:
     @property
     def _measured_data_qubits(self):
         target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
-        num_second_observable = self._num_cat_states - self._si - 1
         return [self._target_code_utilities.data_indices[q] for q in target_measurement_indices] + \
-               [ind for subreg in self._control_subregister_indices[:-num_second_observable if num_second_observable else None] for ind in subreg]
+               [ind for subreg in self._control_subregister_indices for ind in subreg]
 
     @property
     def _cx_is_performed(self):
