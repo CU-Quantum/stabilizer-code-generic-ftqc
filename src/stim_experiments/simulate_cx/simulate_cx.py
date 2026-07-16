@@ -8,6 +8,7 @@ from stim import Circuit
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
+from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
 from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
@@ -22,13 +23,15 @@ class SimulateCx:
                  si: int,
                  run_configuration: RunConfiguration,
                  save_resume_filepath: Optional[Path] = None,
-                 decode_lookup_table_filepath: Optional[Path] = None):
+                 decode_lookup_table_filepath: Optional[Path] = None,
+                 decoder_name: str = 'decoder_by_matrix'):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
         self._save_resume_filepath = save_resume_filepath
         self._decode_lookup_table_filepath = decode_lookup_table_filepath
+        self._decoder_name = decoder_name
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
@@ -44,8 +47,6 @@ class SimulateCx:
         )
 
     def run_main(self):
-        combined_symplectic_matrix, observables = self.get_combined_symplectic()
-        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
         # Ensure unique resume file per shard to avoid cross-node contention
         shard_suffix = f"_shard{self._run_configuration.shard_index}-of-{self._run_configuration.num_shards}"
         save_resume_file = (
@@ -61,16 +62,8 @@ class SimulateCx:
             max_shots=self._run_configuration.max_shots,
             max_errors=self._run_configuration.max_errors,
             tasks=task_list,
-            decoders=['decoder_by_matrix'],
-            custom_decoders={'decoder_by_matrix': DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
-                                                                  distance=self._num_cat_states,
-                                                                  observables=observables,
-                                                                  modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                                                                  num_target_data_qubits=self._num_target_data_qubits,
-                                                                  decode_lookup_table=decoder_file,
-                                                                  final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)] +
-                                                                                                    [generator_num for generator_num, _ in self._final_x_detector_generators()]
-                                                                  )},
+            decoders=[self._decoder_name],
+            custom_decoders={self._decoder_name: self.build_decoder()},
             print_progress=True,
             save_resume_filepath=save_resume_file,
             count_observable_error_combos=True,
@@ -78,6 +71,21 @@ class SimulateCx:
         )
 
         return samples
+
+    def build_decoder(self):
+        if self._decoder_name == 'bposd':
+            return BpOsdDecoderForSinter()
+        combined_symplectic_matrix, observables = self.get_combined_symplectic()
+        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
+        return DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
+                               distance=self._num_cat_states,
+                               observables=observables,
+                               modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
+                               num_target_data_qubits=self._num_target_data_qubits,
+                               decode_lookup_table=decoder_file,
+                               final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)] +
+                                                                [generator_num for generator_num, _ in self._final_x_detector_generators()]
+                               )
 
     def generate_sinter_tasks(self):
         probs = self._run_configuration.depolarization_probabilities
@@ -170,6 +178,18 @@ class SimulateCx:
         num_second_observable = self._num_cat_states - self._si - 1
         num_first_observable = len(target_measurement_indices) + (len(control_subregister_indices) - num_second_observable) * self._num_qubits_per_cat_state
         measured_data_qubits = self._measured_data_qubits
+        stabilizer_round = f"""
+            {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
+            {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
+        """
+        num_middle_rounds = self._num_cat_states - 2
+        middle_rounds = f"""
+            REPEAT {num_middle_rounds} {{
+                {all_data_depolarizing_one_noise}
+                {stabilizer_round}
+                {self._round_detectors_difference()}
+            }}
+        """ if num_middle_rounds > 0 else ''
         circuit = Circuit(f"""
             {self._target_code_utilities.get_init()}
             {self._control_code_utilities.get_init()}
@@ -181,20 +201,12 @@ class SimulateCx:
             {all_data_depolarizing_one_noise}
             {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
             {depolarizing_one_and_two_noise}
-            REPEAT {self._num_cat_states - 1} {{
-                {all_data_depolarizing_one_noise}
-                {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
-                {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
-            
-                {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
-                {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
-            }}
-        
-            {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
-            {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
-
-            {'\n'.join([f'DETECTOR rec[{-len(self._target_code_utilities.symplectic_matrix) - len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._target_code_utilities.symplectic_matrix))])}
-            {'\n'.join([f'DETECTOR rec[{-len(self._control_code_utilities.symplectic_matrix) + i}]' for i in range(len(self._control_code_utilities.symplectic_matrix))])}
+            {all_data_depolarizing_one_noise}
+            {stabilizer_round}
+            {self._round_detectors_absolute()}
+            {middle_rounds}
+            {stabilizer_round}
+            {self._round_detectors_difference()}
 
             M {' '.join(map(str, measured_data_qubits))}
             {self._final_round_detectors(measured_data_qubits)}
@@ -215,6 +227,18 @@ class SimulateCx:
 
         # with open('fds.svg', 'w') as f: f.write(str(circuit.diagram('detslice-with-ops-svg', tick=range(0, 5), filter_coords=['D42', ])))
         return circuit
+
+    def _round_detectors_absolute(self) -> str:
+        num_generators = self._num_generators_per_round
+        return '\n'.join([f'DETECTOR rec[{-num_generators + i}]' for i in range(num_generators)])
+
+    def _round_detectors_difference(self) -> str:
+        num_generators = self._num_generators_per_round
+        return '\n'.join([f'DETECTOR rec[{-num_generators + i}] rec[{-2 * num_generators + i}]' for i in range(num_generators)])
+
+    @property
+    def _num_generators_per_round(self) -> int:
+        return len(self._target_code_utilities.symplectic_matrix) + len(self._control_code_utilities.symplectic_matrix)
 
     def _final_detector_generators(self, measured_data_qubits: list[int]):
         num_target_generators = len(self._target_code_utilities.symplectic_matrix)

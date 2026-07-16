@@ -31,6 +31,9 @@ def get_run_configuration() -> RunConfiguration:
                         help='Total number of shards (e.g., SLURM array size). Default from $SLURM_ARRAY_TASK_COUNT or 1.')
     parser.add_argument('--shard-index', type=int, default=default_shard_index,
                         help='Index of this shard (e.g., SLURM array task ID). Default from $SLURM_ARRAY_TASK_ID or 0.')
+    parser.add_argument('-d', '--decoder', type=str, default='decoder_by_matrix',
+                        choices=['decoder_by_matrix', 'bposd'],
+                        help='Decoder to use.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")
     return RunConfiguration(
@@ -40,6 +43,7 @@ def get_run_configuration() -> RunConfiguration:
         num_workers=args.num_workers,
         num_shards=args.num_shards,
         shard_index=args.shard_index,
+        decoder_name=args.decoder,
     )
 
 
@@ -69,4 +73,5 @@ class SimulateQec:
                        run_configuration=self._run_configuration,
                        decode_lookup_table_filepath=self._decode_lookup_table_filepath,
                        save_resume_filepath=self._save_resume_filepath,
+                       decoder_name=self._run_configuration.decoder_name,
                        ).run_main()

@@ -29,8 +29,9 @@ class CompiledDecoderByMatrix(CompiledDecoder):
     def get_majority_vote(self, unpacked_detection_event_data: np.ndarray):
         num_syndrome_bits = len(list(self._syndrome_to_noise.keys())[0])
         num_repeats = self._distance
-        rounds = unpacked_detection_event_data[:, :num_syndrome_bits * num_repeats]
-        rounds = rounds.reshape(rounds.shape[0], num_repeats, num_syndrome_bits)
+        differences = unpacked_detection_event_data[:, :num_syndrome_bits * num_repeats]
+        differences = differences.reshape(differences.shape[0], num_repeats, num_syndrome_bits)
+        rounds = (np.cumsum(differences, axis=1) % 2).astype(np.uint8)
         votes = rounds.sum(axis=1).astype(np.int64)
         num_votes = np.full(num_syndrome_bits, num_repeats)
         if self._final_detector_generator_indices:
