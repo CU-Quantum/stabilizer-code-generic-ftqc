@@ -75,7 +75,7 @@ class Main:
                 plot_args_func=lambda index, curve_id: plot_args
             )
         ax.loglog()
-        ax.set_ylim(10 ** -plot_config.ymin_order, 0)
+        ax.set_ylim(10 ** -plot_config.ymin_order, 1)
         ax.set_xlim(5e-5)
         ax.grid()
         ax.set_title(f'LER of $\\overline{{CX}}$ Controlled by GSCH Targeting {plot_config.code_title}')

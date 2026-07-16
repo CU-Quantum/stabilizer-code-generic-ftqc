@@ -170,7 +170,7 @@ class SimulateCx:
         data_error_indices = [index for index in all_data_indices if index not in cx_error_qubits]
         data_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, data_error_indices))}" if data_error_indices else ''
         all_data_depolarizing_one_noise = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, all_data_indices))}"
-        depolarizing_one_and_two_noise = f"{data_error}\n{cx_error}"
+        depolarizing_one_and_two_noise = f"{data_error}\n{cx_error}" if self._cx_is_performed else ''
 
         target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
         measured_data_qubits = self._measured_data_qubits
@@ -201,7 +201,6 @@ class SimulateCx:
             {all_data_depolarizing_one_noise}
             {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
             {depolarizing_one_and_two_noise}
-            {all_data_depolarizing_one_noise}
             {stabilizer_round}
             {self._round_detectors_absolute()}
             {middle_rounds}
