@@ -27,7 +27,7 @@ cd /projects/nipa4599/stim-experiments || exit
 
 # Run
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
-  -s 10_000_000_000 \
+  -s 1_000_000_000_000 \
   -e 1000 \
   -p 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 1e-1 2e-1 5e-1 \
   -d exact_mw
