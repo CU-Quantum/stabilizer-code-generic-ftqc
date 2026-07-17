@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --account=ucb685_asc1
+#SBATCH --account=ucb685_asc2
 #SBATCH --time=24:00:00
 #SBATCH --array=0-999
 #SBATCH --partition=acpu
