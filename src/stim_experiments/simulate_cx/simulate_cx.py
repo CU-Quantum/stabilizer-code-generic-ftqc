@@ -182,7 +182,7 @@ class SimulateCx:
             {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
             {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
         """
-        num_middle_rounds = self._num_cat_states - 2
+        num_middle_rounds = self._num_cat_states - 1
         middle_rounds = f"""
             REPEAT {num_middle_rounds} {{
                 {all_data_depolarizing_one_noise}
