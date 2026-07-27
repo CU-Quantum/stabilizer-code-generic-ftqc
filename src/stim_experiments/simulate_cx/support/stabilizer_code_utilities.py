@@ -57,7 +57,7 @@ class StabilizerCodeUtilities:
         self.unprepare_cat_state(ancilla_index, circuit)
         circuit.append('M', ancilla_index)
 
-    def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_generator: int = None, is_encoding: bool = False) -> Circuit:
+    def get_stabilizers(self, modify_stabilizer: Circuit = None, modified_generator: int = None, is_encoding: bool = False, measurement_error_rate: float = None) -> Circuit:
         circuit = Circuit()
         ancilla_index = self.stabilizer_ancilla
         for generator_num, (stabilizer, anticommutator) in enumerate(zip(self.symplectic_matrix, self._generator_anticommutators)):
@@ -66,7 +66,7 @@ class StabilizerCodeUtilities:
             if modify_stabilizer and modified_generator == generator_num:
                 circuit.append_from_stim_program_text(str(modify_stabilizer))
             self.unprepare_cat_state(ancilla_index, circuit)
-            circuit.append('M', ancilla_index)
+            circuit.append('M', ancilla_index, measurement_error_rate)
             if is_encoding:
                 self.apply_stabilizer(anticommutator, circuit, [ancilla_index] * self.num_cat_appier_ancillas)
             circuit.append('R', [ancilla_index] + self.cat_applier_ancillas)

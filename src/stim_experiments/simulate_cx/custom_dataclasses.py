@@ -10,3 +10,4 @@ class RunConfiguration:
     # Optional distributed sharding across multiple jobs/nodes (e.g., SLURM array)
     num_shards: int = 1
     shard_index: int = 0
+    decoder_name: str = 'decoder_by_matrix'

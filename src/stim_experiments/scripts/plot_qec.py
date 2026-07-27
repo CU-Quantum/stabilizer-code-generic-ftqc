@@ -66,7 +66,7 @@ class Main:
                 'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
             }
             is_baseline = not i
-            label = "No $\\overline{{CX}}$" if is_baseline else f"$\\overline{{CX}}_{{\\mathcal{{S}}_{i - 1},L1}}$"
+            label = "No $\\overline{{CX}}$" if is_baseline else f"$\\overline{{CX}}_{{\\mathcal{{S}}_{i - 1},\\mathcal{{Q}}_1}}$"
             plot_error_rate(
                 ax=ax,
                 stats=samples,
@@ -75,7 +75,7 @@ class Main:
                 plot_args_func=lambda index, curve_id: plot_args
             )
         ax.loglog()
-        ax.set_ylim(10 ** -plot_config.ymin_order, 1e-1)
+        ax.set_ylim(10 ** -plot_config.ymin_order, 1)
         ax.set_xlim(5e-5)
         ax.grid()
         ax.set_title(f'LER of $\\overline{{CX}}$ Controlled by GSCH Targeting {plot_config.code_title}')

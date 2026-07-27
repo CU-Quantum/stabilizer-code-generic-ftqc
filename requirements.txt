@@ -5,3 +5,4 @@ pymatching~=2.3.1
 sinter~=1.16.dev1758926350
 stim~=1.16.dev1758926350
 qsimcirq~=0.22.0
+ldpc~=0.1.31
