@@ -1,4 +1,4 @@
-from numpy import array
+from numpy import array, zeros
 
 from cirq_experiments.custom_dataclasses.check_matrix import TYPE_CHECK_MATRIX
 
@@ -87,3 +87,28 @@ def get_check_matrix_values_dodecacode() -> TYPE_CHECK_MATRIX:
         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,  1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0],
     ])
+
+
+def _poly_mod(x: int, modulus: int) -> int:
+    while x.bit_length() >= modulus.bit_length():
+        x ^= modulus << (x.bit_length() - modulus.bit_length())
+    return x
+
+
+def get_check_matrix_values_golay() -> TYPE_CHECK_MATRIX:
+    """Golay [[23,1,7]] CSS code from the binary [23,12,7] Golay code.
+
+    Generator polynomial: x^11 + x^9 + x^7 + x^6 + x^5 + x + 1.
+    22 stabilizers for 23 physical qubits, 1 logical qubit, distance 7.
+    """
+    g = (1 << 11) | (1 << 9) | (1 << 7) | (1 << 6) | (1 << 5) | (1 << 1) | 1
+    n, r = 23, 11
+    H = zeros((r, n), dtype=int)
+    for i in range(n):
+        rem = _poly_mod(1 << i, g)
+        for j in range(r):
+            H[j, i] = (rem >> j) & 1
+    full = zeros((2 * r, 2 * n), dtype=int)
+    full[:r, :n] = H
+    full[r:2 * r, n:2 * n] = H
+    return full

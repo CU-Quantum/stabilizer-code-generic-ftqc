@@ -7,7 +7,7 @@ from stim import Circuit
 
 from generalized_shor_code_generators import GeneralizedShorCodeGenerators
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_dodecacode, \
-    get_check_matrix_values_tetrahedral
+    get_check_matrix_values_golay, get_check_matrix_values_tetrahedral
 
 
 class StabilizerCodeUtilities:
@@ -189,8 +189,30 @@ def get_15_1_3_reed_solomon_code_utilities():
     observable_z = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     observable_x = np.array([1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
     return StabilizerCodeUtilities(
-        symplectic_matrix=get_check_matrix_values_tetrahedral(),
-        generator_anticommutators=t_native_anticommutators,
+        symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
+def get_golay_code_utilities():
+    symplectic_matrix = get_check_matrix_values_golay()
+    n_qubits = symplectic_matrix.shape[1] // 2  # 23
+    n_stabilizers = symplectic_matrix.shape[0]  # 22
+    assert n_stabilizers == 22 and n_qubits == 23
+    r = n_stabilizers // 2  # 11
+    anticommutators = np.zeros((n_stabilizers, 2 * n_qubits), dtype=int)
+    for i in range(r):
+        anticommutators[i, n_qubits + i] = 1
+        anticommutators[r + i, i] = 1
+    x_obs_part = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1], dtype=int)
+    z_obs_part = np.array([1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0], dtype=int)
+    observable_x = np.concatenate([x_obs_part, np.zeros(n_qubits, dtype=int)])
+    observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), z_obs_part])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
         z_observable=observable_z,
         x_observable=observable_x
     )
@@ -248,6 +270,28 @@ def get_dodecacode_utilities():
     ])
     observable_z = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     observable_x = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+    return StabilizerCodeUtilities(
+        symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x
+    )
+
+
+def get_golay_code_utilities():
+    symplectic_matrix = get_check_matrix_values_golay()
+    n_qubits = symplectic_matrix.shape[1] // 2
+    n_stabilizers = symplectic_matrix.shape[0]
+    assert n_stabilizers == 22 and n_qubits == 23
+    r = n_stabilizers // 2
+    anticommutators = np.zeros((n_stabilizers, 2 * n_qubits), dtype=int)
+    for i in range(r):
+        anticommutators[i, n_qubits + i] = 1
+        anticommutators[r + i, i] = 1
+    x_obs_part = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1], dtype=int)
+    z_obs_part = np.array([1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0], dtype=int)
+    observable_x = np.concatenate([x_obs_part, np.zeros(n_qubits, dtype=int)])
+    observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), z_obs_part])
     return StabilizerCodeUtilities(
         symplectic_matrix=symplectic_matrix,
         generator_anticommutators=anticommutators,

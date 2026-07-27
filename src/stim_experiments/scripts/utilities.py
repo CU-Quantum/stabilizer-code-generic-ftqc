@@ -4,12 +4,12 @@ from typing import Iterable, List, Optional
 
 from sinter import TaskStats, stats_from_csv_files
 
-from stim_experiments.scripts import dodecacode, five_qubit
+from stim_experiments.scripts import dodecacode, five_qubit, golay
 
 
 def get_shard_merge_paths(files_in_dirs: Optional[list[str]] = None) -> dict[Path, list[Path]]:
     if files_in_dirs is None:
-        files_in_dirs = [five_qubit.__file__, dodecacode.__file__]
+        files_in_dirs = [five_qubit.__file__, dodecacode.__file__, golay.__file__]
     merge_paths = defaultdict(list)
     shard_dirs = [Path(file_in_dir).parent for file_in_dir in files_in_dirs]
     for shard_dir in shard_dirs:
