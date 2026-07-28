@@ -196,7 +196,7 @@ def get_15_1_3_reed_solomon_code_utilities():
     )
 
 
-def get_golay_code_utilities(balanced: bool = False):
+def get_golay_code_utilities(balanced: bool = True):
     symplectic_matrix = get_check_matrix_values_golay(balanced=balanced)
     n_qubits = symplectic_matrix.shape[1] // 2
     n_stabilizers = symplectic_matrix.shape[0]

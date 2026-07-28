@@ -120,10 +120,7 @@ class SimulateCx:
         probs = self._run_configuration.depolarization_probabilities
         for idx, p in enumerate(probs):
             c = self.generate_task_circuit(physical_error_rate=p)
-            dem = c.detector_error_model(
-                decompose_errors=True,
-                ignore_decomposition_failures=True,
-            )
+            dem = c.detector_error_model(decompose_errors=False)
             yield Task(
                 circuit=c,
                 detector_error_model=dem,
@@ -198,9 +195,7 @@ class SimulateCx:
                 if instruction.name in ('CX', 'CZ'):
                     targets = instruction.targets_copy()
                     cx_error_qubits.update(target.value for target in targets)
-                    for i in range(0, len(targets), 2):
-                        pert = physical_error_rate * (1.0 + i * 1e-5)
-                        cx_error.append('DEPOLARIZE2', [targets[i], targets[i+1]], pert)
+                    cx_error.append('DEPOLARIZE2', targets, physical_error_rate)
 
         data_error_indices = [index for index in all_data_indices if index not in cx_error_qubits]
         data_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, data_error_indices))}" if data_error_indices else ''
