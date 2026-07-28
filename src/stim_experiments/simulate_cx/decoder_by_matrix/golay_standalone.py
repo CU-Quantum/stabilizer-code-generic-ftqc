@@ -120,7 +120,8 @@ def run_and_plot(probs=None, max_shots=1_000_000, max_errors=1000, num_workers=4
     for p in probs:
         c = build_golay_circuit(p)
         dem = c.detector_error_model(
-            decompose_errors=True, ignore_decomposition_failures=True)
+            decompose_errors=True, ignore_decomposition_failures=True,
+            max_detector_error_model_errors=10000)
         tasks.append(Task(
             circuit=c,
             detector_error_model=dem,
@@ -147,7 +148,7 @@ def run_and_plot(probs=None, max_shots=1_000_000, max_errors=1000, num_workers=4
     ax.set_title('Golay [[23,1,7]] Standalone (Phenomenological Noise)')
     ax.grid()
     fig.savefig('golay_standalone.pdf')
-    plt.show()
+    fig.show()
     return stats
 
 

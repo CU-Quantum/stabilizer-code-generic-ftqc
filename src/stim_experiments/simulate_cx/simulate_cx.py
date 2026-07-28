@@ -123,6 +123,7 @@ class SimulateCx:
             dem = c.detector_error_model(
                 decompose_errors=True,
                 ignore_decomposition_failures=True,
+                max_detector_error_model_errors=1000,
             )
             yield Task(
                 circuit=c,
