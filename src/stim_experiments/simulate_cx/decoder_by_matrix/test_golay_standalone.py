@@ -1,7 +1,11 @@
 """Standalone Golay [[23,1,7]] test with sinter + BP-OSD + plotting."""
 
 import matplotlib
-matplotlib.use('TkAgg')
+try:
+    import tkinter
+    matplotlib.use('TkAgg')
+except (ImportError, ModuleNotFoundError):
+    matplotlib.use('Agg')
 
 import numpy as np
 import stim
@@ -143,7 +147,8 @@ def run_and_plot(probs=None, max_shots=1_000_000, max_errors=1000, num_workers=4
     ax.set_title('Golay [[23,1,7]] Standalone (Phenomenological Noise)')
     ax.grid()
     fig.savefig('golay_standalone.pdf')
-    plt.show()
+    if matplotlib.get_backend() != 'Agg':
+        plt.show()
     return stats
 
 
