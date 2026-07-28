@@ -85,16 +85,7 @@ class SimulateCx:
                 final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)],
             )
         if self._decoder_name == 'exact_mw':
-            combined_symplectic_matrix, _ = self.get_combined_symplectic()
-            n_target = len(self._target_code_utilities.symplectic_matrix)
-            partition = PartitionDecoder(
-                combined_symplectic_matrix=combined_symplectic_matrix,
-                num_target_stabilizers=n_target,
-                distance=self._num_cat_states,
-                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                target_decoder='bposd' if n_target > 10 else 'lookup',
-            )
-            return ExactMwDemDecoder(fallback_decoder=partition)
+            return ExactMwDemDecoder(fallback_decoder=BpOsdDecoderForSinter())
         if self._decoder_name == 'partition':
             combined_symplectic_matrix, _ = self.get_combined_symplectic()
             n_target = len(self._target_code_utilities.symplectic_matrix)
