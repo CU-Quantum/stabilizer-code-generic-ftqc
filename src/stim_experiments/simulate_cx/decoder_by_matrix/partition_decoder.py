@@ -2,7 +2,6 @@ import numpy as np
 from ldpc.bposd_decoder import BpOsdDecoder
 from ldpc.ckt_noise import detector_error_model_to_check_matrices
 from sinter import CompiledDecoder, Decoder
-import pymatching
 
 
 def _filter_rows_cols(cm, row_mask):
@@ -56,33 +55,20 @@ class PartitionDecoder(Decoder):
         if self._target_decoder == 'lookup':
             tgt_lookup = _build_lookup_table(tgt_cm, tgt_obs, self._distance)
 
-        # --- Control MWPM via pymatching (uses edge matrix for matching) ---
-        edge_cm = matrices.edge_check_matrix.tocsc()
-        h2e = matrices.hyperedge_to_edge_matrix
-        edge_obs = matrices.edge_observables_matrix.toarray().astype(np.uint8)
-        ctrl_edge_cm, ctrl_edge_map = _filter_rows_cols(edge_cm, ~is_target)
-        ctrl_edge_obs = edge_obs[:, ctrl_edge_map]
-        ctrl_edge_priors = np.array(matrices.priors)
-        if len(ctrl_edge_map) > 0:
-            ctrl_matcher = pymatching.Matching(
-                ctrl_edge_cm,
-                weights=np.log((1 - ctrl_edge_priors[ctrl_edge_map]) /
-                               ctrl_edge_priors[ctrl_edge_map]))
-        else:
-            ctrl_matcher = None
+        # --- Control BP-OSD ---
+        ctrl_cm, ctrl_map = _filter_rows_cols(cm, ~is_target)
+        ctrl_priors = [priors[c] for c in ctrl_map]
+        ctrl_obs = obs[:, ctrl_map]
 
-        # Also keep hyperedge-level info for observable check and subtraction
-        ctrl_hyper_cm, ctrl_map = _filter_rows_cols(cm, ~is_target)
-        ctrl_hyper_obs = obs[:, ctrl_map]
+        ctrl_bposd = BpOsdDecoder(
+            ctrl_cm, error_channel=ctrl_priors,
+            max_iter=100, bp_method='ms', ms_scaling_factor=0.625,
+            schedule='parallel', osd_method='osd_cs', osd_order=10,
+        )
 
         return CompiledPartitionDecoder(
             tgt_bposd=tgt_bposd, tgt_obs=tgt_obs, tgt_lookup=tgt_lookup,
-            tgt_map=tgt_map,
-            ctrl_matcher=ctrl_matcher,
-            ctrl_edge_obs=ctrl_edge_obs,
-            ctrl_map=ctrl_map,
-            ctrl_hyper_obs=ctrl_hyper_obs,
-            h2e=h2e,
+            tgt_map=tgt_map, ctrl_bposd=ctrl_bposd, ctrl_map=ctrl_map,
             full_cm=cm, full_obs=obs,
             num_detectors=num_detectors,
             is_target=is_target,
@@ -124,17 +110,14 @@ class _EmptyDecoder(CompiledDecoder):
 
 class CompiledPartitionDecoder(CompiledDecoder):
     def __init__(self, tgt_bposd, tgt_obs, tgt_lookup, tgt_map,
-                 ctrl_matcher, ctrl_edge_obs, ctrl_map, ctrl_hyper_obs, h2e,
-                 full_cm, full_obs, num_detectors, is_target, has_cx):
+                 ctrl_bposd, ctrl_map, full_cm, full_obs,
+                 num_detectors, is_target, has_cx):
         self._tgt_bposd = tgt_bposd
         self._tgt_obs = tgt_obs
         self._tgt_lookup = tgt_lookup
         self._tgt_map = tgt_map
-        self._ctrl_matcher = ctrl_matcher
-        self._ctrl_edge_obs = ctrl_edge_obs
+        self._ctrl_bposd = ctrl_bposd
         self._ctrl_map = ctrl_map
-        self._ctrl_hyper_obs = ctrl_hyper_obs
-        self._h2e = h2e
         self._full_cm = full_cm
         self._full_obs = full_obs
         self._num_detectors = num_detectors
@@ -170,21 +153,17 @@ class CompiledPartitionDecoder(CompiledDecoder):
                 contrib = (self._full_cm[~self._is_target, :] @ full_c) % 2
                 cs ^= contrib.astype(np.uint8)
 
-            # Step 3: decode control via MWPM (edge-based)
-            ctrl_hyper_corr = None
-            if cs.any() and self._ctrl_matcher is not None:
-                edge_corr = self._ctrl_matcher.decode(cs)
-                if edge_corr is not None and edge_corr.any():
-                    ctrl_hyper_corr = (self._h2e.T @ edge_corr) % 2
+            # Step 3: decode control via BP-OSD
+            ctrl_corr = self._ctrl_bposd.decode(cs) if cs.any() else None
 
             # Step 4: union correction + observable
             full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
             if tgt_corr is not None:
                 for j, col in enumerate(self._tgt_map):
                     full_c[col] |= tgt_corr[j]
-            if ctrl_hyper_corr is not None:
+            if ctrl_corr is not None:
                 for j, col in enumerate(self._ctrl_map):
-                    full_c[col] |= ctrl_hyper_corr[j]
+                    full_c[col] |= ctrl_corr[j]
 
             pred = ((self._full_obs @ full_c) % 2).astype(np.uint8)
             if pred.size == 1:
