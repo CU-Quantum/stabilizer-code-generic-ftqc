@@ -11,6 +11,8 @@ from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
 from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
 from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
 from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
+from stim_experiments.simulate_cx.decoder_by_matrix.partition_decoder import PartitionDecoder
+from stim_experiments.simulate_cx.decoder_by_matrix.symplectic_bposd_decoder import SymplecticBpOsdDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
@@ -75,9 +77,34 @@ class SimulateCx:
 
     def build_decoder(self):
         if self._decoder_name == 'bposd':
-            return BpOsdDecoderForSinter()
+            combined_symplectic_matrix, observables = self.get_combined_symplectic()
+            return SymplecticBpOsdDecoder(
+                symplectic_matrix=combined_symplectic_matrix,
+                z_observable=observables[0],
+                distance=self._num_cat_states,
+                final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)],
+            )
         if self._decoder_name == 'exact_mw':
-            return ExactMwDemDecoder()
+            combined_symplectic_matrix, _ = self.get_combined_symplectic()
+            n_target = len(self._target_code_utilities.symplectic_matrix)
+            partition = PartitionDecoder(
+                combined_symplectic_matrix=combined_symplectic_matrix,
+                num_target_stabilizers=n_target,
+                distance=self._num_cat_states,
+                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
+                target_decoder='bposd' if n_target > 10 else 'lookup',
+            )
+            return ExactMwDemDecoder(fallback_decoder=partition)
+        if self._decoder_name == 'partition':
+            combined_symplectic_matrix, _ = self.get_combined_symplectic()
+            n_target = len(self._target_code_utilities.symplectic_matrix)
+            return PartitionDecoder(
+                combined_symplectic_matrix=combined_symplectic_matrix,
+                num_target_stabilizers=n_target,
+                distance=self._num_cat_states,
+                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
+                target_decoder='bposd' if n_target > 10 else 'lookup',
+            )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
         return DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
@@ -92,8 +119,14 @@ class SimulateCx:
     def generate_sinter_tasks(self):
         probs = self._run_configuration.depolarization_probabilities
         for idx, p in enumerate(probs):
+            c = self.generate_task_circuit(physical_error_rate=p)
+            dem = c.detector_error_model(
+                decompose_errors=True,
+                ignore_decomposition_failures=True,
+            )
             yield Task(
-                circuit=self.generate_task_circuit(physical_error_rate=p),
+                circuit=c,
+                detector_error_model=dem,
                 json_metadata={
                     'physical_error_rate': p,
                     'distance': self._num_cat_states,

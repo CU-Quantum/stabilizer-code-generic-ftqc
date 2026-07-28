@@ -147,8 +147,7 @@ def run_and_plot(probs=None, max_shots=1_000_000, max_errors=1000, num_workers=4
     ax.set_title('Golay [[23,1,7]] Standalone (Phenomenological Noise)')
     ax.grid()
     fig.savefig('golay_standalone.pdf')
-    if matplotlib.get_backend() != 'Agg':
-        plt.show()
+    plt.show()
     return stats
 
 
