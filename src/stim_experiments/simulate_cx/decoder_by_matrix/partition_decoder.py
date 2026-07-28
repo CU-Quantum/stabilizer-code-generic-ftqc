@@ -66,13 +66,17 @@ class PartitionDecoder(Decoder):
             schedule='parallel', osd_method='osd_cs', osd_order=10,
         )
 
+        modified_detector_index = None
+        if self._modified_index is not None and self._modified_index < num_gens:
+            modified_detector_index = (num_repeats - 1) * num_gens + self._modified_index
+
         return CompiledPartitionDecoder(
             tgt_bposd=tgt_bposd, tgt_obs=tgt_obs, tgt_lookup=tgt_lookup,
             tgt_map=tgt_map, ctrl_bposd=ctrl_bposd, ctrl_map=ctrl_map,
             full_cm=cm, full_obs=obs,
             num_detectors=num_detectors,
             is_target=is_target,
-            should_subtract_tgt=(self._modified_index is not None),
+            modified_detector_index=modified_detector_index,
         )
 
 
@@ -111,7 +115,7 @@ class _EmptyDecoder(CompiledDecoder):
 class CompiledPartitionDecoder(CompiledDecoder):
     def __init__(self, tgt_bposd, tgt_obs, tgt_lookup, tgt_map,
                  ctrl_bposd, ctrl_map, full_cm, full_obs,
-                 num_detectors, is_target, should_subtract_tgt):
+                 num_detectors, is_target, modified_detector_index):
         self._tgt_bposd = tgt_bposd
         self._tgt_obs = tgt_obs
         self._tgt_lookup = tgt_lookup
@@ -122,7 +126,7 @@ class CompiledPartitionDecoder(CompiledDecoder):
         self._full_obs = full_obs
         self._num_detectors = num_detectors
         self._is_target = is_target
-        self._should_subtract_tgt = should_subtract_tgt
+        self._modified_detector_index = modified_detector_index
 
     def decode_shots_bit_packed(self, *, bit_packed_detection_event_data):
         unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1,
@@ -144,13 +148,23 @@ class CompiledPartitionDecoder(CompiledDecoder):
             # Step 1: decode target
             tgt_corr = self._decode_target(ts)
 
-            # Step 2: subtract target correction's effect on control detectors
-            if tgt_corr is not None and self._should_subtract_tgt:
-                full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
+            # Step 2: if target correction flips X observable, flip
+            # the specific modified stabilizer detector in the control syndrome
+            if (tgt_corr is not None and
+                    self._modified_detector_index is not None):
+                tgt_full = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
                 for j, col in enumerate(self._tgt_map):
-                    full_c[col] = tgt_corr[j]
-                contrib = (self._full_cm[~self._is_target, :] @ full_c) % 2
-                cs ^= contrib.astype(np.uint8)
+                    tgt_full[col] = tgt_corr[j]
+                # Check if target correction implies an observable flip
+                tgt_x_flip = (self._full_obs @ tgt_full) % 2
+                if tgt_x_flip.any():
+                    # The modified detector is in the control partition.
+                    # Find its index within the control-only unpacked array.
+                    mod_idx_in_ctrl = (
+                        self._modified_detector_index
+                        - np.sum(self._is_target[:self._modified_detector_index])
+                    )
+                    cs[mod_idx_in_ctrl] ^= 1
 
             # Step 3: decode control
             ctrl_corr = self._ctrl_bposd.decode(cs) if cs.any() else None
