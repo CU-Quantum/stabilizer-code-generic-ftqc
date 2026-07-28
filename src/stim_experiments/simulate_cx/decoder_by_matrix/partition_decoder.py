@@ -158,7 +158,8 @@ class CompiledPartitionDecoder(CompiledDecoder):
             # Step 3: decode control via MWPM (returns observable prediction)
             ctrl_pred = 0
             if cs.any() and self._ctrl_matcher is not None:
-                ctrl_pred = int(self._ctrl_matcher.decode(cs) % 2)
+                pred_arr = self._ctrl_matcher.decode(cs)
+                ctrl_pred = int(pred_arr[0] & 1)
 
             # Step 4: XOR predictions
             predictions[i, 0] = tgt_pred ^ ctrl_pred
