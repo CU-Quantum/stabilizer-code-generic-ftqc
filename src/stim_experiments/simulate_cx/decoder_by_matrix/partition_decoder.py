@@ -66,17 +66,13 @@ class PartitionDecoder(Decoder):
             schedule='parallel', osd_method='osd_cs', osd_order=10,
         )
 
-        modified_detector_index = None
-        if self._modified_index is not None and self._modified_index < num_gens:
-            modified_detector_index = (num_repeats - 1) * num_gens + self._modified_index
-
         return CompiledPartitionDecoder(
             tgt_bposd=tgt_bposd, tgt_obs=tgt_obs, tgt_lookup=tgt_lookup,
             tgt_map=tgt_map, ctrl_bposd=ctrl_bposd, ctrl_map=ctrl_map,
             full_cm=cm, full_obs=obs,
             num_detectors=num_detectors,
             is_target=is_target,
-            modified_detector_index=modified_detector_index,
+            should_subtract_tgt=(self._modified_index is not None),
         )
 
 
@@ -115,7 +111,7 @@ class _EmptyDecoder(CompiledDecoder):
 class CompiledPartitionDecoder(CompiledDecoder):
     def __init__(self, tgt_bposd, tgt_obs, tgt_lookup, tgt_map,
                  ctrl_bposd, ctrl_map, full_cm, full_obs,
-                 num_detectors, is_target, modified_detector_index):
+                 num_detectors, is_target, should_subtract_tgt):
         self._tgt_bposd = tgt_bposd
         self._tgt_obs = tgt_obs
         self._tgt_lookup = tgt_lookup
@@ -126,7 +122,7 @@ class CompiledPartitionDecoder(CompiledDecoder):
         self._full_obs = full_obs
         self._num_detectors = num_detectors
         self._is_target = is_target
-        self._modified_detector_index = modified_detector_index
+        self._should_subtract_tgt = should_subtract_tgt
 
     def decode_shots_bit_packed(self, *, bit_packed_detection_event_data):
         unpacked = np.unpackbits(bit_packed_detection_event_data, axis=1,
@@ -148,8 +144,8 @@ class CompiledPartitionDecoder(CompiledDecoder):
             # Step 1: decode target
             tgt_corr = self._decode_target(ts)
 
-            # Step 2: subtract target contribution from control syndrome
-            if tgt_corr is not None and self._modified_detector_index is not None:
+            # Step 2: subtract target correction's effect on control detectors
+            if tgt_corr is not None and self._should_subtract_tgt:
                 full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
                 for j, col in enumerate(self._tgt_map):
                     full_c[col] = tgt_corr[j]
