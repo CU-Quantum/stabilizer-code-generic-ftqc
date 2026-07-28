@@ -2,6 +2,7 @@ import numpy as np
 from ldpc.bposd_decoder import BpOsdDecoder
 from ldpc.ckt_noise import detector_error_model_to_check_matrices
 from sinter import CompiledDecoder, Decoder
+import pymatching
 
 
 def _filter_rows_cols(cm, row_mask):
@@ -55,20 +56,18 @@ class PartitionDecoder(Decoder):
         if self._target_decoder == 'lookup':
             tgt_lookup = _build_lookup_table(tgt_cm, tgt_obs, self._distance)
 
-        # --- Control BP-OSD ---
-        ctrl_cm, ctrl_map = _filter_rows_cols(cm, ~is_target)
-        ctrl_priors = [priors[c] for c in ctrl_map]
-        ctrl_obs = obs[:, ctrl_map]
-
-        ctrl_bposd = BpOsdDecoder(
-            ctrl_cm, error_channel=ctrl_priors,
-            max_iter=100, bp_method='ms', ms_scaling_factor=0.625,
-            schedule='parallel', osd_method='osd_cs', osd_order=10,
-        )
+        # --- Control MWPM via pymatching (edge-level matching) ---
+        edge_cm = matrices.edge_check_matrix.tocsc()
+        ctrl_edge_cm, _ctrl_edge_map = _filter_rows_cols(edge_cm, ~is_target)
+        ctrl_edge_priors_vec = np.array(matrices.priors)
+        if ctrl_edge_cm.shape[1] > 0:
+            ctrl_matcher = pymatching.Matching(ctrl_edge_cm)
+        else:
+            ctrl_matcher = None
 
         return CompiledPartitionDecoder(
             tgt_bposd=tgt_bposd, tgt_obs=tgt_obs, tgt_lookup=tgt_lookup,
-            tgt_map=tgt_map, ctrl_bposd=ctrl_bposd, ctrl_map=ctrl_map,
+            tgt_map=tgt_map, ctrl_matcher=ctrl_matcher,
             full_cm=cm, full_obs=obs,
             num_detectors=num_detectors,
             is_target=is_target,
@@ -110,14 +109,13 @@ class _EmptyDecoder(CompiledDecoder):
 
 class CompiledPartitionDecoder(CompiledDecoder):
     def __init__(self, tgt_bposd, tgt_obs, tgt_lookup, tgt_map,
-                 ctrl_bposd, ctrl_map, full_cm, full_obs,
+                 ctrl_matcher, full_cm, full_obs,
                  num_detectors, is_target, has_cx):
         self._tgt_bposd = tgt_bposd
         self._tgt_obs = tgt_obs
         self._tgt_lookup = tgt_lookup
         self._tgt_map = tgt_map
-        self._ctrl_bposd = ctrl_bposd
-        self._ctrl_map = ctrl_map
+        self._ctrl_matcher = ctrl_matcher
         self._full_cm = full_cm
         self._full_obs = full_obs
         self._num_detectors = num_detectors
@@ -141,11 +139,15 @@ class CompiledPartitionDecoder(CompiledDecoder):
             if not ts.any() and not cs.any():
                 continue
 
-            # Step 1: decode target
+            # Step 1: decode target (BP-OSD)
             tgt_corr = self._decode_target(ts)
 
-            # Step 2: if CX was performed, subtract target error's
-            # propagated effect on control detectors via the check matrix
+            # Compute target observable prediction
+            tgt_pred = 0
+            if tgt_corr is not None:
+                tgt_pred = int((self._tgt_obs @ tgt_corr) % 2)
+
+            # Step 2: subtract target contribution from control syndrome
             if tgt_corr is not None and self._has_cx:
                 full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
                 for j, col in enumerate(self._tgt_map):
@@ -153,21 +155,13 @@ class CompiledPartitionDecoder(CompiledDecoder):
                 contrib = (self._full_cm[~self._is_target, :] @ full_c) % 2
                 cs ^= contrib.astype(np.uint8)
 
-            # Step 3: decode control via BP-OSD
-            ctrl_corr = self._ctrl_bposd.decode(cs) if cs.any() else None
+            # Step 3: decode control via MWPM (returns observable prediction)
+            ctrl_pred = 0
+            if cs.any() and self._ctrl_matcher is not None:
+                ctrl_pred = int(self._ctrl_matcher.decode(cs) % 2)
 
-            # Step 4: union correction + observable
-            full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
-            if tgt_corr is not None:
-                for j, col in enumerate(self._tgt_map):
-                    full_c[col] |= tgt_corr[j]
-            if ctrl_corr is not None:
-                for j, col in enumerate(self._ctrl_map):
-                    full_c[col] |= ctrl_corr[j]
-
-            pred = ((self._full_obs @ full_c) % 2).astype(np.uint8)
-            if pred.size == 1:
-                predictions[i, 0] = pred[0] & 1
+            # Step 4: XOR predictions
+            predictions[i, 0] = tgt_pred ^ ctrl_pred
 
         return predictions
 
