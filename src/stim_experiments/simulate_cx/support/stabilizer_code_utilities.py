@@ -198,16 +198,53 @@ def get_15_1_3_reed_solomon_code_utilities():
 
 def get_golay_code_utilities():
     symplectic_matrix = get_check_matrix_values_golay()
-    n_qubits = symplectic_matrix.shape[1] // 2  # 23
-    n_stabilizers = symplectic_matrix.shape[0]  # 22
+    n_qubits = symplectic_matrix.shape[1] // 2
+    n_stabilizers = symplectic_matrix.shape[0]
     assert n_stabilizers == 22 and n_qubits == 23
-    r = n_stabilizers // 2  # 11
+    r = n_stabilizers // 2
+
+    H = symplectic_matrix[:r, :n_qubits].astype(np.uint8)
+
+    anticom_z_solutions = np.zeros((r, n_qubits), dtype=np.uint8)
+    for target_col in range(r):
+        aug = np.zeros((r, n_qubits + 1), dtype=np.uint8)
+        aug[:, :n_qubits] = H.copy()
+        aug[target_col, n_qubits] = 1
+        col = 0
+        for row in range(r):
+            while col < n_qubits:
+                pivot_found = False
+                for i in range(row, r):
+                    if aug[i, col]:
+                        aug[[row, i]] = aug[[i, row]]
+                        pivot_found = True
+                        break
+                if pivot_found:
+                    break
+                col += 1
+            if col >= n_qubits:
+                break
+            for i in range(r):
+                if i != row and aug[i, col]:
+                    aug[i] ^= aug[row]
+            col += 1
+        a = np.zeros(n_qubits, dtype=np.uint8)
+        for row in range(r):
+            pivot_col = None
+            for j in range(n_qubits):
+                if aug[row, j]:
+                    pivot_col = j
+                    break
+            if pivot_col is not None:
+                a[pivot_col] = aug[row, n_qubits]
+        anticom_z_solutions[target_col] = a
+
     anticommutators = np.zeros((n_stabilizers, 2 * n_qubits), dtype=int)
-    for i in range(r):
-        anticommutators[i, n_qubits + i] = 1
-        anticommutators[r + i, i] = 1
-    x_obs_part = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1], dtype=int)
-    z_obs_part = np.array([1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0], dtype=int)
+    anticommutators[:r, n_qubits:] = anticom_z_solutions
+    anticommutators[r:, :n_qubits] = anticom_z_solutions
+
+    x_obs_part = np.array([1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=int)
+    z_obs_part = np.array([1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=int)
     observable_x = np.concatenate([x_obs_part, np.zeros(n_qubits, dtype=int)])
     observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), z_obs_part])
     return StabilizerCodeUtilities(
@@ -270,28 +307,6 @@ def get_dodecacode_utilities():
     ])
     observable_z = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     observable_x = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-    return StabilizerCodeUtilities(
-        symplectic_matrix=symplectic_matrix,
-        generator_anticommutators=anticommutators,
-        z_observable=observable_z,
-        x_observable=observable_x
-    )
-
-
-def get_golay_code_utilities():
-    symplectic_matrix = get_check_matrix_values_golay()
-    n_qubits = symplectic_matrix.shape[1] // 2
-    n_stabilizers = symplectic_matrix.shape[0]
-    assert n_stabilizers == 22 and n_qubits == 23
-    r = n_stabilizers // 2
-    anticommutators = np.zeros((n_stabilizers, 2 * n_qubits), dtype=int)
-    for i in range(r):
-        anticommutators[i, n_qubits + i] = 1
-        anticommutators[r + i, i] = 1
-    x_obs_part = np.array([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1], dtype=int)
-    z_obs_part = np.array([1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0], dtype=int)
-    observable_x = np.concatenate([x_obs_part, np.zeros(n_qubits, dtype=int)])
-    observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), z_obs_part])
     return StabilizerCodeUtilities(
         symplectic_matrix=symplectic_matrix,
         generator_anticommutators=anticommutators,
