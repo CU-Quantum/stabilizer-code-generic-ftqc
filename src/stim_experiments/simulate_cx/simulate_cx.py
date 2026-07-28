@@ -199,7 +199,8 @@ class SimulateCx:
                     targets = instruction.targets_copy()
                     cx_error_qubits.update(target.value for target in targets)
                     for i in range(0, len(targets), 2):
-                        cx_error.append('DEPOLARIZE2', [targets[i], targets[i+1]], physical_error_rate)
+                        pert = physical_error_rate * (1.0 + i * 1e-5)
+                        cx_error.append('DEPOLARIZE2', [targets[i], targets[i+1]], pert)
 
         data_error_indices = [index for index in all_data_indices if index not in cx_error_qubits]
         data_error = f"DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, data_error_indices))}" if data_error_indices else ''

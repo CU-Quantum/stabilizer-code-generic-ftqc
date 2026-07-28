@@ -95,19 +95,32 @@ def _poly_mod(x: int, modulus: int) -> int:
     return x
 
 
-def get_check_matrix_values_golay() -> TYPE_CHECK_MATRIX:
+def get_check_matrix_values_golay(balanced: bool = True) -> TYPE_CHECK_MATRIX:
     """Golay [[23,1,7]] CSS code from the binary [23,12,7] Golay code.
 
-    Uses the cyclic parity check matrix H1 from arXiv:2512.11307 (eq. 4),
-    based on polynomial h(x) = x^12 + x^10 + x^7 + x^4 + x^3 + x^2 + x + 1.
-    22 stabilizers for 23 physical qubits, 1 logical qubit, distance 7.
+    When balanced=True, uses the cyclic parity check matrix H1 from
+    arXiv:2512.11307 (eq. 4). Column weights are 1-7 (3 weight-1 cols).
+
+    When balanced=False, uses the original systematic-form matrix
+    generated from g(x) = x^11 + x^9 + x^7 + x^6 + x^5 + x + 1.
+    Column weights are uneven (11 weight-1 cols).
     """
     n, r = 23, 11
-    H1 = zeros((r, n), dtype=int)
-    H1[0] = [1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0]
-    for i in range(1, r):
-        H1[i] = roll(H1[0], i)
+
+    if balanced:
+        H = zeros((r, n), dtype=int)
+        H[0] = [1,1,1,1,1,0,0,1,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0]
+        for i in range(1, r):
+            H[i] = roll(H[0], i)
+    else:
+        g = (1 << 11) | (1 << 9) | (1 << 7) | (1 << 6) | (1 << 5) | (1 << 1) | 1
+        H = zeros((r, n), dtype=int)
+        for i in range(n):
+            rem = _poly_mod(1 << i, g)
+            for j in range(r):
+                H[j, i] = (rem >> j) & 1
+
     full = zeros((2 * r, 2 * n), dtype=int)
-    full[:r, :n] = H1
-    full[r:2 * r, n:2 * n] = H1
+    full[:r, :n] = H
+    full[r:2 * r, n:2 * n] = H
     return full

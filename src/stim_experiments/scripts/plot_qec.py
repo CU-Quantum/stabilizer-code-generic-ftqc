@@ -4,7 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from sinter import TaskStats, plot_error_rate
 
-from stim_experiments.scripts import dodecacode, five_qubit
+from stim_experiments.scripts import dodecacode, five_qubit, golay
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -17,6 +17,12 @@ class PlotConfig:
 
 
 PLOT_CONFIGS = [
+    PlotConfig(
+        code_title='Golay',
+        output_graph_filename=Path(golay.__file__).parent / 'golay.pdf',
+        stats_dir=golay.__file__,
+        ymin_order=10,
+    ),
     PlotConfig(
         code_title='Dodecacode',
         output_graph_filename=Path(dodecacode.__file__).parent / 'dodecacode.pdf',

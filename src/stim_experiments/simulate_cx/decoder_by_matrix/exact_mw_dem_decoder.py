@@ -10,20 +10,15 @@ from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDe
 
 
 class ExactMwDemDecoder(Decoder):
-    """Minimum-weight decoder over the detector error model.
-
-    Exact for syndromes explainable by at most two error mechanisms
-    (precomputed table), meet-in-the-middle for weight three, and falls back
-    to BP-OSD for rarer, heavier syndromes. Ties between equal-weight
-    solutions are broken by summing mechanism priors per observable class.
-    """
+    def __init__(self, fallback_decoder: Decoder = None):
+        self._fallback_decoder = fallback_decoder
 
     def compile_decoder_for_dem(self, *, dem: DetectorErrorModel) -> CompiledDecoder:
         matrices = detector_error_model_to_check_matrices(dem, allow_undecomposed_hyperedges=True)
         check_matrix = matrices.check_matrix.toarray().astype(bool)
         observables_matrix = matrices.observables_matrix.toarray().astype(np.uint8)
         priors = np.array(matrices.priors)
-        fallback = BpOsdDecoderForSinter().compile_decoder_for_dem(dem=dem)
+        fallback = (self._fallback_decoder or BpOsdDecoderForSinter()).compile_decoder_for_dem(dem=dem)
         return CompiledExactMwDemDecoder(check_matrix=check_matrix,
                                          observables_matrix=observables_matrix,
                                          priors=priors,

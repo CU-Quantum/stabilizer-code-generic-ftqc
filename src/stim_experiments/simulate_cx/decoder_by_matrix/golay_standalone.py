@@ -19,7 +19,7 @@ from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_g
 
 def build_golay_circuit(p: float) -> stim.Circuit:
     """Build standalone Golay phenomenological noise circuit."""
-    utils = get_golay_code_utilities()
+    utils = get_golay_code_utilities(balanced=True)
     S = utils.symplectic_matrix
     n = len(utils.data_indices)
     ng = S.shape[0]
