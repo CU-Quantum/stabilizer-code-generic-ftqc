@@ -2,9 +2,10 @@
 
 #SBATCH --account=ucb685_asc2
 #SBATCH --time=24:00:00
-#SBATCH --array=0-999
-#SBATCH --partition=acpu
-#SBATCH --qos=cpu-normal
+#SBATCH --array=0-998
+#SBATCH --partition=amem
+#SBATCH --qos=mem-normal
+#SBATCH --mem=512G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=golay
