@@ -243,10 +243,8 @@ def get_golay_code_utilities(balanced: bool = True):
     anticommutators[:r, n_qubits:] = anticom_z_solutions
     anticommutators[r:, :n_qubits] = anticom_z_solutions
 
-    x_obs_part = np.array([1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=int)
-    z_obs_part = np.array([1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], dtype=int)
-    observable_x = np.concatenate([x_obs_part, np.zeros(n_qubits, dtype=int)])
-    observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), z_obs_part])
+    observable_x = np.concatenate([np.ones(n_qubits, dtype=int), np.zeros(n_qubits, dtype=int)])
+    observable_z = np.concatenate([np.zeros(n_qubits, dtype=int), np.ones(n_qubits, dtype=int)])
     return StabilizerCodeUtilities(
         symplectic_matrix=symplectic_matrix,
         generator_anticommutators=anticommutators,

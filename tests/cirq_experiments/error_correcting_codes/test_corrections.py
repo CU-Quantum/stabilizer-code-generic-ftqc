@@ -11,6 +11,7 @@ from cirq_experiments.error_correcting_codes.five_qubit_code.five_qubit_code imp
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
+from cirq_experiments.error_correcting_codes.golay_code.golay_code import GolayCode
 from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
@@ -18,7 +19,7 @@ from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from cirq_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
-from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_golay
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 from tests.cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.expected_states_generalized_shor_hadamard import \
     ExpectedStatesGeneralizedShorHadamard
 from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_states_five_qubit import \
@@ -79,7 +80,7 @@ SINGLE_ERROR_PARAMETERS = {
         qubit_indices_to_test=list(range(5)),
     ),
     "GenericStabilizerCodeGolay": ParametersForCorrectionsTest(
-        code=StabilizerStandardizedCode(generators=get_check_matrix_values_golay()),
+        code=GolayCode(),
         initial_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
         qubit_indices_to_test=[0, 11, 22],
     ),

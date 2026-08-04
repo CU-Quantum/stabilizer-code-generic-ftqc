@@ -225,9 +225,11 @@ class SimulateCx:
             {stabilizer_round}
             {self._round_detectors_absolute()}
             {middle_rounds}
+            {all_data_depolarizing_one_noise}
             {stabilizer_round}
             {self._round_detectors_difference()}
 
+            {all_data_depolarizing_one_noise}
             M {' '.join(map(str, measured_data_qubits))}
             {self._final_round_detectors(measured_data_qubits)}
             OBSERVABLE_INCLUDE(0) {observable_recs}
