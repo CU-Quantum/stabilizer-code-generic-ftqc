@@ -12,5 +12,4 @@ if __name__ == "__main__":
         num_cat_states=7,
         code_title='Golay Code',
         save_resume_filepath=Path(__file__).parent / 'save_resume',
-        max_si=run_configuration.max_si,
     ).run_main()

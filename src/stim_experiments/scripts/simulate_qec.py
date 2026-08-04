@@ -58,8 +58,7 @@ class SimulateQec:
                  code_title: str,
                  save_resume_filepath: Optional[Path] = None,
                  ymin_order: int = 10,
-                 decode_lookup_table_filepath: Optional[Path] = None,
-                 max_si: Optional[int] = None):
+                 decode_lookup_table_filepath: Optional[Path] = None):
         self._run_configuration = run_configuration
         self._target_code = target_code
         self._num_cat_states = num_cat_states
@@ -67,12 +66,11 @@ class SimulateQec:
         self._ymin_order = ymin_order
         self._save_resume_filepath = save_resume_filepath
         self._decode_lookup_table_filepath = decode_lookup_table_filepath
-        self._max_si = max_si
 
     def run_main(self):
         target_code = self._target_code
         for i in range(-1, self._num_cat_states):
-            if self._max_si is not None and i > self._max_si:
+            if self._run_configuration.max_si is not None and i > self._run_configuration.max_si:
                 continue
             SimulateCx(num_cat_states=self._num_cat_states,
                        target_code_utilities=target_code,
