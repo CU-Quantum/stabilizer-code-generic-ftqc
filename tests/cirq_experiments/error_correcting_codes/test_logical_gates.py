@@ -22,7 +22,9 @@ from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_stat
 from tests.cirq_experiments.error_correcting_codes.generalized_shor_code.expected_states_generalized_shor import ExpectedStatesGeneralizedShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_golay import \
+    ExpectedStatesGenericGolay
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_golay
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
@@ -56,6 +58,10 @@ PARAMETERS = {
     "GenericStabilizerCodeFiveQubit": ParametersForLogicalGatesTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         expected_states=ExpectedStatesGenericFiveQubit()
+    ),
+    "GenericStabilizerCodeGolay": ParametersForLogicalGatesTest(
+        code=StabilizerStandardizedCode(generators=get_check_matrix_values_golay()),
+        expected_states=ExpectedStatesGenericGolay()
     ),
     "FiveQubitCode": ParametersForLogicalGatesTest(
         code=FiveQubitCode(),

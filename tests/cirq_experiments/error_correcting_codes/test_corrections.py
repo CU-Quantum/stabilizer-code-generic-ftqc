@@ -18,7 +18,7 @@ from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 from cirq_experiments.simulations.error_correcting_simulator import get_error_correcting_simulator
 from cirq_experiments.utilities.utilities import TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, \
     states_are_equal, tensor
-from predefined_check_matrix_values import get_check_matrix_values_5_qubit
+from predefined_check_matrix_values import get_check_matrix_values_5_qubit, get_check_matrix_values_golay
 from tests.cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.expected_states_generalized_shor_hadamard import \
     ExpectedStatesGeneralizedShorHadamard
 from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_states_five_qubit import \
@@ -28,6 +28,8 @@ from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_stat
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
+from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_golay import \
+    ExpectedStatesGenericGolay
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.cirq_experiments.utilities_for_tests import get_cat_state_vector, set_configuration_to_reduce_ancilla_qubits
 
@@ -75,6 +77,11 @@ SINGLE_ERROR_PARAMETERS = {
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(5)),
+    ),
+    "GenericStabilizerCodeGolay": ParametersForCorrectionsTest(
+        code=StabilizerStandardizedCode(generators=get_check_matrix_values_golay()),
+        initial_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
+        qubit_indices_to_test=[0, 11, 22],
     ),
     "FiveQubitCode": ParametersForCorrectionsTest(
         code=FiveQubitCode(),
