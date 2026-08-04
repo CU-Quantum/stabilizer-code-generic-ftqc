@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass
@@ -11,3 +11,4 @@ class RunConfiguration:
     num_shards: int = 1
     shard_index: int = 0
     decoder_name: str = 'decoder_by_matrix'
+    max_si: Optional[int] = None

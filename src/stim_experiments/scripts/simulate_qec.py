@@ -34,6 +34,8 @@ def get_run_configuration() -> RunConfiguration:
     parser.add_argument('-d', '--decoder', type=str, default='decoder_by_matrix',
                         choices=['decoder_by_matrix', 'bposd', 'exact_mw', 'partition'],
                         help='Decoder to use.')
+    parser.add_argument('--max-si', type=int, default=None,
+                        help='Only simulate si values up to this (inclusive). Default: all.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")
     return RunConfiguration(
@@ -44,6 +46,7 @@ def get_run_configuration() -> RunConfiguration:
         num_shards=args.num_shards,
         shard_index=args.shard_index,
         decoder_name=args.decoder,
+        max_si=args.max_si,
     )
 
 
