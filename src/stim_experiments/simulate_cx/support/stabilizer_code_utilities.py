@@ -311,3 +311,12 @@ def get_dodecacode_utilities():
         z_observable=observable_z,
         x_observable=observable_x
     )
+
+
+def get_gsc_code_utilities(distance: int) -> StabilizerCodeUtilities:
+    return get_shor_code_utilities(
+        num_cat_states=distance,
+        num_qubits_per_cat_state=distance,
+        z_observable=get_shor_h_observable_z(distance),
+        x_observable=get_shor_h_observable_x(distance),
+    )
