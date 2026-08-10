@@ -94,7 +94,7 @@ class SimulateCx:
                 num_target_stabilizers=n_target,
                 distance=self._num_cat_states,
                 modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                target_decoder='bposd' if n_target > 10 else 'lookup',
+                target_decoder='mwpm' if n_target > 10 else 'lookup',
             )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
