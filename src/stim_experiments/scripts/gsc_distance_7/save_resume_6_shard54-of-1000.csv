@@ -1,2 +1,0 @@
-     shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
-         1,         0,         0,   0.015,partition,32243c11e7cf3a2576289b7368150398479e7f829dbc1ab1458b1f4244d35b67,"{""distance"":7,""physical_error_rate"":0.02}","{""detection_events"":69,""detectors_checked"":810}"
