@@ -20,62 +20,17 @@ from sinter import Task, collect, plot_error_rate
 from matplotlib import pyplot as plt
 
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_gsc_code_utilities
+from stim_experiments.simulate_cx.simulate_cx import SimulateCx
 from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
 from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
 
 
 def build_gsc_d7_circuit(p: float, code_capacity: bool = False) -> stim.Circuit:
-    utils = get_gsc_code_utilities(distance=7)
-    S = utils.symplectic_matrix
-    n = len(utils.data_indices)
-    ng = S.shape[0]
-    nr = 8  # distance + 1
-    z_obs = utils.z_observable
-    dqs = utils.data_indices
-
-    c = stim.Circuit()
-    c.append_from_stim_program_text(str(utils.get_init()))
-    c.append_from_stim_program_text(str(utils.get_encoding_by_stabilizer()))
-
-    if code_capacity:
-        for q in dqs:
-            c.append("DEPOLARIZE1", [q], p)
-
-    for r in range(nr):
-        if not code_capacity and r < nr - 1:
-            for q in dqs:
-                c.append("DEPOLARIZE1", [q], p)
-        meas_p = 0.0 if (code_capacity or r == nr - 1) else p
-        c.append_from_stim_program_text(
-            str(utils.get_stabilizers(measurement_error_rate=meas_p)))
-
-        if r == 0:
-            for i in range(ng):
-                c.append("DETECTOR", [stim.target_rec(-ng + i)])
-        else:
-            for i in range(ng):
-                c.append("DETECTOR",
-                         [stim.target_rec(-ng + i),
-                          stim.target_rec(-2 * ng + i)])
-
-    for q in dqs:
-        c.append("M", [q])
-
-    for i in range(ng):
-        stab = S[i]
-        z_part = stab[n:]
-        support = [dqs[q_] for q_ in range(n) if z_part[q_]]
-        if support and all(q_ in dqs for q_ in support):
-            targets = [stim.target_rec(-n + dqs.index(q_)) for q_ in support]
-            targets.append(stim.target_rec(-n - ng + i))
-            c.append("DETECTOR", targets)
-
-    obs_idx = sorted(set(np.where(z_obs == 1)[0] % n))
-    for q_ in obs_idx:
-        idx = dqs.index(q_)
-        c.append("OBSERVABLE_INCLUDE", [stim.target_rec(-n + idx)], 0)
-
-    return c
+    return SimulateCx.build_bare_circuit(
+        target_code=get_gsc_code_utilities(distance=7),
+        physical_error_rate=p,
+        num_rounds=8,
+    )
 
 
 def _build_decoder(decoder_name):

@@ -96,29 +96,32 @@ class _ExactMwDecoder:
         if cached is not None:
             return cached
 
-        for w in (1, 2):
-            entry = self._low_weight_table.get((w, key))
-            if entry is not None:
-                indices, _ = entry
-                corr = self._make_correction(indices)
-                pred = int(self._obs_from_corr(corr)[0] & 1)
-                result = (pred, corr)
-                if len(self._cache) < 10_000_000:
-                    self._cache[key] = result
-                return result
+        w = int(np.sum(sx))
 
-        for m in range(self._n_mech):
-            residual_key = (2, (sx ^ self._columns[m]).tobytes())
-            entry = self._low_weight_table.get(residual_key)
-            if entry is not None:
-                indices, _ = entry
-                all_indices = [m] + indices
-                corr = self._make_correction(all_indices)
-                pred = int(self._obs_from_corr(corr)[0] & 1)
-                result = (pred, corr)
-                if len(self._cache) < 10_000_000:
-                    self._cache[key] = result
-                return result
+        if w <= 3:
+            for wt in (1, 2):
+                entry = self._low_weight_table.get((wt, key))
+                if entry is not None:
+                    indices, _ = entry
+                    corr = self._make_correction(indices)
+                    pred = int(self._obs_from_corr(corr)[0] & 1)
+                    result = (pred, corr)
+                    if len(self._cache) < 10_000_000:
+                        self._cache[key] = result
+                    return result
+
+            for m in range(min(self._n_mech, 3000)):
+                residual_key = (2, (sx ^ self._columns[m]).tobytes())
+                entry = self._low_weight_table.get(residual_key)
+                if entry is not None:
+                    indices, _ = entry
+                    all_indices = [m] + indices
+                    corr = self._make_correction(all_indices)
+                    pred = int(self._obs_from_corr(corr)[0] & 1)
+                    result = (pred, corr)
+                    if len(self._cache) < 10_000_000:
+                        self._cache[key] = result
+                    return result
 
         if self._matcher is not None:
             fault_pred = self._matcher.decode(sx)

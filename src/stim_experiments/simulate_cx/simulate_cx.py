@@ -19,6 +19,42 @@ from stim_experiments.simulate_cx.support.stabilizer_code_utilities import Stabi
     get_shor_h_observable_z
 
 
+def _round_detectors_absolute_str(num_generators):
+    return '\n'.join([f'DETECTOR rec[{-num_generators + i}]' for i in range(num_generators)])
+
+
+def _round_detectors_difference_str(num_generators):
+    return '\n'.join([f'DETECTOR rec[{-num_generators + i}] rec[{-2 * num_generators + i}]' for i in range(num_generators)])
+
+
+def _final_round_detectors_str(S, dqs, measured_qubits, ng):
+    n_measured = len(measured_qubits)
+    lines = []
+    for i in range(S.shape[0]):
+        stab = S[i]
+        z_part = stab[len(dqs):]
+        support = [dqs[q_] for q_ in range(len(dqs)) if z_part[q_]]
+        if support and all(q_ in measured_qubits for q_ in support):
+            targets = [f'rec[{-(n_measured - measured_qubits.index(q_))}]' for q_ in support]
+            targets.append(f'rec[{-(n_measured + ng - i)}]')
+            lines.append(f"DETECTOR {' '.join(targets)}")
+    return '\n'.join(lines)
+
+
+def _observable_include_str(utils, measured_qubits):
+    z_obs = utils.z_observable
+    dqs = utils.data_indices
+    n = len(dqs)
+    obs_idx = sorted(set(np.where(z_obs == 1)[0] % n))
+    lines = []
+    for q_ in obs_idx:
+        qubit = dqs[q_]
+        idx = measured_qubits.index(qubit) if qubit in measured_qubits else None
+        if idx is not None:
+            lines.append(f'OBSERVABLE_INCLUDE(0) rec[{-(len(measured_qubits) - idx)}]')
+    return '\n'.join(lines)
+
+
 class SimulateCx:
     def __init__(self,
                  num_cat_states: int,
@@ -154,6 +190,47 @@ class SimulateCx:
         first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
 
         return combined_symplectic_matrix, observables
+
+    @staticmethod
+    def build_bare_circuit(target_code: StabilizerCodeUtilities,
+                           physical_error_rate: float,
+                           num_rounds: int) -> Circuit:
+        utils = target_code
+        S = utils.symplectic_matrix
+        n = len(utils.data_indices)
+        ng = S.shape[0]
+        dqs = utils.data_indices
+
+        z_obs = utils.z_observable
+        measured_indices = sorted(set(np.where(z_obs == 1)[0] % n))
+        measured_qubits = [dqs[q] for q in measured_indices]
+
+        num_middle_rounds = num_rounds - 2
+        stabilizer_round = str(utils.get_stabilizers(measurement_error_rate=physical_error_rate))
+        middle_rounds = f"""
+            REPEAT {num_middle_rounds} {{
+                DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+                {stabilizer_round}
+                {_round_detectors_difference_str(ng)}
+            }}
+        """ if num_middle_rounds > 0 else ''
+
+        circuit = Circuit(f"""
+            {utils.get_init()}
+            {utils.get_encoding_by_stabilizer()}
+
+            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+            {stabilizer_round}
+            {_round_detectors_absolute_str(ng)}
+            {middle_rounds}
+            {utils.get_stabilizers(measurement_error_rate=0.0)}
+            {_round_detectors_difference_str(ng)}
+
+            M {' '.join(map(str, measured_qubits))}
+            {_final_round_detectors_str(S, dqs, measured_qubits, ng)}
+            {_observable_include_str(utils, measured_qubits)}
+        """)
+        return circuit
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
         control_subregister_indices = self._control_subregister_indices
