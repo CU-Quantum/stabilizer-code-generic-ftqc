@@ -1,9 +1,0 @@
-     shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
-         4,         0,         0,   0.058,partition,431fe70890eb4cec2f3322c45f5589ae9a8046fdac8f600ec9dbcdac40b5e664,"{""distance"":7,""physical_error_rate"":0.01}","{""detection_events"":105,""detectors_checked"":3240}"
-         9,         0,         0,   0.105,partition,64f319b8bd3539db6128e74017c2797632990835c54ffc6d8fa31742ee58c6f0,"{""distance"":7,""physical_error_rate"":0.0005}","{""detection_events"":16,""detectors_checked"":7290}"
-         2,         0,         0,   0.018,partition,0e41868b3f0c40292b7fb8dbf970f40f180263cdac7a69f4e000b3788b91951a,"{""distance"":7,""physical_error_rate"":0.005}","{""detection_events"":21,""detectors_checked"":1620}"
-         5,         0,         0,   0.058,partition,5473c3d142478d856c9b7c33c66f676850325b25f6295537954cafef25d9f4b0,"{""distance"":7,""physical_error_rate"":0.002}","{""detection_events"":23,""detectors_checked"":4050}"
-         1,         0,         0,   0.015,partition,32243c11e7cf3a2576289b7368150398479e7f829dbc1ab1458b1f4244d35b67,"{""distance"":7,""physical_error_rate"":0.02}","{""detection_events"":69,""detectors_checked"":810}"
-         3,         1,         0,   0.051,partition,075ef5152d46abdffe646a0974cd0e44a8a1542d248e26b38aadc45b82401f23,"{""distance"":7,""physical_error_rate"":0.05}","{""detection_events"":414,""detectors_checked"":2430,""obs_mistake_mask=E"":1}"
-         2,         0,         0,   0.026,partition,74e74582b2a20fe932a8d82d7ffd37070a3d2f6f9ad7969c6e0b596b0c73b352,"{""distance"":7,""physical_error_rate"":0.0002}","{""detection_events"":3,""detectors_checked"":1620}"
-         2,         0,         0,   0.026,partition,e17a5d37b4c91bfdaa76180da502516da24ca185f4a1526d5385a7c4b528c6c8,"{""distance"":7,""physical_error_rate"":0.001}","{""detection_events"":2,""detectors_checked"":1620}"
