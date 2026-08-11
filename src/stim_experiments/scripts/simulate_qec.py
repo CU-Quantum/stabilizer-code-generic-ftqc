@@ -32,7 +32,7 @@ def get_run_configuration() -> RunConfiguration:
     parser.add_argument('--shard-index', type=int, default=default_shard_index,
                         help='Index of this shard (e.g., SLURM array task ID). Default from $SLURM_ARRAY_TASK_ID or 0.')
     parser.add_argument('-d', '--decoder', type=str, default='decoder_by_matrix',
-                        choices=['decoder_by_matrix', 'bposd', 'exact_mw', 'partition'],
+                        choices=['decoder_by_matrix', 'bposd', 'exact_mw', 'partition', 'standalone_exact_mw'],
                         help='Decoder to use.')
     parser.add_argument('--max-si', type=int, default=None,
                         help='Only simulate si values up to this (inclusive). Default: all.')

@@ -12,6 +12,7 @@ from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDe
 from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
 from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
 from stim_experiments.simulate_cx.decoder_by_matrix.partition_decoder import PartitionDecoder
+from stim_experiments.simulate_cx.decoder_by_matrix.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
 from stim_experiments.simulate_cx.decoder_by_matrix.symplectic_bposd_decoder import SymplecticBpOsdDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
@@ -41,11 +42,11 @@ def _final_round_detectors_str(S, dqs, measured_qubits, ng):
     return '\n'.join(lines)
 
 
-def _observable_include_str(utils, measured_qubits):
-    z_obs = utils.z_observable
+def _observable_include_str(utils, measured_qubits, use_x_obs=False):
+    obs_vec = utils.x_observable if use_x_obs else utils.z_observable
     dqs = utils.data_indices
     n = len(dqs)
-    obs_idx = sorted(set(np.where(z_obs == 1)[0] % n))
+    obs_idx = sorted(set(np.where(obs_vec == 1)[0] % n))
     lines = []
     for q_ in obs_idx:
         qubit = dqs[q_]
@@ -131,6 +132,17 @@ class SimulateCx:
                 modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                 target_decoder='mwpm' if n_target > 10 else 'lookup',
                 target_code_utilities=self._target_code_utilities,
+                control_code_utilities=self._control_code_utilities,
+            )
+        if self._decoder_name == 'standalone_exact_mw':
+            combined_symplectic_matrix, _ = self.get_combined_symplectic()
+            n_target = len(self._target_code_utilities.symplectic_matrix)
+            return StandaloneExactMwPartitionDecoder(
+                target_code_utilities=self._target_code_utilities,
+                control_code_utilities=self._control_code_utilities,
+                distance=self._num_cat_states,
+                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
+                num_target_stabilizers=n_target,
             )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
@@ -192,17 +204,56 @@ class SimulateCx:
         return combined_symplectic_matrix, observables
 
     @staticmethod
+    def build_bare_circuit_all_measured(target_code: StabilizerCodeUtilities,
+                                        physical_error_rate: float,
+                                        num_rounds: int) -> Circuit:
+        utils = target_code
+        S = utils.symplectic_matrix
+        n = len(utils.data_indices)
+        ng = S.shape[0]
+        dqs = utils.data_indices
+        measured_qubits = list(dqs)
+
+        num_middle_rounds = num_rounds - 2
+        stabilizer_round = str(utils.get_stabilizers(measurement_error_rate=physical_error_rate))
+        middle_rounds = f"""
+            REPEAT {num_middle_rounds} {{
+                DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+                {stabilizer_round}
+                {_round_detectors_difference_str(ng)}
+            }}
+        """ if num_middle_rounds > 0 else ''
+
+        circuit = Circuit(f"""
+            {utils.get_init()}
+            {utils.get_encoding_by_stabilizer()}
+
+            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+            {stabilizer_round}
+            {_round_detectors_absolute_str(ng)}
+            {middle_rounds}
+            {utils.get_stabilizers(measurement_error_rate=0.0)}
+            {_round_detectors_difference_str(ng)}
+
+            M {' '.join(map(str, measured_qubits))}
+            {_final_round_detectors_str(S, dqs, measured_qubits, ng)}
+            {_observable_include_str(utils, measured_qubits, use_x_obs=False)}
+        """)
+        return circuit
+
+    @staticmethod
     def build_bare_circuit(target_code: StabilizerCodeUtilities,
                            physical_error_rate: float,
-                           num_rounds: int) -> Circuit:
+                           num_rounds: int,
+                           use_x_observable: bool = False) -> Circuit:
         utils = target_code
         S = utils.symplectic_matrix
         n = len(utils.data_indices)
         ng = S.shape[0]
         dqs = utils.data_indices
 
-        z_obs = utils.z_observable
-        measured_indices = sorted(set(np.where(z_obs == 1)[0] % n))
+        obs = utils.x_observable if use_x_observable else utils.z_observable
+        measured_indices = sorted(set(np.where(obs == 1)[0] % n))
         measured_qubits = [dqs[q] for q in measured_indices]
 
         num_middle_rounds = num_rounds - 2
@@ -228,7 +279,7 @@ class SimulateCx:
 
             M {' '.join(map(str, measured_qubits))}
             {_final_round_detectors_str(S, dqs, measured_qubits, ng)}
-            {_observable_include_str(utils, measured_qubits)}
+            {_observable_include_str(utils, measured_qubits, use_x_observable)}
         """)
         return circuit
 
