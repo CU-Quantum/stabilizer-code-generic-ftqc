@@ -2,6 +2,7 @@ import numpy as np
 from ldpc.ckt_noise import detector_error_model_to_check_matrices
 from sinter import CompiledDecoder, Decoder
 import pymatching
+import stim
 
 
 def _filter_rows_cols(cm, row_mask):
@@ -138,12 +139,14 @@ class PartitionDecoder(Decoder):
     def __init__(self, combined_symplectic_matrix,
                  num_target_stabilizers,
                  distance, modified_index,
-                 target_decoder='bposd'):
+                 target_decoder='bposd',
+                 target_code_utilities=None):
         self._S = combined_symplectic_matrix
         self._n_tgt_stabs = num_target_stabilizers
         self._distance = distance
         self._modified_index = modified_index
         self._target_decoder = target_decoder
+        self._target_code_utilities = target_code_utilities
 
     def compile_decoder_for_dem(self, *, dem):
         matrices = detector_error_model_to_check_matrices(dem, allow_undecomposed_hyperedges=True)

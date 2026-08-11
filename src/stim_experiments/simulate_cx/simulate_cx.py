@@ -82,7 +82,6 @@ class SimulateCx:
             target_code_utilities=target_code_utilities,
             qubit_id_start=self._target_code_utilities.last_qubit_index + 1,
             row_coord_start=2,
-            existing_ancilla_indices=target_code_utilities.all_ancilla_qubits,
         )
 
     def run_main(self):
@@ -131,6 +130,7 @@ class SimulateCx:
                 distance=self._num_cat_states,
                 modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
                 target_decoder='mwpm' if n_target > 10 else 'lookup',
+                target_code_utilities=self._target_code_utilities,
             )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
@@ -280,6 +280,10 @@ class SimulateCx:
             {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
             {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
         """
+        last_stabilizer_round = f"""
+            {self._target_code_utilities.get_stabilizers(measurement_error_rate=0.0)}
+            {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=0.0)}
+        """
         num_middle_rounds = self._num_cat_states - 1
         middle_rounds = f"""
             REPEAT {num_middle_rounds} {{
@@ -302,7 +306,7 @@ class SimulateCx:
             {stabilizer_round}
             {self._round_detectors_absolute()}
             {middle_rounds}
-            {stabilizer_round}
+            {last_stabilizer_round}
             {self._round_detectors_difference()}
 
             M {' '.join(map(str, measured_data_qubits))}
