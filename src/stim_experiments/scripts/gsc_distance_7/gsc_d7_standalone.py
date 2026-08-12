@@ -19,7 +19,7 @@ import stim
 from sinter import Task, collect, plot_error_rate
 from matplotlib import pyplot as plt
 
-from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_gsc_code_utilities
+from stim_experiments.simulate_cx.support.stabilizer_code_utilities import get_gscx_code_utilities
 from stim_experiments.simulate_cx.simulate_cx import SimulateCx
 from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
 from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
@@ -27,7 +27,7 @@ from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDe
 
 def build_gsc_d7_circuit(p: float, code_capacity: bool = False) -> stim.Circuit:
     return SimulateCx.build_bare_circuit(
-        target_code=get_gsc_code_utilities(distance=7),
+        target_code=get_gscx_code_utilities(distance=7),
         physical_error_rate=p,
         num_rounds=8,
     )

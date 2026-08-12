@@ -313,7 +313,7 @@ def get_dodecacode_utilities():
     )
 
 
-def get_gsc_code_utilities(distance: int) -> StabilizerCodeUtilities:
+def get_gscx_code_utilities(distance: int) -> StabilizerCodeUtilities:
     return get_shor_code_utilities(
         num_cat_states=distance,
         num_qubits_per_cat_state=distance,
