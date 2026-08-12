@@ -143,6 +143,7 @@ class SimulateCx:
                 distance=self._num_cat_states,
                 modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
                 num_target_stabilizers=n_target,
+                si=self._si,
             )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
@@ -198,8 +199,15 @@ class SimulateCx:
         # target observable
         first_observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
         first_observable[len(first_observable) // 2:len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
-        # control observable
-        first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
+        # control observable (spaced z_observable of first si+1 subregisters)
+        ctrl_z_obs = self._control_code_utilities.z_observable
+        n_ctrl_data = len(self._control_code_utilities.data_indices)
+        ctrl_z_part = ctrl_z_obs[n_ctrl_data:]
+        ctrl_obs_vec = np.zeros(n_ctrl_data, dtype=int)
+        for j in range(self._si + 1):
+            ctrl_obs_vec[j * self._num_qubits_per_cat_state] = ctrl_z_part[j * self._num_qubits_per_cat_state]
+        offset = len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2
+        first_observable[offset:offset + n_ctrl_data] = ctrl_obs_vec
 
         return combined_symplectic_matrix, observables
 
@@ -324,7 +332,7 @@ class SimulateCx:
         target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
         measured_data_qubits = self._measured_data_qubits
         observable_qubits = [self._target_code_utilities.data_indices[q] for q in target_measurement_indices] + \
-                            [ind for subreg in control_subregister_indices[:self._si + 1] for ind in subreg]
+                            [subreg[0] for subreg in control_subregister_indices[:self._si + 1]]
         num_measured = len(measured_data_qubits)
         observable_recs = ' '.join([f'rec[{-(num_measured - measured_data_qubits.index(q))}]' for q in observable_qubits])
         stabilizer_round = f"""

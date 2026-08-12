@@ -36,6 +36,8 @@ def get_run_configuration() -> RunConfiguration:
                         help='Decoder to use.')
     parser.add_argument('--max-si', type=int, default=None,
                         help='Only simulate si values up to this (inclusive). Default: all.')
+    parser.add_argument('--si', type=int, default=None,
+                        help='Only simulate this specific si value. Default: all.')
     args = parser.parse_args()
     print(f"Running with arguments: {args}")
     return RunConfiguration(
@@ -47,6 +49,7 @@ def get_run_configuration() -> RunConfiguration:
         shard_index=args.shard_index,
         decoder_name=args.decoder,
         max_si=args.max_si,
+        si=args.si,
     )
 
 
@@ -69,7 +72,9 @@ class SimulateQec:
 
     def run_main(self):
         target_code = self._target_code
-        for i in range(-1, self._num_cat_states):
+        si_values = [self._run_configuration.si] if self._run_configuration.si is not None \
+            else range(-1, self._num_cat_states)
+        for i in si_values:
             if self._run_configuration.max_si is not None and i > self._run_configuration.max_si:
                 continue
             SimulateCx(num_cat_states=self._num_cat_states,

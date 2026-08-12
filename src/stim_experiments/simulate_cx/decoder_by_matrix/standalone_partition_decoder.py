@@ -110,7 +110,7 @@ def _find_affected_qubit_offset(col, num_rounds, dist, nqpc):
 
 class StandaloneExactMwPartitionDecoder(Decoder):
     def __init__(self, target_code_utilities, control_code_utilities,
-                 distance, modified_index, num_target_stabilizers):
+                 distance, modified_index, num_target_stabilizers, si=-1):
         self._target_code = target_code_utilities
         self._control_code = control_code_utilities
         self._distance = distance
@@ -118,6 +118,8 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         self._num_target_stabs = num_target_stabilizers
         self._num_control_stabs = len(control_code_utilities.symplectic_matrix)
         self._num_rounds = distance + 1
+        self._si = si
+        self._num_active_blocks = si + 1  # number of cat blocks in the observable
 
     def compile_decoder_for_dem(self, *, dem):
         from stim_experiments.simulate_cx.simulate_cx import SimulateCx
@@ -195,25 +197,29 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         ctrl_obs = ctrl_mats.observables_matrix.toarray().astype(np.uint8)
         ctrl_priors = list(ctrl_mats.priors)
 
-        # Restrict observable to first (si+1) subregisters.
-        if has_cx:
-            si = self._modified_index - (nt + nc - self._distance + 1)
-            nqpc = self._distance  # qubits per cat block = distance
-            restricted_qubits = set(range(nqpc * (si + 1)))
-            ctrl_obs_arr = ctrl_obs.toarray().astype(np.uint8) if hasattr(ctrl_obs, 'toarray') else np.array(ctrl_obs, dtype=np.uint8)
+        # Restrict observable to first num_active_blocks subregisters.
+        # The combined circuit's control observable is Z on the first qubit
+        # of each active subregister (spaced by nqpc).
+        nqpc = self._distance  # qubits per cat block = distance
+        restricted_qubits = set(j * nqpc for j in range(self._num_active_blocks))
+        ctrl_obs_arr = ctrl_obs.toarray().astype(np.uint8) if hasattr(ctrl_obs, 'toarray') else np.array(ctrl_obs, dtype=np.uint8)
+        if self._num_active_blocks == 0:
+            ctrl_obs_arr[:] = 0
+        elif self._num_active_blocks < self._distance:
             for col_j in range(ctrl_cm.shape[1]):
                 col = ctrl_cm[:, col_j].toarray().flatten()
                 affected = _find_affected_qubit_offset(col.astype(np.uint8), num_rounds, self._distance, nqpc)
                 if affected is not None:
                     ctrl_obs_arr[0, col_j] = 1 if affected in restricted_qubits else 0
-            ctrl_obs = ctrl_obs_arr
+        # else: full observable (all blocks), leave unchanged
+        ctrl_obs = ctrl_obs_arr
 
         ctrl_edge_cm = ctrl_mats.edge_check_matrix.tocsc()
         ctrl_h2e = ctrl_mats.hyperedge_to_edge_matrix
         ctrl_edge_obs = ctrl_mats.edge_observables_matrix.toarray().astype(np.uint8)
 
         # Propagate column-level restriction to edge-level observable
-        if has_cx:
+        if self._num_active_blocks < self._distance:
             h2e_dense = ctrl_h2e.tocsc().toarray().astype(np.uint8)
             ctrl_edge_obs = (ctrl_obs @ h2e_dense.T) % 2
 

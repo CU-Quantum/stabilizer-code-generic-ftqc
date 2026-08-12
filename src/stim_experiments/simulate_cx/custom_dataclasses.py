@@ -13,3 +13,4 @@ class RunConfiguration:
     shard_index: int = 0
     decoder_name: str = 'decoder_by_matrix'
     max_si: Optional[int] = None
+    si: Optional[int] = None

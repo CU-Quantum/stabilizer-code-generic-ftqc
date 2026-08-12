@@ -65,8 +65,10 @@ class Main:
                     '#332288',
                     '#999933',
                     '#0072B2',
+                    '#000000',
+                    '#CC79A7',
                 ][i - 1],
-                'zorder': list(range(3, 9))[i - 1],
+                'zorder': list(range(3, 11))[i - 1],
                 'linestyle': [
                     (i * .05, ()),  # solid
                     (i * .05, (1, 1)),  # densely dotted
@@ -74,8 +76,10 @@ class Main:
                     (i * .05, (5, 7)),  # mediumly dashed
                     (i * .05, (5, 10)),  # loosely dashed
                     (i * .05, (1, 10)),  # loosely dotted
+                    (i * .05, (1, 5)),  # dot-dashed
+                    (i * .05, (3, 1, 1, 1)),  # dash-dot-dashed
                 ][i - 1],
-                'marker': ['D', 's', 'o', '^', 'v', ''][i - 1],
+                'marker': ['D', 's', 'o', '^', 'v', '', 'P', 'X'][i - 1],
             }
             is_baseline = not i
             label = "No $\\overline{{CX}}$" if is_baseline else f"$\\overline{{CX}}_{{\\mathcal{{S}}_{i - 1},\\mathcal{{Q}}_1}}$"
