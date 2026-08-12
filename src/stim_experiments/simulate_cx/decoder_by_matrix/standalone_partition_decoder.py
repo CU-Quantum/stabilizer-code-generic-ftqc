@@ -81,6 +81,33 @@ def _setup_edge_to_round(decoder, edge_cm, nt, num_rounds, edge_map):
     decoder._edge_to_round = edge_to_round
 
 
+def _find_affected_qubit_offset(col, num_rounds, dist, nqpc):
+    """Given a standalone control syndrome column, return the data qubit
+    offset (within n_data) for X/Y errors. Returns None if it's a Z error,
+    measurement error, or unidentifiable."""
+    per_round = len(col) // num_rounds
+    n_z = (dist - 1) * dist  # Z generators per round
+    z_dets = np.where(col[:num_rounds * per_round])[0]
+    if len(z_dets) == 0:
+        return None
+    g = z_dets[0] % per_round
+    if g >= n_z:
+        return None  # X generator, Z error
+    # Check if this is a measurement error (same gen fires in consecutive rounds)
+    for zd in z_dets:
+        if zd + per_round in z_dets and zd % per_round == (zd + per_round) % per_round:
+            return None  # measurement error
+    b = g // (dist - 1)
+    z_dets_local = [z for z in z_dets if z % per_round == g or z % per_round == g + 1]
+    if len(z_dets_local) > 1 and (z_dets_local[-1] % per_round) == g + 1:
+        p = (g % (dist - 1)) + 1
+    elif g % (dist - 1) == 0:
+        p = 0
+    else:
+        p = nqpc - 1
+    return b * nqpc + p
+
+
 class StandaloneExactMwPartitionDecoder(Decoder):
     def __init__(self, target_code_utilities, control_code_utilities,
                  distance, modified_index, num_target_stabilizers):
@@ -158,25 +185,42 @@ class StandaloneExactMwPartitionDecoder(Decoder):
             tgt_decoder._edge_x_obs = edge_x_full[:, tgt_edge_map]
             _setup_edge_to_round(tgt_decoder, tgt_edge_cm, nt, num_rounds, tgt_edge_map)
 
-        # --- Build CONTROL decoder from combined DEM partition ---
-        # We use the combined DEM partition (not a standalone circuit) for the
-        # control decoder because the combined circuit's control observable
-        # includes only the first (si+1) cat blocks, not the full observable.
-        is_control_mask = np.zeros(num_combined_dets, dtype=bool)
-        idx = 0
-        for r in range(num_rounds):
-            is_control_mask[idx + nt:idx + num_gens] = True
-            idx += num_gens
-        n_tgt_final = tgt_cm.shape[0] - num_rounds * nt
-        is_control_mask[idx + n_tgt_final:num_combined_dets] = True
+        # --- Build CONTROL decoder from standalone circuit ---
+        ctrl_circuit = SimulateCx.build_bare_circuit(
+            self._control_code, p, num_rounds, use_x_observable=False)
+        ctrl_dem = ctrl_circuit.detector_error_model(decompose_errors=False)
+        ctrl_mats = detector_error_model_to_check_matrices(
+            ctrl_dem, allow_undecomposed_hyperedges=True)
+        ctrl_cm = ctrl_mats.check_matrix.tocsc()
+        ctrl_obs = ctrl_mats.observables_matrix.toarray().astype(np.uint8)
+        ctrl_priors = list(ctrl_mats.priors)
 
-        ctrl_cm, ctrl_map = _filter_rows_cols(combined_cm, is_control_mask)
-        ctrl_priors = [combined_priors[c] for c in ctrl_map]
-        ctrl_obs = combined_obs[:, ctrl_map] if combined_obs.shape[1] > 0 else np.array([[]])
+        # Restrict observable to first (si+1) subregisters.
+        if has_cx:
+            si = self._modified_index - (nt + nc - self._distance + 1)
+            nqpc = self._distance  # qubits per cat block = distance
+            restricted_qubits = set(range(nqpc * (si + 1)))
+            ctrl_obs_arr = ctrl_obs.toarray().astype(np.uint8) if hasattr(ctrl_obs, 'toarray') else np.array(ctrl_obs, dtype=np.uint8)
+            for col_j in range(ctrl_cm.shape[1]):
+                col = ctrl_cm[:, col_j].toarray().flatten()
+                affected = _find_affected_qubit_offset(col.astype(np.uint8), num_rounds, self._distance, nqpc)
+                if affected is not None:
+                    ctrl_obs_arr[0, col_j] = 1 if affected in restricted_qubits else 0
+            ctrl_obs = ctrl_obs_arr
+
+        ctrl_edge_cm = ctrl_mats.edge_check_matrix.tocsc()
+        ctrl_h2e = ctrl_mats.hyperedge_to_edge_matrix
+        ctrl_edge_obs = ctrl_mats.edge_observables_matrix.toarray().astype(np.uint8)
+
+        # Propagate column-level restriction to edge-level observable
+        if has_cx:
+            h2e_dense = ctrl_h2e.tocsc().toarray().astype(np.uint8)
+            ctrl_edge_obs = (ctrl_obs @ h2e_dense.T) % 2
 
         ctrl_matcher, ctrl_edge_map, _ = _build_matcher(
-            combined_edge_cm, combined_h2e, combined_priors, is_control_mask)
-        ctrl_edge_obs_sub = (combined_edge_obs[:, ctrl_edge_map]
+            ctrl_edge_cm, ctrl_h2e, ctrl_priors,
+            np.ones(ctrl_cm.shape[0], dtype=bool))
+        ctrl_edge_obs_sub = (ctrl_edge_obs[:, ctrl_edge_map]
                              if ctrl_matcher is not None else np.array([]))
 
         ctrl_decoder = _ExactMwDecoder(
@@ -185,14 +229,14 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         # --- Modified detector indices within control-only syndrome ---
         modified_det_indices = np.array([], dtype=int)
         if has_cx:
-            n_ctrl = ctrl_cm.shape[0] // num_rounds
             ctrl_mod_offset = self._modified_index - nt
             modified_det_indices = np.array([
-                r * n_ctrl + ctrl_mod_offset
+                r * nc + ctrl_mod_offset
                 for r in range(num_rounds)
             ], dtype=int)
 
         # --- Build extraction mask for target detectors ---
+        n_tgt_final = tgt_cm.shape[0] - num_rounds * nt
         is_target_mask = np.zeros(num_combined_dets, dtype=bool)
         idx = 0
         for r in range(num_rounds):
@@ -262,23 +306,16 @@ class CompiledStandaloneExactMwPartitionDecoder(CompiledDecoder):
             tgt_pred, tgt_corr, tgt_x_pred = self._tgt_decoder.decode(ts)
 
             if self._has_cx:
-                if tgt_corr is not None and self._full_cm is not None and len(self._tgt_col_map) > 0:
-                    full_c = np.zeros(self._full_cm.shape[1], dtype=np.uint8)
-                    for j in range(min(len(tgt_corr), len(self._tgt_col_map))):
-                        col = self._tgt_col_map[j]
-                        if col >= 0 and tgt_corr[j]:
-                            full_c[col] = 1
-                    contrib = (self._full_cm[not_tgt, :] @ full_c) % 2
-                    cs ^= contrib.astype(np.uint8)
-                else:
-                    x_changes = self._tgt_decoder.get_x_changes(ts, self._num_rounds)
-                    for r in range(min(len(x_changes), len(self._modified_det_indices))):
-                        if x_changes[r]:
-                            mod_idx = self._modified_det_indices[r]
-                            if mod_idx < len(cs):
-                                cs[mod_idx] ^= 1
+                # Standalone correction has no combined effects; only
+                # adjust the modified stabilizer, not the full projection.
+                x_changes = self._tgt_decoder.get_x_changes(ts, self._num_rounds)
+                for r in range(min(len(x_changes), len(self._modified_det_indices))):
+                    if x_changes[r]:
+                        mod_idx = self._modified_det_indices[r]
+                        if mod_idx < len(cs):
+                            cs[mod_idx] ^= 1
 
-            ctrl_pred, _, _ = self._ctrl_decoder.decode(cs)
+            ctrl_pred, _, _ = self._ctrl_decoder.decode(cs[:self._ctrl_decoder._n_det])
             predictions[i, 0] = tgt_pred ^ ctrl_pred
 
         return predictions
