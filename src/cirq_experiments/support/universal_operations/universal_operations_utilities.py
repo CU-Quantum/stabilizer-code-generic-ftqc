@@ -65,7 +65,7 @@ class UniversalOperationsUtilities:
     #     measurement_symbol = sympy.symbols(measurement_key.name)
     #
     #     with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
-    #         z_on_gsch = context.cat_parity_code.get_operation_circuit(
+    #         z_on_gscx = context.cat_parity_code.get_operation_circuit(
     #             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
     #         return TaggedOperation(
     #             CircuitOperation(
@@ -76,7 +76,7 @@ class UniversalOperationsUtilities:
     #                                       measurement_keys=[measurement_key]).get_measurement_circuit(),
     #                         encodings_store.get_all_correction_circuits(),
     #                         CircuitOperation(
-    #                             FrozenCircuit(z_on_gsch),
+    #                             FrozenCircuit(z_on_gscx),
     #                         ).with_classical_controls(sympy.Eq(measurement_symbol, measurement_trigger)),
     #                         encodings_store.get_all_correction_circuits(),
     #                     ]
