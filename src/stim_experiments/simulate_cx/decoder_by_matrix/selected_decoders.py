@@ -14,6 +14,8 @@ partition's X (bridge) observable.
 
 import numpy as np
 from ldpc.bposd_decoder import BpOsdDecoder as LdpcBpOsdDecoder
+from scipy.optimize import Bounds, LinearConstraint, milp
+from scipy.sparse import coo_matrix
 
 
 def _dot(obs, vec):
@@ -161,109 +163,183 @@ class BpOsdDecoder(_MechanismDecoder):
         return pred, corr, x_pred
 
 
-class GraphAwareBoundedDistanceDecoder(_MechanismDecoder):
-    """Exact minimum-weight decoder via meet-in-the-middle enumeration.
+class IlpMwDecoder(_MechanismDecoder):
+    """Exact minimum-weight decoder via integer linear programming.
 
-    Finds the most-likely error of weight at most ``max_weight`` whose syndrome
-    matches the observed one, using a meet-in-the-middle syndrome lookup so
-    weight-2/3/4 searches do not require exhaustive enumeration per syndrome.
-    If no match of weight <= ``max_weight`` exists, delegates to ``fallback``
-    (e.g. BP-OSD) instead of giving up.
+    Solves, for a given syndrome s,
+
+        min  sum_j (-log prior_j) x_j
+        s.t. cm @ x = s  (mod 2),  x_j in {0, 1}
+
+    where ``cm`` is the check matrix (each column an error mechanism) and the
+    priors are the mechanism probabilities.  The mod-2 constraints are
+    expressed as ``cm @ x - 2 k = s`` with integer slack variables ``k`` and
+    handed to the HiGHS solver (via ``scipy.optimize.milp``).  This is the
+    exact maximum-a-posteriori decoder, which BP-OSD approximates but does not
+    attain for dense non-CSS codes such as [[17,1,7]].
     """
 
-    def __init__(self, cm, obs, priors, distance, x_obs=None, max_weight=None,
-                 fallback=None):
+    def __init__(self, cm, obs, priors, x_obs=None):
         super().__init__(cm, obs, priors, x_obs=x_obs)
-        self._t = (distance - 1) // 2
-        self._max_weight = max_weight if max_weight is not None else self._t + 1
-        self._fallback = fallback
-        self._cols = [self._pack(self._columns[i]) for i in range(self._n_mech)]
-        self._syn_to_mechs = {}
-        for i in range(self._n_mech):
-            self._syn_to_mechs.setdefault(int(self._cols[i]), []).append(i)
-        # weight-2 table for meet-in-the-middle at weight 4
+        self._cache = {}
+        cm_dense = cm.toarray().astype(np.uint8)
+        self._n_det, self._n_mech = cm_dense.shape
+        weights = -np.log(np.clip(self._priors, 1e-300, None))
+        self._objective = np.concatenate([weights, np.zeros(self._n_det)])
+        self._integrality = np.ones(self._n_mech + self._n_det)
+        self._bounds = Bounds(
+            np.concatenate([np.zeros(self._n_mech), np.zeros(self._n_det)]),
+            np.concatenate([np.ones(self._n_mech), np.full(self._n_det, np.inf)]),
+        )
+        rows = []
+        cols = []
+        data = []
+        for i in range(self._n_det):
+            for j in range(self._n_mech):
+                if cm_dense[i, j]:
+                    rows.append(i)
+                    cols.append(j)
+                    data.append(1)
+            rows.append(i)
+            cols.append(self._n_mech + i)
+            data.append(-2)
+        self._constraint_matrix = coo_matrix(
+            (data, (rows, cols)), shape=(self._n_det, self._n_mech + self._n_det)
+        ).tocsr()
+
+        # Fast exact low-weight pre-filter (weight 1/2/3/4) so the MILP is only
+        # invoked for the rare syndromes whose minimum-weight explanation has
+        # weight >= 5.  This is exact: it returns the same MAP error the MILP
+        # would for weight <= 4 syndromes.  ``_w2`` stores the top-2 pairs per
+        # syndrome so the meet-in-the-middle searches can skip an overlapping
+        # pair without losing the exact MAP answer.
+        self._cols_int = []
+        for j in range(self._n_mech):
+            v = 0
+            for d in np.where(cm_dense[:, j])[0]:
+                v |= 1 << int(d)
+            self._cols_int.append(v)
+        self._w1 = {}
+        for j in range(self._n_mech):
+            key = self._cols_int[j]
+            cur = self._w1.get(key)
+            if cur is None or self._priors[j] > self._priors[cur]:
+                self._w1[key] = j
         self._w2 = {}
-        n = self._n_mech
-        for i in range(n):
-            ci = int(self._cols[i])
-            for j in range(i + 1, n):
-                s = ci ^ int(self._cols[j])
-                lp = float(self._log_priors[i] + self._log_priors[j])
-                cur = self._w2.get(s)
-                if cur is None or lp > cur[0]:
-                    self._w2[s] = (lp, [i, j])
+        for j in range(self._n_mech):
+            for k in range(j + 1, self._n_mech):
+                key = self._cols_int[j] ^ self._cols_int[k]
+                lp = self._log_priors[j] + self._log_priors[k]
+                lst = self._w2.get(key)
+                if lst is None:
+                    self._w2[key] = [(lp, (j, k))]
+                elif len(lst) < 2:
+                    lst.append((lp, (j, k)))
+                    if lst[0][0] < lst[1][0]:
+                        lst[0], lst[1] = lst[1], lst[0]
+                elif lp > lst[1][0]:
+                    lst[1] = (lp, (j, k))
+                    if lst[0][0] < lst[1][0]:
+                        lst[0], lst[1] = lst[1], lst[0]
 
     @staticmethod
-    def _pack(vec):
+    def _pack(sx):
         v = 0
-        for d in np.where(vec)[0]:
+        for d in np.where(sx)[0]:
             v |= 1 << int(d)
         return v
+
+    def _best_weight(self, target, extra, extra_lp):
+        """Best explanation of ``target`` using ``extra`` mechanisms plus a w2 pair.
+
+        ``extra`` is a tuple of mechanism indices already chosen (their log
+        priors summed in ``extra_lp``); the remaining syndrome is matched with
+        a stored weight-2 pair.  Returns (lp, [indices]) or None.
+        """
+        lst = self._w2.get(target)
+        if lst is None:
+            return None
+        best = None
+        for pair_lp, (a, b) in lst:
+            if a in extra or b in extra:
+                continue
+            lp = extra_lp + pair_lp
+            if best is None or lp > best[0]:
+                best = (lp, list(extra) + [a, b])
+        return best
+
+    def _weight4(self, target):
+        """Weight-4 meet-in-the-middle; returns [indices] or None."""
+        best = None
+        best_lp = -np.inf
+        for i in range(self._n_mech):
+            ci = self._cols_int[i]
+            lpi = self._log_priors[i]
+            for j in range(i + 1, self._n_mech):
+                lst = self._w2.get(target ^ ci ^ self._cols_int[j])
+                if lst is None:
+                    continue
+                base_lp = lpi + self._log_priors[j]
+                for pair_lp, (a, b) in lst:
+                    if a == i or b == i or a == j or b == j:
+                        continue
+                    lp = base_lp + pair_lp
+                    if lp > best_lp:
+                        best_lp = lp
+                        best = [i, j, a, b]
+        return best
+
+    def _fast_low_weight(self, sx):
+        """Return the MAP correction for syndromes of min weight <= 4, else None."""
+        target = self._pack(sx)
+        j = self._w1.get(target)
+        if j is not None:
+            return self._make_correction([j])
+        lst = self._w2.get(target)
+        if lst is not None:
+            return self._make_correction(list(lst[0][1]))
+        best = None
+        for j in range(self._n_mech):
+            cand = self._best_weight(target ^ self._cols_int[j], (j,),
+                                     self._log_priors[j])
+            if cand is not None and (best is None or cand[0] > best[0]):
+                best = cand
+        if best is not None:
+            return self._make_correction(best[1])
+        idx4 = self._weight4(target)
+        if idx4 is not None:
+            return self._make_correction(idx4)
+        return None
 
     def decode(self, sx):
         if not sx.any():
             return 0, None, 0
-        target = int(self._pack(sx))
-        n = self._n_mech
-        best = None
+        key = sx.tobytes()
+        result = self._cache.get(key)
+        if result is None:
+            result = self._decode_uncached(sx)
+            self._cache[key] = result
+        return result
 
-        for idx in self._syn_to_mechs.get(target, []):
-            lp = float(self._log_priors[idx])
-            if best is None or lp > best[0]:
-                best = (lp, [idx])
-        if best is not None:
-            return self._result(best[1])
-
-        if self._max_weight >= 2:
-            for i in range(n):
-                lst = self._syn_to_mechs.get(target ^ int(self._cols[i]))
-                if not lst:
-                    continue
-                for j in lst:
-                    if j <= i:
-                        continue
-                    lp = float(self._log_priors[i] + self._log_priors[j])
-                    if best is None or lp > best[0]:
-                        best = (lp, [i, j])
-            if best is not None:
-                return self._result(best[1])
-
-        if self._max_weight >= 3:
-            for i in range(n):
-                ci = int(self._cols[i])
-                for j in range(i + 1, n):
-                    lst = self._syn_to_mechs.get(target ^ ci ^ int(self._cols[j]))
-                    if not lst:
-                        continue
-                    for k in lst:
-                        if k <= j:
-                            continue
-                        lp = float(self._log_priors[i] + self._log_priors[j] + self._log_priors[k])
-                        if best is None or lp > best[0]:
-                            best = (lp, [i, j, k])
-            if best is not None:
-                return self._result(best[1])
-
-        if self._max_weight >= 4:
-            for i in range(n):
-                ci = int(self._cols[i])
-                for j in range(i + 1, n):
-                    entry = self._w2.get(target ^ ci ^ int(self._cols[j]))
-                    if entry is None:
-                        continue
-                    wlp, w_idx = entry
-                    lp = float(self._log_priors[i] + self._log_priors[j]) + wlp
-                    if best is None or lp > best[0]:
-                        best = (lp, [i, j] + w_idx)
-            if best is not None:
-                return self._result(best[1])
-
-        if self._fallback is not None:
-            return self._fallback.decode(sx)
-        return 0, None, 0
-
-    def _result(self, indices):
-        corr = self._make_correction(indices)
+    def _decode_uncached(self, sx):
+        corr = self._fast_low_weight(sx)
+        if corr is None:
+            corr = self._solve_ilp(sx)
+        if corr is None:
+            return 0, None, 0
         pred = int(self._obs_from_corr(corr)[0] & 1)
         x_pred = self._x_from_corr(corr)
         return pred, corr, x_pred
+
+    def _solve_ilp(self, sx):
+        res = milp(
+            c=self._objective,
+            integrality=self._integrality,
+            bounds=self._bounds,
+            constraints=LinearConstraint(
+                self._constraint_matrix, sx.astype(float), sx.astype(float)
+            ),
+        )
+        if not res.success:
+            return None
+        return np.round(res.x[: self._n_mech]).astype(np.uint8)

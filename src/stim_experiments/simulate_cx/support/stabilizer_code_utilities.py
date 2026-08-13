@@ -119,7 +119,8 @@ class StabilizerCodeUtilities:
     def num_cat_appier_ancillas(self):
         num_for_self = max(np.count_nonzero(self.z_observable),
                    np.count_nonzero(self.x_observable),
-                   *np.count_nonzero(self.symplectic_matrix, axis=1))
+                   *np.count_nonzero(self.symplectic_matrix, axis=1),
+                   *np.count_nonzero(self._generator_anticommutators, axis=1))
         num_for_target = np.count_nonzero(self._target_code_utilities.x_observable) if self._target_code_utilities else 0
         return num_for_self + num_for_target
 
@@ -374,3 +375,195 @@ def get_gscx_code_utilities(distance: int) -> StabilizerCodeUtilities:
     )
     utils.code_name = 'gscx'
     return utils
+
+
+def _gf2_rank(matrix):
+    matrix = matrix.astype(np.uint8).copy()
+    rows, cols = matrix.shape
+    rank = 0
+    for col in range(cols):
+        if rank >= rows:
+            break
+        pivot = None
+        for i in range(rank, rows):
+            if matrix[i, col]:
+                pivot = i
+                break
+        if pivot is None:
+            continue
+        matrix[[rank, pivot]] = matrix[[pivot, rank]]
+        for i in range(rows):
+            if i != rank and matrix[i, col]:
+                matrix[i] ^= matrix[rank]
+        rank += 1
+    return rank
+
+
+def _gf2_nullspace(matrix):
+    matrix = matrix.astype(np.uint8).copy()
+    rows, cols = matrix.shape
+    pivots = []
+    rank = 0
+    for col in range(cols):
+        if rank >= rows:
+            break
+        pivot = None
+        for i in range(rank, rows):
+            if matrix[i, col]:
+                pivot = i
+                break
+        if pivot is None:
+            continue
+        matrix[[rank, pivot]] = matrix[[pivot, rank]]
+        for i in range(rows):
+            if i != rank and matrix[i, col]:
+                matrix[i] ^= matrix[rank]
+        pivots.append(col)
+        rank += 1
+    pivot_cols = set(pivots)
+    free = [c for c in range(cols) if c not in pivot_cols]
+    basis = []
+    for f in free:
+        vec = np.zeros(cols, dtype=np.uint8)
+        vec[f] = 1
+        for ri, pc in enumerate(pivots):
+            vec[pc] = matrix[ri, f]
+        basis.append(vec)
+    return np.array(basis, dtype=np.uint8) if basis else np.zeros((0, cols), dtype=np.uint8)
+
+
+def _gf2_in_rowspace(vec, matrix):
+    return _gf2_rank(np.vstack([matrix, vec])) == _gf2_rank(matrix)
+
+
+def _gf2_independent_rows(matrix):
+    independent = []
+    rank = 0
+    for row in matrix:
+        candidate = np.array(independent + [row], dtype=np.uint8) if independent else row.reshape(1, -1)
+        if _gf2_rank(candidate) > rank:
+            independent.append(row)
+            rank += 1
+    return np.array(independent, dtype=np.uint8)
+
+
+def _gf2_solve(matrix, rhs):
+    augmented = np.concatenate([matrix.astype(np.uint8), rhs.astype(np.uint8).reshape(-1, 1)], axis=1)
+    rows, cols = augmented.shape
+    rank = 0
+    for col in range(cols - 1):
+        if rank >= rows:
+            break
+        pivot = None
+        for i in range(rank, rows):
+            if augmented[i, col]:
+                pivot = i
+                break
+        if pivot is None:
+            continue
+        augmented[[rank, pivot]] = augmented[[pivot, rank]]
+        for i in range(rows):
+            if i != rank and augmented[i, col]:
+                augmented[i] ^= augmented[rank]
+        rank += 1
+    for i in range(rank, rows):
+        if augmented[i, -1] and not augmented[i, :cols - 1].any():
+            return None
+    solution = np.zeros(cols - 1, dtype=np.uint8)
+    pivots = []
+    r = 0
+    for col in range(cols - 1):
+        if r >= rows:
+            break
+        pivot = None
+        for i in range(r, rows):
+            if augmented[i, col]:
+                pivot = i
+                break
+        if pivot is None:
+            continue
+        pivots.append((r, col))
+        r += 1
+    for (row, col) in pivots:
+        solution[col] = augmented[row, -1]
+    return solution
+
+
+def _gf2_symplectic_dual(symplectic_matrix):
+    n = symplectic_matrix.shape[1] // 2
+    num_rows = symplectic_matrix.shape[0]
+    sx = symplectic_matrix[:, :n]
+    sz = symplectic_matrix[:, n:]
+    commutation_matrix = np.concatenate([sz, sx], axis=1)
+    dual = []
+    for i in range(num_rows):
+        rhs = np.zeros(num_rows, dtype=np.uint8)
+        rhs[i] = 1
+        dual.append(_gf2_solve(commutation_matrix, rhs))
+    return np.array(dual, dtype=np.uint8)
+
+
+def get_bb_code_90_8_10_utilities():
+    """[[90,8,10]] bivariate-bicycle (BB) QLDPC code (arXiv:2308.07915).
+
+    The code has 8 logical qubits; a single paired (Z, X) logical qubit is
+    selected so it can be used as a single-logical-qubit target code in the CX
+    framework.  The stabilizers are reduced to an independent set and the
+    anticommutators are the symplectic dual of the stabilizer rows.
+    """
+    ell, m = 15, 3
+    a1, a2, a3 = 9, 1, 2
+    b1, b2, b3 = 0, 2, 7
+    n2 = ell * m
+    n = 2 * n2
+    i_ell = np.identity(ell, dtype=np.uint8)
+    i_m = np.identity(m, dtype=np.uint8)
+    x_shift = {i: np.kron(np.roll(i_ell, i, axis=1), i_m).astype(np.uint8) for i in range(ell)}
+    y_shift = {i: np.kron(i_ell, np.roll(i_m, i, axis=1)).astype(np.uint8) for i in range(m)}
+    a_mat = (x_shift[a1] + y_shift[a2] + y_shift[a3]) % 2
+    b_mat = (y_shift[b1] + x_shift[b2] + x_shift[b3]) % 2
+    hx = np.concatenate([a_mat, b_mat], axis=1)
+    hz = np.concatenate([b_mat.T, a_mat.T], axis=1)
+
+    num_logicals = n - _gf2_rank(hx) - _gf2_rank(hz)
+    z_logicals = []
+    for vec in _gf2_nullspace(hx):
+        if _gf2_in_rowspace(vec, hz):
+            continue
+        candidate = np.array(z_logicals + [vec], dtype=np.uint8) if z_logicals else vec.reshape(1, -1)
+        if _gf2_rank(candidate) > (_gf2_rank(np.array(z_logicals, dtype=np.uint8)) if z_logicals else 0):
+            z_logicals.append(vec)
+        if len(z_logicals) == num_logicals:
+            break
+    x_logicals = []
+    for vec in _gf2_nullspace(hz):
+        if _gf2_in_rowspace(vec, hx):
+            continue
+        candidate = np.array(x_logicals + [vec], dtype=np.uint8) if x_logicals else vec.reshape(1, -1)
+        if _gf2_rank(candidate) > (_gf2_rank(np.array(x_logicals, dtype=np.uint8)) if x_logicals else 0):
+            x_logicals.append(vec)
+        if len(x_logicals) == num_logicals:
+            break
+    z_logicals = np.array(z_logicals, dtype=np.uint8)
+    x_logicals = np.array(x_logicals, dtype=np.uint8)
+
+    z_obs = z_logicals[0]
+    x_obs = next(xl for xl in x_logicals if int((z_obs & xl).sum()) % 2 == 1)
+
+    hx_ind = _gf2_independent_rows(hx)
+    hz_ind = _gf2_independent_rows(hz)
+    symplectic_matrix = np.concatenate([
+        np.concatenate([hx_ind, np.zeros((hx_ind.shape[0], n), dtype=np.uint8)], axis=1),
+        np.concatenate([np.zeros((hz_ind.shape[0], n), dtype=np.uint8), hz_ind], axis=1),
+    ], axis=0)
+    anticommutators = _gf2_symplectic_dual(symplectic_matrix)
+
+    observable_z = np.concatenate([np.zeros(n, dtype=int), z_obs]).astype(int)
+    observable_x = np.concatenate([x_obs, np.zeros(n, dtype=int)]).astype(int)
+    return StabilizerCodeUtilities(
+        symplectic_matrix=symplectic_matrix,
+        generator_anticommutators=anticommutators,
+        z_observable=observable_z,
+        x_observable=observable_x,
+        code_name='bb_code',
+    )

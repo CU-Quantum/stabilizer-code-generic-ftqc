@@ -8,12 +8,7 @@ from stim import Circuit
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
-from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
-from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
-from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
-from stim_experiments.simulate_cx.decoder_by_matrix.partition_decoder import PartitionDecoder
 from stim_experiments.simulate_cx.decoder_by_matrix.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
-from stim_experiments.simulate_cx.decoder_by_matrix.symplectic_bposd_decoder import SymplecticBpOsdDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
@@ -64,16 +59,12 @@ class SimulateCx:
                  target_code_utilities: StabilizerCodeUtilities,
                  si: int,
                  run_configuration: RunConfiguration,
-                 save_resume_filepath: Optional[Path] = None,
-                 decode_lookup_table_filepath: Optional[Path] = None,
-                 decoder_name: str = 'decoder_by_matrix'):
+                 save_resume_filepath: Optional[Path] = None):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
         self._save_resume_filepath = save_resume_filepath
-        self._decode_lookup_table_filepath = decode_lookup_table_filepath
-        self._decoder_name = decoder_name
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
@@ -103,8 +94,8 @@ class SimulateCx:
             max_shots=self._run_configuration.max_shots,
             max_errors=self._run_configuration.max_errors,
             tasks=task_list,
-            decoders=[self._decoder_name],
-            custom_decoders={self._decoder_name: self.build_decoder()},
+            decoders=['standalone_exact_mw'],
+            custom_decoders={'standalone_exact_mw': self.build_decoder()},
             print_progress=True,
             save_resume_filepath=save_resume_file,
             count_observable_error_combos=True,
@@ -114,51 +105,18 @@ class SimulateCx:
         return samples
 
     def build_decoder(self):
-        if self._decoder_name == 'bposd':
-            combined_symplectic_matrix, observables = self.get_combined_symplectic()
-            return SymplecticBpOsdDecoder(
-                symplectic_matrix=combined_symplectic_matrix,
-                z_observable=observables[0],
-                distance=self._num_cat_states,
-                final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)],
-            )
-        if self._decoder_name == 'exact_mw':
-            return ExactMwDemDecoder(fallback_decoder=BpOsdDecoderForSinter())
-        if self._decoder_name == 'partition':
-            combined_symplectic_matrix, _ = self.get_combined_symplectic()
-            n_target = len(self._target_code_utilities.symplectic_matrix)
-            return PartitionDecoder(
-                combined_symplectic_matrix=combined_symplectic_matrix,
-                num_target_stabilizers=n_target,
-                distance=self._num_cat_states,
-                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                target_decoder='mwpm' if n_target > 10 else 'lookup',
-                target_code_utilities=self._target_code_utilities,
-                control_code_utilities=self._control_code_utilities,
-            )
-        if self._decoder_name == 'standalone_exact_mw':
-            combined_symplectic_matrix, _ = self.get_combined_symplectic()
-            n_target = len(self._target_code_utilities.symplectic_matrix)
-            return StandaloneExactMwPartitionDecoder(
-                target_code_utilities=self._target_code_utilities,
-                control_code_utilities=self._control_code_utilities,
-                distance=self._num_cat_states,
-                modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
-                num_target_stabilizers=n_target,
-                si=self._si,
-                num_qubits_per_cat_state=self._num_qubits_per_cat_state,
-                target_decoder=self._target_decoder_name,
-            )
-        combined_symplectic_matrix, observables = self.get_combined_symplectic()
-        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
-        return DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
-                               distance=self._num_cat_states,
-                               observables=observables,
-                               modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                               num_target_data_qubits=self._num_target_data_qubits,
-                               decode_lookup_table=decoder_file,
-                               final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)]
-                               )
+        combined_symplectic_matrix, _ = self.get_combined_symplectic()
+        n_target = len(self._target_code_utilities.symplectic_matrix)
+        return StandaloneExactMwPartitionDecoder(
+            target_code_utilities=self._target_code_utilities,
+            control_code_utilities=self._control_code_utilities,
+            distance=self._num_cat_states,
+            modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
+            num_target_stabilizers=n_target,
+            si=self._si,
+            num_qubits_per_cat_state=self._num_qubits_per_cat_state,
+            target_decoder=self._target_decoder_name,
+        )
 
     def generate_sinter_tasks(self):
         probs = self._run_configuration.depolarization_probabilities
@@ -444,9 +402,10 @@ class SimulateCx:
         return {
             'five_qubit': 'single_error',
             'dodecacode': 'bposd',
-            'golay': 'graph_aware_bd',
+            'golay': 'ilp',
             'gscx': 'mwpm',
-            '17_1_7': 'bposd',
+            '17_1_7': 'ilp',
+            'bb_code': 'bposd',
         }.get(self._target_code_utilities.code_name, 'mwpm')
 
 
@@ -468,14 +427,6 @@ if __name__ == '__main__':
                          si=0,
                          run_configuration=run_configuration,
                          ).run_main()
-
-    # target_code = get_dodecacode_utilities()
-    # samples = SimulateCx(num_cat_states=5,
-    #                      target_code_utilities=target_code,
-    #                      si=-1,
-    #                      run_configuration=run_configuration,
-    #                      decode_lookup_table_filepath=Path(__file__).parent.parent / 'scripts' / 'dodecacode' / 'decode_lookup_table_dodeca',
-    #                      ).run_main()
 
     print(CSV_HEADER)
     for sample in samples:

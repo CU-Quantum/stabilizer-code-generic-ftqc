@@ -4,7 +4,8 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from sinter import TaskStats, plot_error_rate
 
-from stim_experiments.scripts import dodecacode, five_qubit, golay, gsc_distance_7, seventeen_qubit
+from stim_experiments.scripts import dodecacode, five_qubit, golay, gscx_distance_7, seventeen_qubit
+from stim_experiments.scripts.bb_code_90_8_10 import bb_code_90_8_10
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -37,14 +38,20 @@ PLOT_CONFIGS = [
     ),
     PlotConfig(
         code_title='GSC Distance 7',
-        output_graph_filename=Path(gsc_distance_7.__file__).parent / 'gsc_distance_7.pdf',
-        stats_dir=gsc_distance_7.__file__,
+        output_graph_filename=Path(gscx_distance_7.__file__).parent / 'gscx_distance_7.pdf',
+        stats_dir=gscx_distance_7.__file__,
         ymin_order=10,
     ),
     PlotConfig(
         code_title='[[17, 1, 7]]',
-        output_graph_filename=Path(seventeen_qubit.__file__).parent / 'golay.pdf',
+        output_graph_filename=Path(seventeen_qubit.__file__).parent / 'seventeen_qubit.pdf',
         stats_dir=seventeen_qubit.__file__,
+        ymin_order=10,
+    ),
+    PlotConfig(
+        code_title='bb_code',
+        output_graph_filename=Path(seventeen_qubit.__file__).parent / 'bb_code.pdf',
+        stats_dir=bb_code_90_8_10.__file__,
         ymin_order=10,
     ),
 ]

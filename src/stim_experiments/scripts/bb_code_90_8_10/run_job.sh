@@ -2,15 +2,14 @@
 
 #SBATCH --account=ucb685_asc2
 #SBATCH --time=24:00:00
-#SBATCH --array=0-9
 #SBATCH --partition=amem
 #SBATCH --qos=mem-normal
 #SBATCH --mem=512G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --job-name=gsc_d7
-#SBATCH --error=results/gsc_distance_7/gsc_distance_7_%j.err
-#SBATCH --output=results/gsc_distance_7/gsc_distance_7_%j.out
+#SBATCH --job-name=bb_90_8_10
+#SBATCH --error=results/bb_code_90_8_10/bb_code_90_8_10_%j.err
+#SBATCH --output=results/bb_code_90_8_10/bb_code_90_8_10_%j.out
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=nipa4599@colorado.edu
 
@@ -27,8 +26,8 @@ cd /projects/nipa4599/stim-experiments || exit
 
 
 # Run
-python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/gsc_distance_7/gsc_distance_7.py \
-  -s 100_000_000 \
-  -e 500 \
-  -p 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 1e-1 2e-1 5e-1 \
+python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/bb_code_90_8_10/bb_code_90_8_10.py \
+  -s 1_000_000_000 \
+  -e 1000 \
+  -p 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 1e-1 2e-1 5e-1 \
   -d standalone_exact_mw

@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from matplotlib import pyplot as plt
 
-from stim_experiments.scripts import dodecacode, five_qubit, golay, gsc_distance_7
+from stim_experiments.scripts import dodecacode, five_qubit, golay, gscx_distance_7
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -14,7 +14,7 @@ class Main:
             ('Five-qubit', five_qubit.__file__, '#D55E00', 's'),
             ('Dodecacode', dodecacode.__file__, '#009E73', 'o'),
             ('Golay', golay.__file__, '#882255', '^'),
-            ('GSC Distance 7', gsc_distance_7.__file__, '#0072B2', 'v'),
+            ('GSC Distance 7', gscx_distance_7.__file__, '#0072B2', 'v'),
         ]
 
         fig, ax = plt.subplots(1, 1)

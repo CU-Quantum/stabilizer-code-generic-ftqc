@@ -31,9 +31,6 @@ def get_run_configuration() -> RunConfiguration:
                         help='Total number of shards (e.g., SLURM array size). Default from $SLURM_ARRAY_TASK_COUNT or 1.')
     parser.add_argument('--shard-index', type=int, default=default_shard_index,
                         help='Index of this shard (e.g., SLURM array task ID). Default from $SLURM_ARRAY_TASK_ID or 0.')
-    parser.add_argument('-d', '--decoder', type=str, default='decoder_by_matrix',
-                        choices=['decoder_by_matrix', 'bposd', 'exact_mw', 'partition', 'standalone_exact_mw'],
-                        help='Decoder to use.')
     parser.add_argument('--max-si', type=int, default=None,
                         help='Only simulate si values up to this (inclusive). Default: all.')
     parser.add_argument('--si', type=int, default=None,
@@ -47,7 +44,6 @@ def get_run_configuration() -> RunConfiguration:
         num_workers=args.num_workers,
         num_shards=args.num_shards,
         shard_index=args.shard_index,
-        decoder_name=args.decoder,
         max_si=args.max_si,
         si=args.si,
     )
@@ -60,15 +56,13 @@ class SimulateQec:
                  num_cat_states: int,
                  code_title: str,
                  save_resume_filepath: Optional[Path] = None,
-                 ymin_order: int = 10,
-                 decode_lookup_table_filepath: Optional[Path] = None):
+                 ymin_order: int = 10):
         self._run_configuration = run_configuration
         self._target_code = target_code
         self._num_cat_states = num_cat_states
         self._code_title = code_title
         self._ymin_order = ymin_order
         self._save_resume_filepath = save_resume_filepath
-        self._decode_lookup_table_filepath = decode_lookup_table_filepath
 
     def run_main(self):
         target_code = self._target_code
@@ -81,7 +75,5 @@ class SimulateQec:
                        target_code_utilities=target_code,
                        si=i,
                        run_configuration=self._run_configuration,
-                       decode_lookup_table_filepath=self._decode_lookup_table_filepath,
                        save_resume_filepath=self._save_resume_filepath,
-                       decoder_name=self._run_configuration.decoder_name,
                        ).run_main()
