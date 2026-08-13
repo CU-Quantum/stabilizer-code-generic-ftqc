@@ -17,7 +17,6 @@ from stim_experiments.simulate_cx.decoder_by_matrix.selected_decoders import (
     MwpmDecoder,
     SingleErrorLookupDecoder,
     BpOsdDecoder,
-    IlpMwDecoder,
 )
 
 
@@ -288,12 +287,6 @@ class StandaloneExactMwPartitionDecoder(Decoder):
 
         if self._target_decoder == 'bposd':
             decoder = BpOsdDecoder(cm, obs, priors, x_obs=x_obs)
-            if x_obs is not None:
-                _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs)
-            return decoder
-
-        if self._target_decoder == 'ilp':
-            decoder = IlpMwDecoder(cm, obs, priors, x_obs=x_obs)
             if x_obs is not None:
                 _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs)
             return decoder

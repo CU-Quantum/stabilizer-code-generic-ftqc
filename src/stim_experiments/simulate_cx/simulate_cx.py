@@ -402,10 +402,7 @@ class SimulateCx:
         return {
             'five_qubit': 'single_error',
             'dodecacode': 'bposd',
-            'golay': 'ilp',
             'gscx': 'mwpm',
-            '17_1_7': 'ilp',
-            'bb_code': 'bposd',
         }.get(self._target_code_utilities.code_name, 'mwpm')
 
 
@@ -417,8 +414,6 @@ if __name__ == '__main__':
         num_workers=5
     )
 
-    # target_code = get_3_repetition_code_utilities()
-    # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
 
     target_code = get_five_qubit_code_utilities()
