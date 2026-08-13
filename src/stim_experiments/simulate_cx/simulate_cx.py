@@ -444,8 +444,9 @@ class SimulateCx:
         return {
             'five_qubit': 'single_error',
             'dodecacode': 'bposd',
-            'golay': 'bposd',
+            'golay': 'graph_aware_bd',
             'gscx': 'mwpm',
+            '17_1_7': 'bposd',
         }.get(self._target_code_utilities.code_name, 'mwpm')
 
 

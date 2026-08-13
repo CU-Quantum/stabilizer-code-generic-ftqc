@@ -162,21 +162,36 @@ class BpOsdDecoder(_MechanismDecoder):
 
 
 class GraphAwareBoundedDistanceDecoder(_MechanismDecoder):
-    """Bounded-distance decoder via exact minimum-weight enumeration.
+    """Exact minimum-weight decoder via meet-in-the-middle enumeration.
 
-    Finds the most-likely error of weight at most
-    ``floor((distance - 1) / 2)`` whose syndrome matches the observed one, using
-    a meet-in-the-middle syndrome lookup so that weight-2/3 searches do not
-    require exhaustive pair/triple enumeration per syndrome.
+    Finds the most-likely error of weight at most ``max_weight`` whose syndrome
+    matches the observed one, using a meet-in-the-middle syndrome lookup so
+    weight-2/3/4 searches do not require exhaustive enumeration per syndrome.
+    If no match of weight <= ``max_weight`` exists, delegates to ``fallback``
+    (e.g. BP-OSD) instead of giving up.
     """
 
-    def __init__(self, cm, obs, priors, distance, x_obs=None):
+    def __init__(self, cm, obs, priors, distance, x_obs=None, max_weight=None,
+                 fallback=None):
         super().__init__(cm, obs, priors, x_obs=x_obs)
         self._t = (distance - 1) // 2
+        self._max_weight = max_weight if max_weight is not None else self._t + 1
+        self._fallback = fallback
         self._cols = [self._pack(self._columns[i]) for i in range(self._n_mech)]
         self._syn_to_mechs = {}
         for i in range(self._n_mech):
             self._syn_to_mechs.setdefault(int(self._cols[i]), []).append(i)
+        # weight-2 table for meet-in-the-middle at weight 4
+        self._w2 = {}
+        n = self._n_mech
+        for i in range(n):
+            ci = int(self._cols[i])
+            for j in range(i + 1, n):
+                s = ci ^ int(self._cols[j])
+                lp = float(self._log_priors[i] + self._log_priors[j])
+                cur = self._w2.get(s)
+                if cur is None or lp > cur[0]:
+                    self._w2[s] = (lp, [i, j])
 
     @staticmethod
     def _pack(vec):
@@ -199,7 +214,7 @@ class GraphAwareBoundedDistanceDecoder(_MechanismDecoder):
         if best is not None:
             return self._result(best[1])
 
-        if self._t >= 2:
+        if self._max_weight >= 2:
             for i in range(n):
                 lst = self._syn_to_mechs.get(target ^ int(self._cols[i]))
                 if not lst:
@@ -213,7 +228,7 @@ class GraphAwareBoundedDistanceDecoder(_MechanismDecoder):
             if best is not None:
                 return self._result(best[1])
 
-        if self._t >= 3:
+        if self._max_weight >= 3:
             for i in range(n):
                 ci = int(self._cols[i])
                 for j in range(i + 1, n):
@@ -229,6 +244,22 @@ class GraphAwareBoundedDistanceDecoder(_MechanismDecoder):
             if best is not None:
                 return self._result(best[1])
 
+        if self._max_weight >= 4:
+            for i in range(n):
+                ci = int(self._cols[i])
+                for j in range(i + 1, n):
+                    entry = self._w2.get(target ^ ci ^ int(self._cols[j]))
+                    if entry is None:
+                        continue
+                    wlp, w_idx = entry
+                    lp = float(self._log_priors[i] + self._log_priors[j]) + wlp
+                    if best is None or lp > best[0]:
+                        best = (lp, [i, j] + w_idx)
+            if best is not None:
+                return self._result(best[1])
+
+        if self._fallback is not None:
+            return self._fallback.decode(sx)
         return 0, None, 0
 
     def _result(self, indices):

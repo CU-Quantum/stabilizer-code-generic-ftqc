@@ -1,0 +1,5 @@
+     shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
+      2577,       524,         0,    7.81,standalone_exact_mw,ef206855aaa0cf4c595951e99d3bb6d36fe960d2ab2effa634a264a36377021a,"{""distance"":7,""physical_error_rate"":0.05}","{""detection_events"":575017,""detectors_checked"":4177317,""obs_mistake_mask=E"":524}"
+    139298,       545,         0,   110.4,standalone_exact_mw,c9c00da4b553d2f9210e9f1377f5ed89dbb59c3dea12c599f9c87a88790d8945,"{""distance"":7,""physical_error_rate"":0.01}","{""detection_events"":7781619,""detectors_checked"":225802058,""obs_mistake_mask=E"":545}"
+      1041,       522,         0,    4.15,standalone_exact_mw,1429bd1411c03bb2a90bcf5b8320a7d880e5d2cc744a39746cb7d7024232b9c3,"{""distance"":7,""physical_error_rate"":0.1}","{""detection_events"":385696,""detectors_checked"":1687461,""obs_mistake_mask=E"":522}"
+    838178,       655,         0,   326.6,standalone_exact_mw,072afe49134dbf5761fc4dc3c85f564384220a9d158c1fe4c2c360ec7b951218,"{""distance"":7,""physical_error_rate"":0.005}","{""detection_events"":24393951,""detectors_checked"":1358686538,""obs_mistake_mask=E"":655}"

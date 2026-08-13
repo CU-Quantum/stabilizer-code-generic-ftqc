@@ -287,8 +287,10 @@ class StandaloneExactMwPartitionDecoder(Decoder):
             return decoder
 
         if self._target_decoder == 'graph_aware_bd':
+            fallback = BpOsdDecoder(cm, obs, priors, x_obs=x_obs)
             decoder = GraphAwareBoundedDistanceDecoder(
-                cm, obs, priors, distance=self._distance, x_obs=x_obs)
+                cm, obs, priors, distance=self._distance, x_obs=x_obs,
+                fallback=fallback)
             if x_obs is not None:
                 _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs)
             return decoder

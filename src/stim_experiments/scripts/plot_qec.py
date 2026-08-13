@@ -4,7 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from sinter import TaskStats, plot_error_rate
 
-from stim_experiments.scripts import dodecacode, five_qubit, golay, gsc_distance_7
+from stim_experiments.scripts import dodecacode, five_qubit, golay, gsc_distance_7, seventeen_qubit
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -24,21 +24,27 @@ PLOT_CONFIGS = [
         ymin_order=10,
     ),
     PlotConfig(
-        code_title='Dodecacode',
-        output_graph_filename=Path(dodecacode.__file__).parent / 'dodecacode.pdf',
-        stats_dir=dodecacode.__file__,
-        ymin_order=10,
-    ),
-    PlotConfig(
         code_title='Five-qubit',
         output_graph_filename=Path(five_qubit.__file__).parent / 'five_qubit.pdf',
         stats_dir=five_qubit.__file__,
         ymin_order=10
     ),
     PlotConfig(
+        code_title='Dodecacode',
+        output_graph_filename=Path(dodecacode.__file__).parent / 'dodecacode.pdf',
+        stats_dir=dodecacode.__file__,
+        ymin_order=10,
+    ),
+    PlotConfig(
         code_title='GSC Distance 7',
         output_graph_filename=Path(gsc_distance_7.__file__).parent / 'gsc_distance_7.pdf',
         stats_dir=gsc_distance_7.__file__,
+        ymin_order=10,
+    ),
+    PlotConfig(
+        code_title='[[17, 1, 7]]',
+        output_graph_filename=Path(seventeen_qubit.__file__).parent / 'golay.pdf',
+        stats_dir=seventeen_qubit.__file__,
         ymin_order=10,
     ),
 ]
