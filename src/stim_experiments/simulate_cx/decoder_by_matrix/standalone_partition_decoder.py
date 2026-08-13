@@ -11,7 +11,12 @@ from ldpc.ckt_noise import detector_error_model_to_check_matrices
 
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities
 from stim_experiments.simulate_cx.decoder_by_matrix.partition_decoder import (
-    _filter_rows_cols, _build_matcher, _ExactMwDecoder,
+    _build_matcher,
+)
+from stim_experiments.simulate_cx.decoder_by_matrix.selected_decoders import (
+    MwpmDecoder,
+    SingleErrorLookupDecoder,
+    GraphAwareBoundedDistanceDecoder,
 )
 
 
@@ -81,12 +86,28 @@ def _setup_edge_to_round(decoder, edge_cm, nt, num_rounds, edge_map):
     decoder._edge_to_round = edge_to_round
 
 
-def _find_affected_qubit_offset(col, num_rounds, dist, nqpc):
+def _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs):
+    cm = cm.tocsc()
+    x_vec = x_obs.toarray().astype(np.uint8).reshape(-1) if hasattr(x_obs, 'toarray') else np.asarray(x_obs, dtype=np.uint8).reshape(-1)
+    mech_to_round = {}
+    for m in range(cm.shape[1]):
+        if m >= len(x_vec) or not x_vec[m]:
+            continue
+        col = cm[:, m].toarray().flatten()
+        nonzero = np.where(col > 0)[0]
+        if len(nonzero) == 0:
+            continue
+        r = int(nonzero[0]) // nt
+        mech_to_round[m] = min(r, num_rounds - 1)
+    decoder._mech_x_to_round = mech_to_round
+
+
+def _find_affected_qubit_offset(col, num_rounds, num_cats, nqpc):
     """Given a standalone control syndrome column, return the data qubit
     offset (within n_data) for X/Y errors. Returns None if it's a Z error,
     measurement error, or unidentifiable."""
     per_round = len(col) // num_rounds
-    n_z = (dist - 1) * dist  # Z generators per round
+    n_z = num_cats * (nqpc - 1)  # Z generators per round
     z_dets = np.where(col[:num_rounds * per_round])[0]
     if len(z_dets) == 0:
         return None
@@ -97,11 +118,11 @@ def _find_affected_qubit_offset(col, num_rounds, dist, nqpc):
     for zd in z_dets:
         if zd + per_round in z_dets and zd % per_round == (zd + per_round) % per_round:
             return None  # measurement error
-    b = g // (dist - 1)
+    b = g // (nqpc - 1)
     z_dets_local = [z for z in z_dets if z % per_round == g or z % per_round == g + 1]
     if len(z_dets_local) > 1 and (z_dets_local[-1] % per_round) == g + 1:
-        p = (g % (dist - 1)) + 1
-    elif g % (dist - 1) == 0:
+        p = (g % (nqpc - 1)) + 1
+    elif g % (nqpc - 1) == 0:
         p = 0
     else:
         p = nqpc - 1
@@ -110,7 +131,8 @@ def _find_affected_qubit_offset(col, num_rounds, dist, nqpc):
 
 class StandaloneExactMwPartitionDecoder(Decoder):
     def __init__(self, target_code_utilities, control_code_utilities,
-                 distance, modified_index, num_target_stabilizers, si=-1):
+                 distance, modified_index, num_target_stabilizers, si=-1,
+                 num_qubits_per_cat_state=None, target_decoder='mwpm'):
         self._target_code = target_code_utilities
         self._control_code = control_code_utilities
         self._distance = distance
@@ -120,6 +142,8 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         self._num_rounds = distance + 1
         self._si = si
         self._num_active_blocks = si + 1  # number of cat blocks in the observable
+        self._num_qubits_per_cat_state = num_qubits_per_cat_state if num_qubits_per_cat_state is not None else distance
+        self._target_decoder = target_decoder
 
     def compile_decoder_for_dem(self, *, dem):
         from stim_experiments.simulate_cx.simulate_cx import SimulateCx
@@ -155,11 +179,6 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         tgt_h2e = tgt_mats.hyperedge_to_edge_matrix
         tgt_edge_obs = tgt_mats.edge_observables_matrix.toarray().astype(np.uint8)
 
-        tgt_matcher, tgt_edge_map, _ = _build_matcher(
-            tgt_edge_cm, tgt_h2e, tgt_priors, np.ones(tgt_cm.shape[0], dtype=bool))
-        tgt_edge_obs_sub = (tgt_edge_obs[:, tgt_edge_map]
-                            if tgt_matcher is not None else np.array([]))
-
         # X observable from combined DEM
         tgt_x_obs = None
         tgt_col_map = np.array([], dtype=int)
@@ -177,15 +196,9 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         else:
             tgt_x_obs = np.zeros((1, tgt_cm.shape[1]), dtype=np.uint8)
 
-        tgt_decoder = _ExactMwDecoder(
-            tgt_cm, tgt_obs, tgt_priors, tgt_matcher, tgt_edge_obs_sub,
-            x_obs=tgt_x_obs)
-
-        if has_cx and tgt_matcher is not None and tgt_x_obs is not None:
-            h2e_dense = tgt_h2e.tocsc().toarray().astype(np.uint8)
-            edge_x_full = (tgt_x_obs.astype(np.uint8) @ h2e_dense.T) % 2
-            tgt_decoder._edge_x_obs = edge_x_full[:, tgt_edge_map]
-            _setup_edge_to_round(tgt_decoder, tgt_edge_cm, nt, num_rounds, tgt_edge_map)
+        tgt_decoder = self._build_target_decoder(
+            tgt_cm, tgt_obs, tgt_priors, tgt_edge_cm, tgt_h2e, tgt_edge_obs,
+            tgt_x_obs, nt, num_rounds)
 
         # --- Build CONTROL decoder from standalone circuit ---
         ctrl_circuit = SimulateCx.build_bare_circuit(
@@ -200,7 +213,7 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         # Restrict observable to first num_active_blocks subregisters.
         # The combined circuit's control observable is Z on the first qubit
         # of each active subregister (spaced by nqpc).
-        nqpc = self._distance  # qubits per cat block = distance
+        nqpc = self._num_qubits_per_cat_state
         restricted_qubits = set(j * nqpc for j in range(self._num_active_blocks))
         ctrl_obs_arr = ctrl_obs.toarray().astype(np.uint8) if hasattr(ctrl_obs, 'toarray') else np.array(ctrl_obs, dtype=np.uint8)
         if self._num_active_blocks == 0:
@@ -229,8 +242,8 @@ class StandaloneExactMwPartitionDecoder(Decoder):
         ctrl_edge_obs_sub = (ctrl_edge_obs[:, ctrl_edge_map]
                              if ctrl_matcher is not None else np.array([]))
 
-        ctrl_decoder = _ExactMwDecoder(
-            ctrl_cm, ctrl_obs, ctrl_priors, ctrl_matcher, ctrl_edge_obs_sub)
+        ctrl_decoder = MwpmDecoder(
+            ctrl_matcher, ctrl_edge_obs_sub, n_det=ctrl_cm.shape[0])
 
         # --- Modified detector indices within control-only syndrome ---
         modified_det_indices = np.array([], dtype=int)
@@ -263,6 +276,35 @@ class StandaloneExactMwPartitionDecoder(Decoder):
             tgt_col_map=tgt_col_map,
             is_target_per_round=is_target_per_round if has_cx else None,
         )
+
+    def _build_target_decoder(self, cm, obs, priors, edge_cm, h2e, edge_obs,
+                              x_obs, nt, num_rounds):
+        if self._target_decoder == 'single_error':
+            decoder = SingleErrorLookupDecoder(cm, obs, priors, x_obs=x_obs)
+            if x_obs is not None:
+                _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs)
+            return decoder
+
+        if self._target_decoder == 'graph_aware_bd':
+            decoder = GraphAwareBoundedDistanceDecoder(
+                cm, obs, priors, distance=self._distance, x_obs=x_obs)
+            if x_obs is not None:
+                _setup_mech_x_to_round(decoder, cm, nt, num_rounds, x_obs)
+            return decoder
+
+        # default: minimum-weight perfect matching
+        matcher, edge_map, _ = _build_matcher(
+            edge_cm, h2e, priors, np.ones(cm.shape[0], dtype=bool))
+        edge_obs_sub = (edge_obs[:, edge_map]
+                        if matcher is not None else np.array([]))
+        decoder = MwpmDecoder(
+            matcher, edge_obs_sub, n_det=cm.shape[0])
+        if matcher is not None and x_obs is not None:
+            h2e_dense = h2e.tocsc().toarray().astype(np.uint8)
+            edge_x_full = (x_obs.astype(np.uint8) @ h2e_dense.T) % 2
+            decoder._edge_x_obs = edge_x_full[:, edge_map]
+            _setup_edge_to_round(decoder, edge_cm, nt, num_rounds, edge_map)
+        return decoder
 
 
 class CompiledStandaloneExactMwPartitionDecoder(CompiledDecoder):

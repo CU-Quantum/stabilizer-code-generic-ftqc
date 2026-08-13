@@ -41,7 +41,7 @@ def _build_matcher(edge_cm, h2e, priors, detector_mask):
 
 
 class _ExactMwDecoder:
-    def __init__(self, cm, obs, priors, matcher, edge_obs, x_obs=None):
+    def __init__(self, cm, obs, priors, matcher, edge_obs, x_obs=None, bposd=None):
         cm = cm.tocsc()
         obs = obs.toarray().astype(np.uint8) if hasattr(obs, 'toarray') else np.array(obs, dtype=np.uint8)
         self._priors = np.array(priors)
@@ -53,11 +53,13 @@ class _ExactMwDecoder:
         if x_obs is not None:
             self._x_obs_cols = [x_obs[:, i] for i in range(x_obs.shape[1])]
         self._matcher = matcher
+        self._bposd = bposd
         self._edge_obs = edge_obs
         self._cache = {}
         self._low_weight_table = self._build_low_weight_table()
         self._edge_x_obs = None
         self._edge_to_round = None
+        self._mech_x_to_round = None
 
     def _build_low_weight_table(self):
         table = {}
@@ -135,6 +137,15 @@ class _ExactMwDecoder:
                         self._cache[key] = result
                     return result
 
+        if self._bposd is not None:
+            corr = self._bposd.decode(sx)
+            pred = int(self._obs_from_corr(corr)[0] & 1)
+            x_pred = self._x_from_corr(corr)
+            result = (pred, corr, x_pred)
+            if len(self._cache) < 10_000_000:
+                self._cache[key] = result
+            return result
+
         if self._matcher is not None:
             fault_pred = self._matcher.decode(sx)
             edge_dot = (self._edge_obs @ fault_pred) % 2
@@ -152,6 +163,16 @@ class _ExactMwDecoder:
         return 0, None, 0
 
     def get_x_changes(self, sx, num_rounds):
+        if self._bposd is not None:
+            corr = self._bposd.decode(sx)
+            changes = np.zeros(num_rounds, dtype=np.uint8)
+            if self._mech_x_to_round is not None and self._x_obs_cols is not None:
+                for i in np.where(corr > 0)[0]:
+                    if i < len(self._x_obs_cols) and self._x_obs_cols[i].flat[0]:
+                        r = self._mech_x_to_round.get(i)
+                        if r is not None and r < num_rounds:
+                            changes[r] ^= 1
+            return changes
         if self._matcher is None or self._edge_x_obs is None or self._edge_to_round is None:
             return np.zeros(num_rounds, dtype=np.uint8)
         if not sx.any():

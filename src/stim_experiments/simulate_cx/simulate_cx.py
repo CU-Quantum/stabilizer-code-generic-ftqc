@@ -33,6 +33,8 @@ def _final_round_detectors_str(S, dqs, measured_qubits, ng):
     lines = []
     for i in range(S.shape[0]):
         stab = S[i]
+        if np.any(stab[:len(dqs)]):
+            continue
         z_part = stab[len(dqs):]
         support = [dqs[q_] for q_ in range(len(dqs)) if z_part[q_]]
         if support and all(q_ in measured_qubits for q_ in support):
@@ -78,8 +80,8 @@ class SimulateCx:
         self._control_code_utilities = get_shor_code_utilities(
             num_cat_states=self._num_cat_states,
             num_qubits_per_cat_state=self._num_qubits_per_cat_state,
-            z_observable=get_shor_h_observable_z(self._num_cat_states),
-            x_observable=get_shor_h_observable_x(self._num_cat_states),
+            z_observable=get_shor_h_observable_z(self._num_cat_states, self._num_qubits_per_cat_state),
+            x_observable=get_shor_h_observable_x(self._num_cat_states, self._num_qubits_per_cat_state),
             target_code_utilities=target_code_utilities,
             qubit_id_start=self._target_code_utilities.last_qubit_index + 1,
             row_coord_start=2,
@@ -144,6 +146,8 @@ class SimulateCx:
                 modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
                 num_target_stabilizers=n_target,
                 si=self._si,
+                num_qubits_per_cat_state=self._num_qubits_per_cat_state,
+                target_decoder=self._target_decoder_name,
             )
         combined_symplectic_matrix, observables = self.get_combined_symplectic()
         decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
@@ -434,6 +438,15 @@ class SimulateCx:
     @property
     def _num_target_data_qubits(self):
         return len(self._target_code_utilities.data_indices)
+
+    @property
+    def _target_decoder_name(self):
+        return {
+            'five_qubit': 'single_error',
+            'dodecacode': 'graph_aware_bd',
+            'golay': 'graph_aware_bd',
+            'gscx': 'mwpm',
+        }.get(self._target_code_utilities.code_name, 'mwpm')
 
 
 if __name__ == '__main__':
