@@ -443,8 +443,8 @@ class SimulateCx:
     def _target_decoder_name(self):
         return {
             'five_qubit': 'single_error',
-            'dodecacode': 'graph_aware_bd',
-            'golay': 'graph_aware_bd',
+            'dodecacode': 'bposd',
+            'golay': 'bposd',
             'gscx': 'mwpm',
         }.get(self._target_code_utilities.code_name, 'mwpm')
 

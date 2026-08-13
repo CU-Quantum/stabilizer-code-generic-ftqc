@@ -19,12 +19,14 @@ class StabilizerCodeUtilities:
                  target_code_utilities: 'StabilizerCodeUtilities' = None,
                  qubit_id_start: int = 0,
                  row_coord_start: int = 0,
-                 existing_ancilla_indices: list[int] = None,):
+                 existing_ancilla_indices: list[int] = None,
+                 code_name: str = None,):
         self.symplectic_matrix = symplectic_matrix
         self.row_coord_start = row_coord_start
         self.z_observable = z_observable
         self.x_observable = x_observable
         self.existing_ancilla_indices = existing_ancilla_indices or []
+        self.code_name = code_name
 
         self._generator_anticommutators = generator_anticommutators
         self._qubit_id_start = qubit_id_start
@@ -126,12 +128,22 @@ class StabilizerCodeUtilities:
         return list(range(self._qubit_id_start, self._qubit_id_start + num_data_qubits))
 
 
-def get_shor_h_observable_z(distance: int) -> NDArray:
-    return np.concatenate([np.zeros(distance ** 2), *[np.concatenate([[1], np.zeros(distance - 1)])] * distance])
+def get_shor_h_observable_z(distance: int, num_qubits_per_cat_state: int = None) -> NDArray:
+    if num_qubits_per_cat_state is None:
+        num_qubits_per_cat_state = distance
+    num_data = distance * num_qubits_per_cat_state
+    z_part = np.zeros(num_data, dtype=int)
+    z_part[::num_qubits_per_cat_state] = 1
+    return np.concatenate([np.zeros(num_data, dtype=int), z_part])
 
 
-def get_shor_h_observable_x(distance: int) -> NDArray:
-    return np.concatenate([np.ones(distance), np.zeros(distance * (distance - 1) + distance ** 2)])
+def get_shor_h_observable_x(distance: int, num_qubits_per_cat_state: int = None) -> NDArray:
+    if num_qubits_per_cat_state is None:
+        num_qubits_per_cat_state = distance
+    num_data = distance * num_qubits_per_cat_state
+    x_part = np.zeros(num_data, dtype=int)
+    x_part[:num_qubits_per_cat_state] = 1
+    return np.concatenate([x_part, np.zeros(num_data, dtype=int)])
 
 
 def get_shor_code_utilities(num_cat_states: int,
@@ -166,6 +178,7 @@ def get_shor_code_utilities(num_cat_states: int,
         qubit_id_start=qubit_id_start,
         row_coord_start=row_coord_start,
         existing_ancilla_indices=existing_ancilla_indices,
+        code_name='shor',
     )
 
 
@@ -249,7 +262,8 @@ def get_golay_code_utilities(balanced: bool = True):
         symplectic_matrix=symplectic_matrix,
         generator_anticommutators=anticommutators,
         z_observable=observable_z,
-        x_observable=observable_x
+        x_observable=observable_x,
+        code_name='golay',
     )
 
 
@@ -266,7 +280,8 @@ def get_five_qubit_code_utilities():
         symplectic_matrix=get_check_matrix_values_5_qubit(),
         generator_anticommutators=anticommutators,
         z_observable=observable_z,
-        x_observable=observable_x
+        x_observable=observable_x,
+        code_name='five_qubit',
     )
 
 
@@ -309,14 +324,17 @@ def get_dodecacode_utilities():
         symplectic_matrix=symplectic_matrix,
         generator_anticommutators=anticommutators,
         z_observable=observable_z,
-        x_observable=observable_x
+        x_observable=observable_x,
+        code_name='dodecacode',
     )
 
 
 def get_gscx_code_utilities(distance: int) -> StabilizerCodeUtilities:
-    return get_shor_code_utilities(
+    utils = get_shor_code_utilities(
         num_cat_states=distance,
         num_qubits_per_cat_state=distance,
         z_observable=get_shor_h_observable_z(distance),
         x_observable=get_shor_h_observable_x(distance),
     )
+    utils.code_name = 'gscx'
+    return utils
