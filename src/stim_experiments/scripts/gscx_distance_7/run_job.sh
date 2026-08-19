@@ -3,9 +3,9 @@
 #SBATCH --account=ucb685_asc2
 #SBATCH --time=24:00:00
 #SBATCH --array=0-498
-#SBATCH --partition=amem
-#SBATCH --qos=mem-normal
-#SBATCH --mem=512G
+#SBATCH --partition=acpu
+#SBATCH --qos=cpu-normal
+#SBATCH --mem=128G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=gscx_d7
