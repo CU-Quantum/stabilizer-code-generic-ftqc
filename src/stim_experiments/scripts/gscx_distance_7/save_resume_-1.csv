@@ -1,4 +1,0 @@
-     shots,    errors,  discards, seconds,decoder,strong_id,json_metadata,custom_counts
-     19729,       521,         0,    1.20,standalone_exact_mw,6cf5ecd9becd3bb7fd3b8491c8e8323f1df31509f408f9f595704d5004e1c49a,"{""distance"":7,""physical_error_rate"":0.05}","{""detection_events"":2305122,""detectors_checked"":15980490,""obs_mistake_mask=E"":521}"
-    100000,         5,         0,    3.01,standalone_exact_mw,04f5a9324675d79f87953f8d70626bb562c17401e8446d34d6c4bfcbb4ac3c73,"{""distance"":7,""physical_error_rate"":0.01}","{""detection_events"":2773080,""detectors_checked"":81000000,""obs_mistake_mask=E"":5}"
-      2321,       624,         0,   0.240,standalone_exact_mw,f0b71fe2c9f2c425829115ac547c1d751cd526b278764fe18b6aeff723ef43ee,"{""distance"":7,""physical_error_rate"":0.1}","{""detection_events"":453261,""detectors_checked"":1880010,""obs_mistake_mask=E"":624}"
