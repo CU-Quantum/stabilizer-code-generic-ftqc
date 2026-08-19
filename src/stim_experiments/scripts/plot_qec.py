@@ -30,19 +30,19 @@ PLOT_CONFIGS = [
         ymin_order=10,
     ),
     PlotConfig(
-        code_title='GSC Distance 3',
+        code_title='GSCX Distance 3',
         output_graph_filename=Path(gscx_distance_3.__file__).parent / 'gscx_distance_3.pdf',
         stats_dir=gscx_distance_3.__file__,
         ymin_order=10,
     ),
     PlotConfig(
-        code_title='GSC Distance 5',
+        code_title='GSCX Distance 5',
         output_graph_filename=Path(gscx_distance_5.__file__).parent / 'gscx_distance_5.pdf',
         stats_dir=gscx_distance_5.__file__,
         ymin_order=10,
     ),
     PlotConfig(
-        code_title='GSC Distance 7',
+        code_title='GSCX Distance 7',
         output_graph_filename=Path(gscx_distance_7.__file__).parent / 'gscx_distance_7.pdf',
         stats_dir=gscx_distance_7.__file__,
         ymin_order=10,
@@ -100,7 +100,7 @@ class Main:
         ax.set_ylim(10 ** -plot_config.ymin_order, 1)
         ax.set_xlim(5e-5)
         ax.grid()
-        ax.set_title(f'LER of $\\overline{{CX}}$ Controlled by GSCH Targeting {plot_config.code_title}')
+        ax.set_title(f'LER of $\\overline{{CX}}$ Controlled by GSCX Targeting {plot_config.code_title}')
         ax.set_ylabel('Logical Error Rate (per shot)')
         ax.set_xlabel('Physical Error Rate')
         ax.legend()

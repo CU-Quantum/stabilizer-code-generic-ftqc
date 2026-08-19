@@ -3,7 +3,7 @@ from stim import Circuit
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities
 
 
-class CxFromGsch:
+class CxFromGscx:
     def __init__(self,
                  control_qubit_indices: list[int],
                  target_code_utilities: StabilizerCodeUtilities,):

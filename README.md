@@ -4,7 +4,7 @@
 ## Stim Experiments
 
 Data for validating the error rate of logical flip gates controlled by the Hadamard dual
-of the Generalized Shor Code (GSCH) targeting the 5-qubit code and the dodecacode are housed
+of the Generalized Shor Code (GSCX) targeting the 5-qubit code and the dodecacode are housed
 in the `src/stim_experiments/scripts/dodecacode` and `src/stim_experiments/scripts/dodecacode`
 directories, respectively.
 Plotting scripts are housed in the `src/stim_experiments/scripts` directory.

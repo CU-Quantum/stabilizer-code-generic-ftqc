@@ -7,7 +7,7 @@ from sinter import CSV_HEADER, Task, collect, plot_error_rate
 from stim import Circuit
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
-from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
+from stim_experiments.simulate_cx.support.cx_from_gscx import CxFromGscx
 from stim_experiments.simulate_cx.decoder_by_matrix.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
@@ -257,8 +257,8 @@ class SimulateCx:
         control_subregister_indices = self._control_subregister_indices
         all_data_indices = self._target_code_utilities.data_indices + self._control_code_utilities.data_indices
 
-        cx_from_gsch_all = [
-            CxFromGsch(control_qubit_indices=control_subregister_indices[i],
+        cx_from_gscx_all = [
+            CxFromGscx(control_qubit_indices=control_subregister_indices[i],
                        target_code_utilities=self._target_code_utilities).perform_cx()
             for i in range(self._si + 1)
         ]
@@ -278,7 +278,7 @@ class SimulateCx:
 
         cx_error = Circuit()
         cx_error_qubits = set()
-        applied_cx_circuits = [cx_from_gsch_all[-1]] if self._cx_is_performed else []
+        applied_cx_circuits = [cx_from_gscx_all[-1]] if self._cx_is_performed else []
         for cx_circuit in applied_cx_circuits:
             for instruction in cx_circuit:
                 if instruction.name in ('CX', 'CZ'):
@@ -320,9 +320,9 @@ class SimulateCx:
             {self._target_code_utilities.get_encoding_by_stabilizer()}
             {cat_states_circuit}
 
-            {'\n'.join(map(str, cx_from_gsch_all[:-1]))}
+            {'\n'.join(map(str, cx_from_gscx_all[:-1]))}
             {all_data_depolarizing_one_noise}
-            {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
+            {cx_from_gscx_all[-1] if self._cx_is_performed else ''}
             {depolarizing_one_and_two_noise}
             {stabilizer_round}
             {self._round_detectors_absolute()}
