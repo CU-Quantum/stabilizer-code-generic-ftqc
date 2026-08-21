@@ -59,12 +59,14 @@ class SimulateCx:
                  target_code_utilities: StabilizerCodeUtilities,
                  si: int,
                  run_configuration: RunConfiguration,
-                 save_resume_filepath: Optional[Path] = None):
+                 save_resume_filepath: Optional[Path] = None,
+                 target_decoder: Optional[str] = None):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
         self._save_resume_filepath = save_resume_filepath
+        self._target_decoder_override = target_decoder
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
@@ -115,7 +117,7 @@ class SimulateCx:
             num_target_stabilizers=n_target,
             si=self._si,
             num_qubits_per_cat_state=self._num_qubits_per_cat_state,
-            target_decoder=self._target_decoder_name,
+            target_decoder=self._target_decoder_override or self._target_decoder_name,
         )
 
     def generate_sinter_tasks(self):

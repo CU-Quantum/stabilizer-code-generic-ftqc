@@ -56,13 +56,15 @@ class SimulateQec:
                  num_cat_states: int,
                  code_title: str,
                  save_resume_filepath: Optional[Path] = None,
-                 ymin_order: int = 10):
+                 ymin_order: int = 10,
+                 target_decoder: Optional[str] = None):
         self._run_configuration = run_configuration
         self._target_code = target_code
         self._num_cat_states = num_cat_states
         self._code_title = code_title
         self._ymin_order = ymin_order
         self._save_resume_filepath = save_resume_filepath
+        self._target_decoder = target_decoder
 
     def run_main(self):
         target_code = self._target_code
@@ -76,4 +78,5 @@ class SimulateQec:
                        si=i,
                        run_configuration=self._run_configuration,
                        save_resume_filepath=self._save_resume_filepath,
+                       target_decoder=self._target_decoder,
                        ).run_main()

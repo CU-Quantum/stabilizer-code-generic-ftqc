@@ -12,6 +12,8 @@ matching decoders), and ``x_pred`` flags whether the correction flips the
 partition's X (bridge) observable.
 """
 
+from itertools import combinations
+
 import numpy as np
 from ldpc.bposd_decoder import BpOsdDecoder as LdpcBpOsdDecoder
 
@@ -131,6 +133,53 @@ class SingleErrorLookupDecoder(_MechanismDecoder):
         pred = int(self._obs_from_corr(corr)[0] & 1)
         x_pred = self._x_from_corr(corr)
         return pred, corr, x_pred
+
+
+class LookupTableDecoder(_MechanismDecoder):
+    """Exact lookup-table decoder over error mechanisms up to a given weight."""
+
+    def __init__(self, cm, obs, priors, x_obs=None, max_weight=2, fallback=None):
+        super().__init__(cm, obs, priors, x_obs=x_obs)
+        self._fallback = fallback
+        self._table = {}
+        self._build_table(max_weight)
+
+    def _build_table(self, max_weight):
+        n = self._n_mech
+        log_priors = self._log_priors
+        for i in range(n):
+            self._add(self._columns[i], [i], log_priors[i])
+        for w in range(2, max_weight + 1):
+            for combo in combinations(range(n), w):
+                syn = np.zeros(self._n_det, dtype=np.uint8)
+                log_prob = 0.0
+                for i in combo:
+                    syn ^= self._columns[i]
+                    log_prob += log_priors[i]
+                if not syn.any():
+                    continue
+                self._add(syn, list(combo), log_prob)
+
+    def _add(self, syn, indices, log_prob):
+        prob = float(np.exp(log_prob))
+        key = syn.tobytes()
+        existing = self._table.get(key)
+        if existing is None or prob > existing[1]:
+            self._table[key] = (indices, prob)
+
+    def decode(self, sx):
+        if not sx.any():
+            return 0, None, 0
+        entry = self._table.get(sx.tobytes())
+        if entry is not None:
+            indices, _ = entry
+            corr = self._make_correction(indices)
+            pred = int(self._obs_from_corr(corr)[0] & 1)
+            x_pred = self._x_from_corr(corr)
+            return pred, corr, x_pred
+        if self._fallback is not None:
+            return self._fallback.decode(sx)
+        return 0, None, 0
 
 
 class BpOsdDecoder(_MechanismDecoder):

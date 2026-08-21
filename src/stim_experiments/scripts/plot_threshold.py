@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from matplotlib import pyplot as plt
 
-from stim_experiments.scripts import dodecacode, five_qubit, gscx_distance_3, gscx_distance_5, gscx_distance_7
+from stim_experiments.scripts import dodecacode, dodecacode_lookup, five_qubit, gscx_distance_3, gscx_distance_5, gscx_distance_7
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -13,6 +13,7 @@ class Main:
         codes = [
             ('Five-qubit', five_qubit.__file__, '#D55E00', 's'),
             ('Dodecacode', dodecacode.__file__, '#009E73', 'o'),
+            ('Dodecacode (lookup)', dodecacode_lookup.__file__, '#56B4E9', 'o'),
             ('GSC Distance 3', gscx_distance_3.__file__, '#CC79A7', 'P'),
             ('GSC Distance 5', gscx_distance_5.__file__, '#999933', 'X'),
             ('GSC Distance 7', gscx_distance_7.__file__, '#0072B2', 'v'),
