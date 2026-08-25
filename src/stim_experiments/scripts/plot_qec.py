@@ -4,7 +4,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from sinter import TaskStats, plot_error_rate
 
-from stim_experiments.scripts import dodecacode, dodecacode_lookup, five_qubit, gscx_distance_3, gscx_distance_5, gscx_distance_7
+from stim_experiments.scripts import dodecacode, dodecacode_lookup, five_qubit, gscx_distance_7
 from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 
 
@@ -33,18 +33,6 @@ PLOT_CONFIGS = [
         code_title='Dodecacode (lookup)',
         output_graph_filename=Path(dodecacode_lookup.__file__).parent / 'dodecacode_lookup.pdf',
         stats_dir=dodecacode_lookup.__file__,
-        ymin_order=10,
-    ),
-    PlotConfig(
-        code_title='GSCX Distance 3',
-        output_graph_filename=Path(gscx_distance_3.__file__).parent / 'gscx_distance_3.pdf',
-        stats_dir=gscx_distance_3.__file__,
-        ymin_order=10,
-    ),
-    PlotConfig(
-        code_title='GSCX Distance 5',
-        output_graph_filename=Path(gscx_distance_5.__file__).parent / 'gscx_distance_5.pdf',
-        stats_dir=gscx_distance_5.__file__,
         ymin_order=10,
     ),
     PlotConfig(
