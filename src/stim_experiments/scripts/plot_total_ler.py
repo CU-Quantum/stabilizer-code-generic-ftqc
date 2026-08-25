@@ -60,7 +60,7 @@ class Main:
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
 
-        output_path = Path(__file__).parent / 'threshold.pdf'
+        output_path = Path(__file__).parent / 'total_ler.pdf'
         fig.savefig(output_path)
         plt.show()
 
