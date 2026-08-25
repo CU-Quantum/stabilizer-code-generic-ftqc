@@ -7,14 +7,50 @@ from sinter import CSV_HEADER, Task, collect, plot_error_rate
 from stim import Circuit
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
-from stim_experiments.simulate_cx.support.cx_from_gsch import CxFromGsch
-from stim_experiments.simulate_cx.decoder_by_matrix.bposd_decoder import BpOsdDecoderForSinter
-from stim_experiments.simulate_cx.decoder_by_matrix.decoder_by_matrix import DecoderByMatrix
-from stim_experiments.simulate_cx.decoder_by_matrix.exact_mw_dem_decoder import ExactMwDemDecoder
+from stim_experiments.simulate_cx.support.cx_from_gscx import CxFromGscx
+from stim_experiments.simulate_cx.decoder_by_matrix.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \
     get_shor_h_observable_z
+
+
+def _round_detectors_absolute_str(num_generators):
+    return '\n'.join([f'DETECTOR rec[{-num_generators + i}]' for i in range(num_generators)])
+
+
+def _round_detectors_difference_str(num_generators):
+    return '\n'.join([f'DETECTOR rec[{-num_generators + i}] rec[{-2 * num_generators + i}]' for i in range(num_generators)])
+
+
+def _final_round_detectors_str(S, dqs, measured_qubits, ng):
+    n_measured = len(measured_qubits)
+    lines = []
+    for i in range(S.shape[0]):
+        stab = S[i]
+        if np.any(stab[:len(dqs)]):
+            continue
+        z_part = stab[len(dqs):]
+        support = [dqs[q_] for q_ in range(len(dqs)) if z_part[q_]]
+        if support and all(q_ in measured_qubits for q_ in support):
+            targets = [f'rec[{-(n_measured - measured_qubits.index(q_))}]' for q_ in support]
+            targets.append(f'rec[{-(n_measured + ng - i)}]')
+            lines.append(f"DETECTOR {' '.join(targets)}")
+    return '\n'.join(lines)
+
+
+def _observable_include_str(utils, measured_qubits, use_x_obs=False):
+    obs_vec = utils.x_observable if use_x_obs else utils.z_observable
+    dqs = utils.data_indices
+    n = len(dqs)
+    obs_idx = sorted(set(np.where(obs_vec == 1)[0] % n))
+    lines = []
+    for q_ in obs_idx:
+        qubit = dqs[q_]
+        idx = measured_qubits.index(qubit) if qubit in measured_qubits else None
+        if idx is not None:
+            lines.append(f'OBSERVABLE_INCLUDE(0) rec[{-(len(measured_qubits) - idx)}]')
+    return '\n'.join(lines)
 
 
 class SimulateCx:
@@ -24,27 +60,24 @@ class SimulateCx:
                  si: int,
                  run_configuration: RunConfiguration,
                  save_resume_filepath: Optional[Path] = None,
-                 decode_lookup_table_filepath: Optional[Path] = None,
-                 decoder_name: str = 'decoder_by_matrix'):
+                 target_decoder: Optional[str] = None):
         self._num_cat_states = num_cat_states
         self._target_code_utilities = target_code_utilities
         self._si = si
         self._run_configuration = run_configuration
         self._save_resume_filepath = save_resume_filepath
-        self._decode_lookup_table_filepath = decode_lookup_table_filepath
-        self._decoder_name = decoder_name
+        self._target_decoder_override = target_decoder
 
         self._num_qubits_per_cat_state = int(max(np.count_nonzero(target_code_utilities.z_observable), np.count_nonzero(target_code_utilities.x_observable)))
         self._last_si = self._num_cat_states - 1
         self._control_code_utilities = get_shor_code_utilities(
             num_cat_states=self._num_cat_states,
             num_qubits_per_cat_state=self._num_qubits_per_cat_state,
-            z_observable=get_shor_h_observable_z(self._num_cat_states),
-            x_observable=get_shor_h_observable_x(self._num_cat_states),
+            z_observable=get_shor_h_observable_z(self._num_cat_states, self._num_qubits_per_cat_state),
+            x_observable=get_shor_h_observable_x(self._num_cat_states, self._num_qubits_per_cat_state),
             target_code_utilities=target_code_utilities,
             qubit_id_start=self._target_code_utilities.last_qubit_index + 1,
             row_coord_start=2,
-            existing_ancilla_indices=target_code_utilities.all_ancilla_qubits,
         )
 
     def run_main(self):
@@ -63,8 +96,8 @@ class SimulateCx:
             max_shots=self._run_configuration.max_shots,
             max_errors=self._run_configuration.max_errors,
             tasks=task_list,
-            decoders=[self._decoder_name],
-            custom_decoders={self._decoder_name: self.build_decoder()},
+            decoders=['standalone_exact_mw'],
+            custom_decoders={'standalone_exact_mw': self.build_decoder()},
             print_progress=True,
             save_resume_filepath=save_resume_file,
             count_observable_error_combos=True,
@@ -74,26 +107,27 @@ class SimulateCx:
         return samples
 
     def build_decoder(self):
-        if self._decoder_name == 'bposd':
-            return BpOsdDecoderForSinter()
-        if self._decoder_name == 'exact_mw':
-            return ExactMwDemDecoder()
-        combined_symplectic_matrix, observables = self.get_combined_symplectic()
-        decoder_file = Path(f'{self._decode_lookup_table_filepath}_{self._si}.pickle') if self._decode_lookup_table_filepath else None
-        return DecoderByMatrix(symplectic_matrix=combined_symplectic_matrix,
-                               distance=self._num_cat_states,
-                               observables=observables,
-                               modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._cx_is_performed else None,
-                               num_target_data_qubits=self._num_target_data_qubits,
-                               decode_lookup_table=decoder_file,
-                               final_detector_generator_indices=[generator_num for generator_num, _ in self._final_detector_generators(self._measured_data_qubits)]
-                               )
+        combined_symplectic_matrix, _ = self.get_combined_symplectic()
+        n_target = len(self._target_code_utilities.symplectic_matrix)
+        return StandaloneExactMwPartitionDecoder(
+            target_code_utilities=self._target_code_utilities,
+            control_code_utilities=self._control_code_utilities,
+            distance=self._num_cat_states,
+            modified_index=len(combined_symplectic_matrix) - self._num_cat_states + 1 + self._si if self._stabilizers_are_modified else None,
+            num_target_stabilizers=n_target,
+            si=self._si,
+            num_qubits_per_cat_state=self._num_qubits_per_cat_state,
+            target_decoder=self._target_decoder_override or self._target_decoder_name,
+        )
 
     def generate_sinter_tasks(self):
         probs = self._run_configuration.depolarization_probabilities
         for idx, p in enumerate(probs):
+            c = self.generate_task_circuit(physical_error_rate=p)
+            dem = c.detector_error_model(decompose_errors=False)
             yield Task(
-                circuit=self.generate_task_circuit(physical_error_rate=p),
+                circuit=c,
+                detector_error_model=dem,
                 json_metadata={
                     'physical_error_rate': p,
                     'distance': self._num_cat_states,
@@ -129,17 +163,104 @@ class SimulateCx:
         # target observable
         first_observable[:len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[:len(self._target_code_utilities.z_observable) // 2]
         first_observable[len(first_observable) // 2:len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2] = self._target_code_utilities.z_observable[len(self._target_code_utilities.z_observable) // 2:]
-        # control observable
-        first_observable[len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2:-(self._num_cat_states - self._si - 1) * self._num_qubits_per_cat_state or None] = np.ones(self._num_qubits_per_cat_state * (self._si + 1))
+        # control observable (spaced z_observable of first si+1 subregisters)
+        ctrl_z_obs = self._control_code_utilities.z_observable
+        n_ctrl_data = len(self._control_code_utilities.data_indices)
+        ctrl_z_part = ctrl_z_obs[n_ctrl_data:]
+        ctrl_obs_vec = np.zeros(n_ctrl_data, dtype=int)
+        for j in range(self._si + 1):
+            ctrl_obs_vec[j * self._num_qubits_per_cat_state] = ctrl_z_part[j * self._num_qubits_per_cat_state]
+        offset = len(first_observable) // 2 + len(self._target_code_utilities.z_observable) // 2
+        first_observable[offset:offset + n_ctrl_data] = ctrl_obs_vec
 
         return combined_symplectic_matrix, observables
+
+    @staticmethod
+    def build_bare_circuit_all_measured(target_code: StabilizerCodeUtilities,
+                                        physical_error_rate: float,
+                                        num_rounds: int) -> Circuit:
+        utils = target_code
+        S = utils.symplectic_matrix
+        n = len(utils.data_indices)
+        ng = S.shape[0]
+        dqs = utils.data_indices
+        measured_qubits = list(dqs)
+
+        num_middle_rounds = num_rounds - 2
+        stabilizer_round = str(utils.get_stabilizers(measurement_error_rate=physical_error_rate))
+        middle_rounds = f"""
+            REPEAT {num_middle_rounds} {{
+                DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+                {stabilizer_round}
+                {_round_detectors_difference_str(ng)}
+            }}
+        """ if num_middle_rounds > 0 else ''
+
+        circuit = Circuit(f"""
+            {utils.get_init()}
+            {utils.get_encoding_by_stabilizer()}
+
+            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+            {stabilizer_round}
+            {_round_detectors_absolute_str(ng)}
+            {middle_rounds}
+            {utils.get_stabilizers(measurement_error_rate=0.0)}
+            {_round_detectors_difference_str(ng)}
+
+            M {' '.join(map(str, measured_qubits))}
+            {_final_round_detectors_str(S, dqs, measured_qubits, ng)}
+            {_observable_include_str(utils, measured_qubits, use_x_obs=False)}
+        """)
+        return circuit
+
+    @staticmethod
+    def build_bare_circuit(target_code: StabilizerCodeUtilities,
+                           physical_error_rate: float,
+                           num_rounds: int,
+                           use_x_observable: bool = False) -> Circuit:
+        utils = target_code
+        S = utils.symplectic_matrix
+        n = len(utils.data_indices)
+        ng = S.shape[0]
+        dqs = utils.data_indices
+
+        obs = utils.x_observable if use_x_observable else utils.z_observable
+        measured_indices = sorted(set(np.where(obs == 1)[0] % n))
+        measured_qubits = [dqs[q] for q in measured_indices]
+
+        num_middle_rounds = num_rounds - 2
+        stabilizer_round = str(utils.get_stabilizers(measurement_error_rate=physical_error_rate))
+        middle_rounds = f"""
+            REPEAT {num_middle_rounds} {{
+                DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+                {stabilizer_round}
+                {_round_detectors_difference_str(ng)}
+            }}
+        """ if num_middle_rounds > 0 else ''
+
+        circuit = Circuit(f"""
+            {utils.get_init()}
+            {utils.get_encoding_by_stabilizer()}
+
+            DEPOLARIZE1({physical_error_rate}) {' '.join(map(str, dqs))}
+            {stabilizer_round}
+            {_round_detectors_absolute_str(ng)}
+            {middle_rounds}
+            {utils.get_stabilizers(measurement_error_rate=0.0)}
+            {_round_detectors_difference_str(ng)}
+
+            M {' '.join(map(str, measured_qubits))}
+            {_final_round_detectors_str(S, dqs, measured_qubits, ng)}
+            {_observable_include_str(utils, measured_qubits, use_x_observable)}
+        """)
+        return circuit
 
     def generate_task_circuit(self, physical_error_rate: float) -> Circuit:
         control_subregister_indices = self._control_subregister_indices
         all_data_indices = self._target_code_utilities.data_indices + self._control_code_utilities.data_indices
 
-        cx_from_gsch_all = [
-            CxFromGsch(control_qubit_indices=control_subregister_indices[i],
+        cx_from_gscx_all = [
+            CxFromGscx(control_qubit_indices=control_subregister_indices[i],
                        target_code_utilities=self._target_code_utilities).perform_cx()
             for i in range(self._si + 1)
         ]
@@ -159,7 +280,7 @@ class SimulateCx:
 
         cx_error = Circuit()
         cx_error_qubits = set()
-        applied_cx_circuits = [cx_from_gsch_all[-1]] if self._cx_is_performed else []
+        applied_cx_circuits = [cx_from_gscx_all[-1]] if self._cx_is_performed else []
         for cx_circuit in applied_cx_circuits:
             for instruction in cx_circuit:
                 if instruction.name in ('CX', 'CZ'):
@@ -175,12 +296,16 @@ class SimulateCx:
         target_measurement_indices = sorted(set(np.where(self._target_code_utilities.z_observable == 1)[0] % len(self._target_code_utilities.data_indices)))
         measured_data_qubits = self._measured_data_qubits
         observable_qubits = [self._target_code_utilities.data_indices[q] for q in target_measurement_indices] + \
-                            [ind for subreg in control_subregister_indices[:self._si + 1] for ind in subreg]
+                            [subreg[0] for subreg in control_subregister_indices[:self._si + 1]]
         num_measured = len(measured_data_qubits)
         observable_recs = ' '.join([f'rec[{-(num_measured - measured_data_qubits.index(q))}]' for q in observable_qubits])
         stabilizer_round = f"""
             {self._target_code_utilities.get_stabilizers(measurement_error_rate=physical_error_rate)}
             {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=physical_error_rate)}
+        """
+        last_stabilizer_round = f"""
+            {self._target_code_utilities.get_stabilizers(measurement_error_rate=0.0)}
+            {self._control_code_utilities.get_stabilizers(modify_stabilizer=modify_stabilizer, modified_generator=modified_generator, measurement_error_rate=0.0)}
         """
         num_middle_rounds = self._num_cat_states - 1
         middle_rounds = f"""
@@ -197,14 +322,14 @@ class SimulateCx:
             {self._target_code_utilities.get_encoding_by_stabilizer()}
             {cat_states_circuit}
 
-            {'\n'.join(map(str, cx_from_gsch_all[:-1]))}
+            {'\n'.join(map(str, cx_from_gscx_all[:-1]))}
             {all_data_depolarizing_one_noise}
-            {cx_from_gsch_all[-1] if self._cx_is_performed else ''}
+            {cx_from_gscx_all[-1] if self._cx_is_performed else ''}
             {depolarizing_one_and_two_noise}
             {stabilizer_round}
             {self._round_detectors_absolute()}
             {middle_rounds}
-            {stabilizer_round}
+            {last_stabilizer_round}
             {self._round_detectors_difference()}
 
             M {' '.join(map(str, measured_data_qubits))}
@@ -274,6 +399,14 @@ class SimulateCx:
     def _num_target_data_qubits(self):
         return len(self._target_code_utilities.data_indices)
 
+    @property
+    def _target_decoder_name(self):
+        return {
+            'five_qubit': 'single_error',
+            'dodecacode': 'bposd',
+            'gscx': 'mwpm',
+        }.get(self._target_code_utilities.code_name, 'mwpm')
+
 
 if __name__ == '__main__':
     run_configuration = RunConfiguration(
@@ -283,8 +416,6 @@ if __name__ == '__main__':
         num_workers=5
     )
 
-    # target_code = get_3_repetition_code_utilities()
-    # target_code = get_15_1_3_reed_solomon_code_utilities()
     # target_code = get_shor_code_utilities(num_cat_states=3, num_qubits_per_cat_state=3, z_observable=get_shor_h_observable_z(distance=3), x_observable=get_shor_h_observable_x(distance=3))
 
     target_code = get_five_qubit_code_utilities()
@@ -293,14 +424,6 @@ if __name__ == '__main__':
                          si=0,
                          run_configuration=run_configuration,
                          ).run_main()
-
-    # target_code = get_dodecacode_utilities()
-    # samples = SimulateCx(num_cat_states=5,
-    #                      target_code_utilities=target_code,
-    #                      si=-1,
-    #                      run_configuration=run_configuration,
-    #                      decode_lookup_table_filepath=Path(__file__).parent.parent / 'scripts' / 'dodecacode' / 'decode_lookup_table_dodeca',
-    #                      ).run_main()
 
     print(CSV_HEADER)
     for sample in samples:

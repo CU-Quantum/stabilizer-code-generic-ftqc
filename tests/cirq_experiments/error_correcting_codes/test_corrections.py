@@ -11,6 +11,7 @@ from cirq_experiments.error_correcting_codes.five_qubit_code.five_qubit_code imp
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
+from cirq_experiments.error_correcting_codes.golay_code.golay_code import GolayCode
 from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
@@ -28,6 +29,8 @@ from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_stat
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
+from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_golay import \
+    ExpectedStatesGenericGolay
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.cirq_experiments.utilities_for_tests import get_cat_state_vector, set_configuration_to_reduce_ancilla_qubits
 
@@ -75,6 +78,11 @@ SINGLE_ERROR_PARAMETERS = {
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(5)),
+    ),
+    "GenericStabilizerCodeGolay": ParametersForCorrectionsTest(
+        code=GolayCode(),
+        initial_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
+        qubit_indices_to_test=[0, 11, 22],
     ),
     "FiveQubitCode": ParametersForCorrectionsTest(
         code=FiveQubitCode(),

@@ -12,5 +12,4 @@ if __name__ == "__main__":
         num_cat_states=5,
         code_title='Dodecacode',
         save_resume_filepath=Path(__file__).parent / 'save_resume',
-        decode_lookup_table_filepath=Path(__file__).parent / 'decode_lookup_table_dodeca'
     ).run_main()

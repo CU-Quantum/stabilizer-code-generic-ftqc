@@ -2,10 +2,10 @@
 
 #SBATCH --account=ucb685_asc2
 #SBATCH --time=24:00:00
-#SBATCH --array=0-999
-#SBATCH --partition=amem
-#SBATCH --qos=mem-normal
-#SBATCH --mem=512G
+#SBATCH --array=0-499
+#SBATCH --partition=acpu
+#SBATCH --qos=cpu-normal
+#SBATCH --mem=64G
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
 #SBATCH --job-name=dodecacode
@@ -30,5 +30,4 @@ cd /projects/nipa4599/stim-experiments || exit
 python /projects/nipa4599/stim-experiments/src/stim_experiments/scripts/dodecacode/dodecacode.py \
   -s 1_000_000_000 \
   -e 1000 \
-  -p 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 1e-1 2e-1 5e-1 \
-  -d exact_mw
+  -p 5e-5 1e-4 2e-4 5e-4 1e-3 2e-3 5e-3 1e-2 2e-2 5e-2 1e-1 2e-1 5e-1
