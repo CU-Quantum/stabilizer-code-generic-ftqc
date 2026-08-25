@@ -11,10 +11,10 @@ from stim_experiments.scripts.utilities import get_shard_merge_paths, merge_csvs
 class Main:
     def main(self):
         codes = [
-            ('Five-qubit', five_qubit.__file__, '#D55E00', 's'),
+            ('Five-qubit (lookup)', five_qubit.__file__, '#D55E00', 's'),
             ('Dodecacode (BP-OSD)', dodecacode.__file__, '#009E73', 'o'),
             ('Dodecacode (lookup)', dodecacode_lookup.__file__, '#882255', 'P'),
-            ('GSCX Distance 7', gscx_distance_7.__file__, '#332288', 'v'),
+            ('GSCX Distance 7 (MWPM)', gscx_distance_7.__file__, '#332288', 'v'),
         ]
 
         fig, ax = plt.subplots(1, 1)
