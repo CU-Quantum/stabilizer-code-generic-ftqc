@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stabilizer-code-generic-ftqc"
+version = "0.1.0"
+description = "Generic Fault-Tolerant Quantum Computing framework for arbitrary stabilizer codes"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "CU-Quantum"}
+]
+dependencies = [
+    "beliefmatching>=0.2.0",
+    "cirq>=1.4.0",
+    "dacite>=1.8.1",
+    "ldpc>=0.1.50",
+    "matplotlib>=3.8.0",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "pymatching>=2.2.0",
+    "qsimcirq>=0.19.0",
+    "sinter>=1.14.0",
+    "stim>=1.14.0",
+    "sympy>=1.12",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.5.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+filterwarnings = [
+    "ignore::RuntimeWarning:cirq_experiments.utilities.utilities",
+]

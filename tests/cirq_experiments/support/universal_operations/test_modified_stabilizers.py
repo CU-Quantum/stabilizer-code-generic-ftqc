@@ -176,7 +176,8 @@ class TestModifiedStabilizers:
                     encoding_circuit,
                     flip_circuit,
                 ),
-                num_data_qubits=len(self._qubits))
+                num_data_qubits=len(self._qubits),
+            )
 
             circuit_with_error = build_noisy_circuit(encoding_circuit, flip_circuit)
             result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(self._qubits))

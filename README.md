@@ -1,341 +1,270 @@
 # Stabilizer Code-Generic Universal Fault-Tolerant Quantum Computation
 
+A Python framework for fault-tolerant quantum computing (FTQC) and quantum error correction (QEC) experiments across arbitrary stabilizer codes using [Cirq](https://quantumai.google/cirq) and [Stim](https://github.com/quantumlib/Stim).
 
-## Stim Experiments
+---
 
-Data for validating the error rate of logical flip gates controlled by the Hadamard dual
-of the Generalized Shor Code (GSCX) targeting the 5-qubit code and the dodecacode are housed
-in the `src/stim_experiments/scripts/dodecacode` and `src/stim_experiments/scripts/dodecacode`
-directories, respectively.
-Plotting scripts are housed in the `src/stim_experiments/scripts` directory.
+## Overview
 
+This repository provides tools, circuits, and simulation pipelines for:
+- **Generic Stabilizer Codes**: Arbitrary stabilizer codes specified by check matrices in standard or non-standard forms (e.g. 5-qubit code, Steane code, Shor code, Dodecacode, Golay [[23,1,7]] code, Tetrahedral code).
+- **Universal Fault-Tolerant Operations**: Ancilla-assisted fault-tolerant logical Clifford + T gates and universal controlled-flip operations.
+- **Stim Experiments & Monte Carlo Simulations**: High-performance error threshold and logical error rate simulations using Stim, PyMatching, and LDPC decoders.
+- **Cirq State Vector Simulations**: Exact quantum state verification and FTQC algorithm simulations (e.g. Deutsch-Jozsa, logical state preparation, and syndrome extraction).
 
-## Cirq Experiments
+---
 
-Validating the effects of the stabilizer code-generic gates are housed in the
-`tests/cirq_experiments/support/universal_operations` directory.
-Validating the fault-tolerant Deutsch-Jozsa algorithm is housed in the
-`tests/cirq_experiments/algorithms/deutsch_josza/test_deutsch_josza.py` directory.
+## Repository Structure
 
-
-## Run Universal Fault-Tolerant Quantum Computations
-
-A Python package for quantum error correction experiments using Cirq and Stim.
-
-### Description
-
-This project provides tools and utilities for experimenting with quantum error correction codes, with a focus on stabilizer circuits. It uses Cirq for quantum circuit creation and simulation, and Stim for fast stabilizer circuit simulation.
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/stim_experiments.git
-cd stim_experiments
+```
+├── docs/                     # Documentation and theoretical notes
+├── results/                  # Simulation data and results
+├── src/
+│   ├── cirq_experiments/     # Cirq-based quantum error correction and FTQC framework
+│   │   ├── algorithms/       # FTQC algorithm circuits (e.g. Deutsch-Jozsa)
+│   │   ├── error_correcting_codes/ # Code implementations (Five-qubit, Steane, Golay, Shor, etc.)
+│   │   ├── simulations/      # State-vector and error-correcting simulation runners
+│   │   ├── support/          # Ancilla pools, cat state creators, measurers, universal gates
+│   │   └── utilities/        # Mathematical utilities and state verification
+│   ├── stim_experiments/     # Stim-based threshold and circuit-level noise simulations
+│   │   ├── circuits/         # Noise-aware Stim circuit builders
+│   │   └── scripts/          # Parameter sweeps, decoder benchmarking, and plotting scripts
+│   └── predefined_check_matrix_values.py # Predefined stabilizer check matrices
+└── tests/                    # Comprehensive test suite
 ```
 
-2. Install the required dependencies:
+---
+
+## Installation
+
+### Prerequisites
+- Python 3.10+
+- A virtual environment is recommended
+
+### Setup
 ```bash
-pip install -r requirements.txt
+# Clone the repository
+git clone https://github.com/CU-Quantum/stabilizer-code-generic-ftqc.git
+cd stabilizer-code-generic-ftqc
+
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies and package in editable mode
+pip install -e .
 ```
 
-### Getting Started with Cirq Simulator
+---
 
-#### Basic Circuit Creation and Simulation
+## Quick Start
 
-Here's a simple example of creating and simulating a quantum circuit using Cirq:
+### 1. Basic Circuit Simulation (Cirq)
 
 ```python
-from cirq import Circuit, H, X, LineQubit, final_state_vector
+import cirq
 
-# Create qubits
-qubits = LineQubit.range(2)
-
-# Create a circuit
-circuit = Circuit(
-    H(qubits[0]),                    # Apply Hadamard gate to the first qubit
-    X(qubits[1]).controlled_by(qubits[0])  # Apply CNOT gate (controlled-X)
+# Create qubits and circuit
+qubits = cirq.LineQubit.range(2)
+circuit = cirq.Circuit(
+    cirq.H(qubits[0]),
+    cirq.CNOT(qubits[0], qubits[1]),
 )
 
-# Simulate the circuit
-result = circuit.final_state_vector()
-
-# Print the result
-print("Final state vector:")
-print(result)
+# Simulate
+simulator = cirq.Simulator()
+result = simulator.simulate(circuit)
+print("State vector:", result.final_state_vector)
 ```
 
-This example creates a Bell state, which is a maximally entangled state between two qubits.
+### 2. Logical State Preparation & Operations
 
-#### Using the Project's Simulator for Error Correction Simulation
-
-The project provides a `LogicalOperationsCircuitCreator` for creating circuits with logical operations:
+Create and simulate logical qubits encoded with arbitrary stabilizer codes:
 
 ```python
-from cirq import LineQubit
-from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
-
-StabilizerStandardizedCode
-from cirq_experiments import
-
-LogicalOperationsCircuitCreator
-from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
+import cirq
+from cirq_experiments.algorithms.logical_operations_circuit_creator import (
+    LogicalOperationsCircuitCreator,
+)
+from cirq_experiments.custom_dataclasses.transformation_operation import (
+    TransformationGate,
+    TransformationOperation,
+)
+from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import (
+    StabilizerStandardizedCode,
+)
+from cirq_experiments.simulations.error_correcting_simulator_state_vector import (
+    ErrorCorrectingSimulatorStateVector,
+)
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
-# Create qubits for two logical qubits
-# The 5-qubit code requires 5 physical qubits per logical qubit
-qubits = LineQubit.range(10)  # 5 qubits for each logical qubit
+# Initialize physical qubits (5 qubits per logical qubit for the 5-qubit code)
+qubits = cirq.LineQubit.range(10)
 
-# Create encodings using the five qubit code
-standardized_five_qubit = StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit())
+# Create 5-qubit stabilizer code encodings
+code = StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit())
 encodings = [
-    standardized_five_qubit.create_new(qubits=qubits[:5]),
-    standardized_five_qubit.create_new(qubits=qubits[5:])
+    code.create_new(qubits=qubits[:5]),
+    code.create_new(qubits=qubits[5:]),
 ]
 
-# Define operations (creating a Bell state with measurement)
-operations = [
-    TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
-    TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
-    TransformationOperation(gate=TransformationGate.M, target_qubit_index=1),  # Measure the second qubit
-]
-
-# Create the simulator
-simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
-
-# Get the simulation circuit
-circuit = simulator.get_simulation_circuit()
-
-# Simulate the circuit
-utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.run_simulation(
-    circuit=circuit,
-    num_data_qubits=len(simulator.data_qubits),
-)
-
-# Analyze the result
-print("Final state:", result.state)
-print("Measurements:", result.logical_qubit_measurements)
-```
-
-### Configuration Settings
-
-The project provides a configuration system that allows you to customize various aspects of the error correction process. You can access and modify the configuration using the `ConfigurationErrorCorrectingCodeManager`:
-
-```python
-from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
-from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import
-
-MeasurerWithSingleQubitSequential
-from cirq_experiments import
-
-CatStateCreatorCxFromFirstQubit
-from cirq_experiments.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import
-
-UniversalHadamardSingleAncilla
-from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import
-
-UniversalControlledOperationSingleAncilla
-from cirq_experiments.support.universal_operations.universal_t.universal_t_single_ancilla import
-
-UniversalTSingleAncilla
-
-# Get the configuration
-configuration = ConfigurationErrorCorrectingCodeManager().get_configuration()
-
-# Modify configuration settings
-configuration.measurer_type = MeasurerWithSingleQubitSequential
-configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
-configuration.universal_hadamard_type = UniversalHadamardSingleAncilla
-configuration.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
-configuration.universal_t_type = UniversalTSingleAncilla
-configuration.seed = 42  # Set a random seed for reproducibility
-```
-
-Available configuration options:
-
-1. `measurer_type`: Type of measurer to use (default: `FaultTolerantMeasurer`)
-2. `cat_state_creator_type`: Type of cat state creator to use (default: `CatStateCreatorFlagPattern`)
-3. `universal_hadamard_type`: Type of universal Hadamard implementation (default: `UniversalHadamardFaultTolerant`)
-4. `universal_controlled_operation_type`: Type of universal controlled operation implementation (default: `UniversalControlledOperationFaultTolerant`)
-5. `universal_t_type`: Type of universal T implementation (default: `UniversalTFaultToleratn`)
-6. `num_cat_states`: Number of cat states to use for the Multiple Cat Code and Cat Parity Code  (default: `3`)
-7. `seed`: Optional seed for random number generation (default: `None`)
-8. `majority_vote_repetitions`: Number of repetitions for majority vote measurement (default: `3`)
-
-
-### Creating Your Own Error Correcting Code
-
-You can create your own error correcting code by extending the `ErrorCorrectingCode` abstract base class and implementing the required methods:
-
-```python
-from cirq import Circuit, LineQubit, R, X, Z
-from typing import Optional
-
-from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
-from cirq_experiments import FreshAncillasPool
-from cirq_experiments.error_correcting_codes.error_correcting_code import ErrorCorrectingCode
-
-
-class MyCustomCode(ErrorCorrectingCode):
-    def __init__(self, num_logical_qubits: int = 1, qubits: Optional[list[LineQubit]] = None):
-        # For this example, we'll use a simple 3-qubit repetition code
-        super().__init__(num_data_qubits=3 * num_logical_qubits,
-                         num_logical_qubits=num_logical_qubits,
-                         qubits=qubits)
-
-    def encode_logical_qubit(self) -> Circuit:
-        # Implement the encoding circuit for your code
-        # For a 3-qubit repetition code, we could use CNOT gates to copy the state
-        circuit = Circuit()
-        for i in range(self._num_logical_qubits):
-            base_idx = i * 3
-            circuit.append([
-                X(self.data_qubits[base_idx + 1]).controlled_by(self.data_qubits[base_idx]),
-                X(self.data_qubits[base_idx + 2]).controlled_by(self.data_qubits[base_idx])
-            ])
-        return circuit
-
-    def get_error_correction_circuit(self) -> CorrectionCircuit:
-        # Implement error correction for your code
-        # For a 3-qubit repetition code, we would use majority voting
-        circuit = CorrectionCircuit()
-        # FreshAncillasPool allows you to pull fresh or unused ancilla qubits. 
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancilla_quibts:
-            # You must ensure the ancilla qubits are reset after pulling to ensure freshness
-            circuit.syndrome_circuit.append(R(ancilla for ancilla in ancilla_quibts))
-            # Add error correction operations
-            circuit.syndrome_circuit.append(...)
-            circuit.recovery_circuit.append(...)
-            return circuit
-
-    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[Circuit]:
-        # Implement logical operations for your code
-        if operation.gate == LogicalGateLabel.X:
-            # Apply X to all physical qubits representing the logical qubit
-            base_idx = operation.qubit_index * 3
-            return Circuit([
-                X(self.data_qubits[base_idx]),
-                X(self.data_qubits[base_idx + 1]),
-                X(self.data_qubits[base_idx + 2])
-            ])
-        elif operation.gate == LogicalGateLabel.Z:
-            # For a bit-flip code, Z is applied to any one qubit
-            base_idx = operation.qubit_index * 3
-            return Circuit(Z(self.data_qubits[base_idx]))
-        elif operation.gate == LogicalGateLabel.H:
-            # If the code has an efficient Hadamard operation, you can include it in here. 
-            # Otherwise, the simulator will use the universal hadamard type set in the configuration.
-            return None
-        elif operation.gate == LogicalGateLabel.T:
-            # If the code has an efficient T operation, you can include it in here. 
-            # Otherwise, the simulator will use the universal T type set in the configuration.
-            return None
-        return None  # Other operations not implemented.
-```
-
-You can then use your custom code with the simulator:
-
-```python
-from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
-from cirq_experiments import
-
-LogicalOperationsCircuitCreator
-from simulations.error_correcting_simulator import ErrorCorrectingSimulatorStateVector
-
-# Create qubits for two logical qubits (3 physical qubits per logical qubit)
-qubits = LineQubit.range(6)
-
-# Create encodings using your custom code
-encodings = [
-    MyCustomCode(num_logical_qubits=1, qubits=qubits[:3]),
-    MyCustomCode(num_logical_qubits=1, qubits=qubits[3:])
-]
-
-# Define operations
+# Define logical operations (e.g. Logical Bell State)
 operations = [
     TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
     TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
     TransformationOperation(gate=TransformationGate.M, target_qubit_index=1),
 ]
 
-# Create the simulator and run the simulation
-simulator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
-circuit = simulator.get_simulation_circuit()
-utilities = ErrorCorrectingSimulatorStateVector()
-result = utilities.run_simulation(
+# Build and simulate the logical circuit
+creator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
+circuit = creator.get_simulation_circuit()
+
+simulator = ErrorCorrectingSimulatorStateVector()
+result = simulator.run_simulation(
     circuit=circuit,
-    num_data_qubits=len(simulator.data_qubits),
+    num_data_qubits=len(creator.data_qubits),
 )
+
+print("Final state:", result.state)
+print("Logical measurements:", result.logical_qubit_measurements)
 ```
 
-### Creating Your Own Controlled Operations
+---
 
-You can specify your own method for controlled operations.
-As a default, the simulator will use a universal, fault-tolerant method (UniversalControlledOperationFaultTolerant).
-This may be inefficient depending on the encodings used.
-For example, if you are only using the Steane Code, you may specify a transversal CX implementation.
+## Configuration
+
+Customize measurer implementations, cat state creation strategies, and universal operations via `ConfigurationErrorCorrectingCodeManager`:
 
 ```python
-from cirq import Circuit, X
+from cirq_experiments.globals.error_correcting_code_configuration import (
+    ConfigurationErrorCorrectingCodeManager,
+)
+from cirq_experiments.support.cat_state_creator.cat_state_creator_cx_from_first_qubit.cat_state_creator_cx_from_first_qubit import (
+    CatStateCreatorCxFromFirstQubit,
+)
+from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import (
+    MeasurerWithSingleQubitSequential,
+)
+from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip_single_ancilla import (
+    UniversalControlledOperationSingleAncilla,
+)
+from cirq_experiments.support.universal_operations.universal_hadamard.universal_hadamard_single_ancilla import (
+    UniversalHadamardSingleAncilla,
+)
+from cirq_experiments.support.universal_operations.universal_t.universal_t_single_ancilla import (
+    UniversalTSingleAncilla,
+)
 
-from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel
-from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip import
+config = ConfigurationErrorCorrectingCodeManager().get_configuration()
 
-UniversalControlledOperation
-from cirq_experiments.support.universal_operations.universal_controlled_flip.universal_controlled_flip_fault_tolerant import
-
-UniversalControlledFlipFaultTolerant
-
-
-class MyCustomControlledOperation(UniversalControlledOperation):
-    def get_controlled_operation_circuit(self) -> Circuit:
-        # Check both encodings are compatible
-        is_steane_to_steane = len(self._control.encoding.data_qubits) == 7 and len(
-            self._target.encoding.data_qubits) == 7
-        # Check is CX operation
-        is_cx_operation = self._target.operation.gate == LogicalGateLabel.X
-        if is_steane_to_steane and is_cx_operation:
-            # Return transversal CX implementation
-            return Circuit(
-                X(target_qubit).controlled_by(controt_qubit)
-                for controt_qubit, target_qubit in
-                zip(self._control.encoding.data_qubits, self._target.encoding.data_qubits)
-            )
-        else:
-            # Default to fault-tolerant version
-            return UniversalControlledFlipFaultTolerant(control=self._control,
-                                                        target=self._target).get_controlled_operation_circuit()
+# Configure execution strategies
+config.measurer_type = MeasurerWithSingleQubitSequential
+config.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+config.universal_hadamard_type = UniversalHadamardSingleAncilla
+config.universal_controlled_operation_type = UniversalControlledOperationSingleAncilla
+config.universal_t_type = UniversalTSingleAncilla
+config.seed = 42
 ```
 
-You can then set this in the configuration before simulating:
+### Available Configuration Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `measurer_type` | `type[Measurer]` | `FaultTolerantMeasurer` | Strategy for stabilizer / parity measurement |
+| `cat_state_creator_type` | `type[CatStateCreator]` | `CatStateCreatorFlagPattern` | Cat state preparation protocol |
+| `universal_hadamard_type` | `type[UniversalHadamard]` | `UniversalHadamardFaultTolerant` | Logical Hadamard implementation |
+| `universal_controlled_operation_type` | `type[UniversalControlledOperation]` | `UniversalControlledOperationFaultTolerant` | Universal controlled gate strategy |
+| `universal_t_type` | `type[UniversalT]` | `UniversalTFaultTolerant` | Fault-tolerant logical T gate strategy |
+| `num_cat_states` | `int` | `3` | Number of cat states for Generalized Shor Code |
+| `seed` | `Optional[int]` | `None` | Random seed for simulation reproducibility |
+| `majority_vote_repetitions` | `int` | `3` | Syndrome measurement repetitions for majority voting |
+
+---
+
+## Custom Stabilizer Codes
+
+Extend `ErrorCorrectingCode` or instantiate `StabilizerStandardizedCode` with custom check matrices:
 
 ```python
-from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import
+from typing import Optional
+import cirq
+from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
+from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
+from cirq_experiments.error_correcting_codes.error_correcting_code import ErrorCorrectingCode
+from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
-StabilizerStandardizedCode
-from predefined_check_matrix_values import get_check_matrix_values_steane
-from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 
-# Set your custom controller operation 
-configuration = ConfigurationErrorCorrectingCodeManager.get_configuration()
-configuration.universal_controlled_operation_type = MyCustomControlledOperation
+class My3QubitRepetitionCode(ErrorCorrectingCode):
+    def __init__(self, num_logical_qubits: int = 1, qubits: Optional[list[cirq.LineQubit]] = None):
+        super().__init__(
+            num_data_qubits=3 * num_logical_qubits,
+            num_logical_qubits=num_logical_qubits,
+            qubits=qubits,
+        )
 
-# Create qubits for two logical qubits (7 physical qubits per logical qubit)
-qubits = LineQubit.range(14)
+    def encode_logical_qubit(self) -> cirq.Circuit:
+        circuit = cirq.Circuit()
+        for i in range(self._num_logical_qubits):
+            base = i * 3
+            circuit.append([
+                cirq.CNOT(self.data_qubits[base], self.data_qubits[base + 1]),
+                cirq.CNOT(self.data_qubits[base], self.data_qubits[base + 2]),
+            ])
+        return circuit
 
-# Create encodings using your custom code
-standardized_steane = StabilizerStandardizedCode(generators=get_check_matrix_values_steane())
-encodings = [
-    standardized_steane.create_new(qubits=qubits[:7]),
-    standardized_steane.create_new(qubits=qubits[7:]),
-]
+    def get_error_correction_circuit(self) -> CorrectionCircuit:
+        circuit = CorrectionCircuit()
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=2) as ancillas:
+            circuit.syndrome_circuit.append([cirq.reset(a) for a in ancillas])
+            # Add stabilizer measurement and correction logic
+        return circuit
 
-...
+    def _perform_get_operation_circuit(self, operation: LogicalOperation) -> Optional[cirq.Circuit]:
+        if operation.gate == LogicalGateLabel.X:
+            base = operation.qubit_index * 3
+            return cirq.Circuit(cirq.X(q) for q in self.data_qubits[base:base + 3])
+        elif operation.gate == LogicalGateLabel.Z:
+            base = operation.qubit_index * 3
+            return cirq.Circuit(cirq.Z(self.data_qubits[base]))
+        return None
 ```
 
+---
+
+## Experiments & Benchmarking
+
+### Stim Simulations
+- **5-Qubit Code**: `src/stim_experiments/scripts/five_qubit_code/`
+- **Dodecacode**: `src/stim_experiments/scripts/dodecacode/`
+- **Plotting & Analysis**: `src/stim_experiments/scripts/`
+
+Run a sample Stim simulation script:
+```bash
+python src/stim_experiments/scripts/five_qubit_code/five_qubit_threshold.py
+```
+
+### Cirq Fault-Tolerance Tests
+- Universal gate validations: `tests/cirq_experiments/support/universal_operations/`
+- Fault-tolerant Deutsch-Jozsa algorithm: `tests/cirq_experiments/algorithms/deutsch_josza/test_deutsch_josza.py`
+
+---
+
+## Running Tests
+
+Run the full test suite with `pytest`:
+
+```bash
+# Run all fast tests
+pytest -m "not slow"
+
+# Run the complete test suite including slow simulation tests
+pytest
+
+# Run tests in parallel
+pytest -n auto -m "not slow"
+```
+
+---
 
 ## License
 

@@ -28,6 +28,7 @@ from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.
     ExpectedStatesGenericSteane
 from cirq_experiments.error_correcting_codes.golay_code.golay_code import GolayCode
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
+    get_check_matrix_values_golay, \
     get_check_matrix_values_steane
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
@@ -115,12 +116,12 @@ PARAMETERS = {
     ),
     "GenericStabilizerCodeGolay": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=GolayCode(),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_golay(balanced=True)),
             expected_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 23),
         ),
         one=ParametersForStateEncodingTest(
-            code=GolayCode(),
+            code=StabilizerStandardizedCode(generators=get_check_matrix_values_golay(balanced=True)),
             expected_state=ExpectedStatesGenericGolay().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 22, KET_ONE_STATE_VECTOR),
         ),
