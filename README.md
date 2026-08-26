@@ -17,7 +17,6 @@ This repository provides tools, circuits, and simulation pipelines for:
 ## Repository Structure
 
 ```
-├── docs/                     # Documentation and theoretical notes
 ├── results/                  # Simulation data and results
 ├── src/
 │   ├── cirq_experiments/     # Cirq-based quantum error correction and FTQC framework
