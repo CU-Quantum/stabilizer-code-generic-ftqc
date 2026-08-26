@@ -42,6 +42,7 @@ testpaths = ["tests"]
 pythonpath = ["src"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "very_slow: marks tests as very slow (deselect with '-m \"not very_slow\"')",
 ]
 filterwarnings = [
     "ignore::RuntimeWarning:cirq_experiments.utilities.utilities",
