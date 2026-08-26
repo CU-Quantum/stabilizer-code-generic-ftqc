@@ -10,10 +10,10 @@ from sinter import CompiledDecoder, Decoder
 from ldpc.ckt_noise import detector_error_model_to_check_matrices
 
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities
-from stim_experiments.simulate_cx.decoder_by_matrix.partition_decoder import (
+from stim_experiments.simulate_cx.decoders.partition_decoder import (
     _build_matcher,
 )
-from stim_experiments.simulate_cx.decoder_by_matrix.selected_decoders import (
+from stim_experiments.simulate_cx.decoders.selected_decoders import (
     MwpmDecoder,
     SingleErrorLookupDecoder,
     LookupTableDecoder,

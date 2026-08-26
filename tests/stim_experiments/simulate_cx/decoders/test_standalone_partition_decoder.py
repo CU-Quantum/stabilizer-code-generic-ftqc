@@ -4,7 +4,7 @@ import numpy as np
 from ldpc.ckt_noise import detector_error_model_to_check_matrices
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
-from stim_experiments.simulate_cx.decoder_by_matrix.selected_decoders import LookupTableDecoder
+from stim_experiments.simulate_cx.decoders.selected_decoders import LookupTableDecoder
 from stim_experiments.simulate_cx.simulate_cx import SimulateCx
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import (
     get_dodecacode_utilities,
