@@ -1,4 +1,4 @@
-from numpy import array, zeros, roll
+from numpy import array
 
 from cirq_experiments.custom_dataclasses.check_matrix import TYPE_CHECK_MATRIX
 
@@ -87,41 +87,3 @@ def get_check_matrix_values_dodecacode() -> TYPE_CHECK_MATRIX:
         [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,  1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1,  0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0],
     ])
-
-
-def _poly_mod(x: int, modulus: int) -> int:
-    while x.bit_length() >= modulus.bit_length():
-        x ^= modulus << (x.bit_length() - modulus.bit_length())
-    return x
-
-
-def get_check_matrix_values_golay(balanced: bool = True) -> TYPE_CHECK_MATRIX:
-    """Golay [[23,1,7]] CSS code from the binary [23,12,7] Golay code.
-
-    When balanced=True, uses the cyclic parity check matrix H1 from
-    arXiv:2512.11307 (eq. 4), based on
-    h1(x) = x^12 + x^10 + x^7 + x^4 + x^3 + x^2 + x + 1.
-    Column weights are balanced (3 weight-1 columns, weights 1-7).
-
-    When balanced=False, uses the systematic-form matrix generated from
-    g(x) = x^11 + x^9 + x^7 + x^6 + x^5 + x + 1.
-
-    22 stabilizers for 23 physical qubits, 1 logical qubit, distance 7.
-    """
-    n, r = 23, 11
-    if balanced:
-        H = zeros((r, n), dtype=int)
-        H[0] = [1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        for i in range(1, r):
-            H[i] = roll(H[0], i)
-    else:
-        g = (1 << 11) | (1 << 9) | (1 << 7) | (1 << 6) | (1 << 5) | (1 << 1) | 1
-        H = zeros((r, n), dtype=int)
-        for i in range(n):
-            rem = _poly_mod(1 << i, g)
-            for j in range(r):
-                H[j, i] = (rem >> j) & 1
-    full = zeros((2 * r, 2 * n), dtype=int)
-    full[:r, :n] = H
-    full[r:2 * r, n:2 * n] = H
-    return full

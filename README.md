@@ -7,7 +7,7 @@ A Python framework for fault-tolerant quantum computing (FTQC) and quantum error
 ## Overview
 
 This repository provides tools, circuits, and simulation pipelines for:
-- **Generic Stabilizer Codes**: Arbitrary stabilizer codes specified by check matrices in standard or non-standard forms (e.g. 5-qubit code, Steane code, Shor code, Dodecacode, Golay [[23,1,7]] code, Tetrahedral code).
+- **Generic Stabilizer Codes**: Arbitrary stabilizer codes specified by check matrices in standard or non-standard forms (e.g. 5-qubit code, Steane code, Shor code, Dodecacode, Tetrahedral code).
 - **Universal Fault-Tolerant Operations**: Ancilla-assisted fault-tolerant logical Clifford + T gates and universal controlled-flip operations.
 - **Stim Experiments & Monte Carlo Simulations**: High-performance error threshold and logical error rate simulations using Stim, PyMatching, and LDPC decoders.
 - **Cirq State Vector Simulations**: Exact quantum state verification and FTQC algorithm simulations (e.g. Deutsch-Jozsa, logical state preparation, and syndrome extraction).
@@ -21,7 +21,7 @@ This repository provides tools, circuits, and simulation pipelines for:
 ├── src/
 │   ├── cirq_experiments/     # Cirq-based quantum error correction and FTQC framework
 │   │   ├── algorithms/       # FTQC algorithm circuits (e.g. Deutsch-Jozsa)
-│   │   ├── error_correcting_codes/ # Code implementations (Five-qubit, Steane, Golay, Shor, etc.)
+│   │   ├── error_correcting_codes/ # Code implementations (Five-qubit, Steane, Shor, etc.)
 │   │   ├── simulations/      # State-vector and error-correcting simulation runners
 │   │   ├── support/          # Ancilla pools, cat state creators, measurers, universal gates
 │   │   └── utilities/        # Mathematical utilities and state verification
