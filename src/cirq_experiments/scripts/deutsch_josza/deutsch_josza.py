@@ -8,10 +8,11 @@ from cirq_experiments.custom_dataclasses.state_and_measurements import Measureme
 from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 from cirq_experiments.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import \
     CatStateCreatorCxFromFirstQubit
-from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import MeasurerWithSingleQubit
+from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import \
+    MeasurerWithSingleQubitSequential
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
 from cirq_experiments.simulations.error_correcting_runner import ErrorCorrectingRunnerClifford
-from cirq_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza
+from cirq_experiments.algorithms.deutsch_josza.deutsch_josza import DeutschJosza as DeutschJoszaAlgorithm
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
@@ -35,7 +36,7 @@ class DeutschJosza:
         self._depolarization_probability_two_qubit = depolarization_probability_two_qubit
 
     def run_main(self):
-        print(f"Running Deutsch-Josza Logical Error Rate Calculator with arguments: {args}")
+        print(f"Running Deutsch-Josza Logical Error Rate Calculator (shots={self._num_shots}, input_qubits={self._num_input_qubits}, distance={self._surface_code_distance}, is_balanced={self._is_balanced})")
         self._set_configuration()
 
         num_oracle_qubits = 1
@@ -52,10 +53,10 @@ class DeutschJosza:
             TransformationOperation(gate=TransformationGate.CX, control_qubit_index=i, target_qubit_index=oracle_qubit_index)
             for i in range(self._num_input_qubits)
         ] if self._is_balanced else []
-        algorithm = DeutschJosza(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
+        algorithm = DeutschJoszaAlgorithm(logical_qubits=logical_qubits, oracle=oracle, oracle_qubit_index=oracle_qubit_index)
         circuit = algorithm.get_circuit()
 
-        noisy_circuit = NoisyCircuitCreator(circuit=circuit, num_data_qubits=len(qubits)).get_noisy_circuit()
+        noisy_circuit = NoisyCircuitCreator(circuit=circuit).get_noisy_circuit()
         simulator = ErrorCorrectingRunnerClifford()
         start_time = datetime.now()
         print(f"{start_time}: Start simulation")
@@ -73,7 +74,7 @@ class DeutschJosza:
         configuration.noise_parameters.depolarization_probability_one_qubit = self._depolarization_probability_one_qubit
         configuration.noise_parameters.depolarization_probability_two_qubit = self._depolarization_probability_two_qubit
 
-        configuration.measurer_type = MeasurerWithSingleQubit
+        configuration.measurer_type = MeasurerWithSingleQubitSequential
         configuration.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
         configuration.parallel = True
 
