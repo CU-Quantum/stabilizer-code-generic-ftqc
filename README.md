@@ -265,6 +265,25 @@ pytest -n auto -m "not slow"
 
 ---
 
+## Citation
+
+If you use this repository or framework in your research, please cite:
+
+```bibtex
+@misc{papadopoulos2026stabilizercodegenericuniversalfaulttolerant,
+      title={Stabilizer Code-Generic Universal Fault-Tolerant Quantum Computation}, 
+      author={Nicholas J. C. Papadopoulos and Ramin Ayanzadeh},
+      year={2026},
+      eprint={2601.10964},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph},
+      url={https://arxiv.org/abs/2601.10964}, 
+}
+```
+
+---
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+
