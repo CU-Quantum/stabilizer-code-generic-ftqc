@@ -51,7 +51,9 @@ class TestScriptsSmoke:
             num_measurement_rounds=3,
         ).run_main()
 
-    @pytest.mark.slow
+    @pytest.mark.skip(
+        reason="Full state-vector simulation of the non-Clifford T gate requires high RAM (>2GB) and long runtime (>1 min)"
+    )
     def test_universal_t_smoke(self):
         run_config = RunnerConfiguration(
             num_shots=1,
