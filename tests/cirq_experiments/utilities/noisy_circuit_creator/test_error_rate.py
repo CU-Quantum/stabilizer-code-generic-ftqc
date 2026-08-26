@@ -13,7 +13,7 @@ from cirq_experiments.simulations.error_correcting_runner import ErrorCorrecting
 from cirq_experiments.utilities.noisy_circuit_creator import NoisyCircuitCreator
 
 
-@pytest.mark.slow
+@pytest.mark.skip(reason="Very long test (simulates 1000 noisy shots)")
 class TestErrorRate:
     def test_error_rate(self):
         num_shots = 1000
