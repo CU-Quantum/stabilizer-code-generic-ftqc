@@ -9,8 +9,8 @@ from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
-    GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import \
+    GeneralizedShorCodeXBasis
 
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -76,12 +76,12 @@ PARAMETERS = {
     ),
     "CatParityCode": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
             expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
             expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),

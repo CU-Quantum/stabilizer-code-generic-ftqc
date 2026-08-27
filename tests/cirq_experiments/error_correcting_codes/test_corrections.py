@@ -5,8 +5,8 @@ import pytest
 from cirq import Circuit, Gate, LineQubit, Operation, X, Y, Z
 
 from cirq_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
-    GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import \
+    GeneralizedShorCodeXBasis
 from cirq_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
@@ -60,14 +60,14 @@ SINGLE_ERROR_PARAMETERS = {
         qubit_indices_to_test=list(range(3)),
     ),
     "CatParityCodeZeroState": ParametersForCorrectionsTest(
-        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
-                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+        code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
+                                       num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
     "CatParityCodeOneState": ParametersForCorrectionsTest(
-        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
-                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+        code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
+                                       num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
         qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
     ),
@@ -121,7 +121,7 @@ class TestCorrections:
     @pytest.mark.slow
     @pytest.mark.parametrize("params", [
         pytest.param((
-                GeneralizedShorCodeHadamard(num_cats=5, num_qubits_per_cat=5),
+                GeneralizedShorCodeXBasis(num_cats=5, num_qubits_per_cat=5),
                 ExpectedStatesGeneralizedShorHadamard(num_cats=5, num_qubits_per_cat=5).get_logical_zero_state_vector(),
                 [X(LineQubit(1)), X(LineQubit(2))]
         ), id='CatParityCode_2-Xs'),

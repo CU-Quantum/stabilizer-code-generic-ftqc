@@ -1,5 +1,6 @@
+from functools import cached_property
+
 from cirq import Circuit, CircuitOperation, FrozenCircuit, LineQubit, TaggedOperation
-from proto.utils import cached_property
 
 from cirq_experiments.algorithms.support.logical_operations_circuit_creator.support.circuit_from_operation_creator import \
     CircuitFromOperationCreator, LOGICAL_QUBIT_INDEX_TAG
