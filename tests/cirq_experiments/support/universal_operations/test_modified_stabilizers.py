@@ -164,10 +164,10 @@ class TestModifiedStabilizers:
                 operations=target_operations,
                 context=UniversalOperationsContext(
                     ancilla_qubits=[],
-                    cat_parity_code=GeneralizedShorCodeXBasis(num_cats=len(control.subregisters),
-                                                              num_qubits_per_cat=len(control.subregisters[0]),
-                                                              qubits=control.data_qubits, ),
-                    multiple_cat_code=control,
+                    generalized_shor_code_x_basis=GeneralizedShorCodeXBasis(num_cats=len(control.subregisters),
+                                                                            num_qubits_per_cat=len(control.subregisters[0]),
+                                                                            qubits=control.data_qubits, ),
+                    generalized_shor_code=control,
                 ),
                 target_code=target,
             )

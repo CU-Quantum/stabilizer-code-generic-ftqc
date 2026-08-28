@@ -39,7 +39,7 @@ class ParametersForLogicalGatesTest:
 
 
 PARAMETERS = {
-    "MultipleCatCode":ParametersForLogicalGatesTest(
+    "GeneralizedShorCode": ParametersForLogicalGatesTest(
         code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
                                  num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
         expected_states=ExpectedStatesGeneralizedShor(),
@@ -48,7 +48,7 @@ PARAMETERS = {
         code=RepetitionCodeOneLogical(num_qubits=ExpectedStatesRepetition().arbitrary_num_qubits),
         expected_states=ExpectedStatesRepetition(),
     ),
-    "CatParityCode": ParametersForLogicalGatesTest(
+    "GeneralizedShorCodeXBasis": ParametersForLogicalGatesTest(
         code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
                                        num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         expected_states=ExpectedStatesGeneralizedShorHadamard(),

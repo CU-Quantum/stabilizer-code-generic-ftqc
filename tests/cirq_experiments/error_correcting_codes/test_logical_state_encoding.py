@@ -48,7 +48,7 @@ class StateParameters:
 
 
 PARAMETERS = {
-    "MultipleCatCode": StateParameters(
+    "GeneralizedShorCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
                                      num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
@@ -74,7 +74,7 @@ PARAMETERS = {
             initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),
     ),
-    "CatParityCode": StateParameters(
+    "GeneralizedShorCodeXBasis": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
             expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),

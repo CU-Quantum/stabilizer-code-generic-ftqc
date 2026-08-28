@@ -31,15 +31,15 @@ class UniversalControlledFlipFaultTolerant(UniversalControlledOperation):
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
                 Moment(self._reset_ancilla_qubits(context=context)),
-                self._encode_three_cat(context=context),
+                self._encode_helper(context=context),
                 self._cz_helpers_to_control(context=context),
-                self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.multiple_cat_code, qubit_index_relative=0)).get_hadamard_circuit(),
+                self._universal_hadamard_type(code=LogicalEncodingIndex(encoding=context.generalized_shor_code, qubit_index_relative=0)).get_hadamard_circuit(),
                 self._c_helpers_to_target(context=context),
                 self._measure_out_helper(context=context),
             )
 
-    def _encode_three_cat(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
-        return self._universal_operations_utilities.encode_multiple_cat(context=context)
+    def _encode_helper(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
+        return self._universal_operations_utilities.encode_generalized_shor_code(context=context)
 
     def _cz_helpers_to_control(self, context: UniversalControlledOperationFaultTolerantContext) -> OP_TREE:
         return [

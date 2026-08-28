@@ -33,7 +33,7 @@ from tests.cirq_experiments.utilities_for_tests import get_cat_state_vector, set
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
-QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS = [
+QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS = [
     0,
     ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat + 1,
     ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats - 1
@@ -48,7 +48,7 @@ class ParametersForCorrectionsTest:
 
 
 SINGLE_ERROR_PARAMETERS = {
-    "MultipleCatCode": ParametersForCorrectionsTest(
+    "GeneralizedShorCode": ParametersForCorrectionsTest(
         code=GeneralizedShorCode(num_cats=3,
                                  num_qubits_per_cat=3),
         initial_state=tensor(*[get_cat_state_vector(num_qubits=3)] * 3),
@@ -59,17 +59,17 @@ SINGLE_ERROR_PARAMETERS = {
         initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(3)),
     ),
-    "CatParityCodeZeroState": ParametersForCorrectionsTest(
+    "GeneralizedShorCodeXBasisZeroState": ParametersForCorrectionsTest(
         code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
                                        num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS
     ),
-    "CatParityCodeOneState": ParametersForCorrectionsTest(
+    "GeneralizedShorCodeXBasisOneState": ParametersForCorrectionsTest(
         code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
                                        num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
@@ -124,7 +124,7 @@ class TestCorrections:
                 GeneralizedShorCodeXBasis(num_cats=5, num_qubits_per_cat=5),
                 ExpectedStatesGeneralizedShorHadamard(num_cats=5, num_qubits_per_cat=5).get_logical_zero_state_vector(),
                 [X(LineQubit(1)), X(LineQubit(2))]
-        ), id='CatParityCode_2-Xs'),
+        ), id='GeneralizedShorCodeXBasis_2-Xs'),
     ])
     def test_multiple_errors_are_corrected(self, params: (ErrorCorrectingCode, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, list[Operation])):
         code = params[0]
