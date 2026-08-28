@@ -10,8 +10,8 @@ from cirq_experiments.error_correcting_codes.stabilizer_code.stabilizer_code imp
 from cirq_experiments.support.controlled_single_qubit_gates_applier import \
     ControlledSingleQubitGatesApplier
 from cirq_experiments.support.measurer.measurer import Measurer
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
-    GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import \
+    GeneralizedShorCodeXBasis
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.active_encodings_store import ActiveEncodingsStore
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -26,10 +26,10 @@ class UniversalOperationsUtilities:
         self._num_qubits_for_logical_operations = num_qubits_for_logical_operations
 
     @staticmethod
-    def encode_multiple_cat(context: UniversalOperationsContext) -> OP_TREE:
-        with ActiveEncodingsStore(additional_tracked_encodings=[context.multiple_cat_code]) as encodings_store:
+    def encode_generalized_shor_code(context: UniversalOperationsContext) -> OP_TREE:
+        with ActiveEncodingsStore(additional_tracked_encodings=[context.generalized_shor_code]) as encodings_store:
             return [
-                context.multiple_cat_code.encode_logical_qubit(),
+                context.generalized_shor_code.encode_logical_qubit(),
                 encodings_store.get_all_correction_circuits()
             ]
 
@@ -43,7 +43,7 @@ class UniversalOperationsUtilities:
                     ControlledSingleQubitGatesApplier(operations=operations, controls=subregister[:len(operations)]).get_circuit(),
                     encodings_store.get_all_correction_circuits(
                         additional_correction_circuits=[
-                            context.multiple_cat_code.get_modified_stabilizers_error_correction_circuit(
+                            context.generalized_shor_code.get_modified_stabilizers_error_correction_circuit(
                                 subregister_index=i,
                                 target_operations=operations,
                                 target_code=target_code
@@ -51,7 +51,7 @@ class UniversalOperationsUtilities:
                         ]
                     ),
                 ]
-                for i, subregister in enumerate(context.multiple_cat_code.subregisters)
+                for i, subregister in enumerate(context.generalized_shor_code.subregisters)
             ]
 
     # @staticmethod
@@ -64,8 +64,8 @@ class UniversalOperationsUtilities:
     #     measurement_key = MeasurementKey(f'FINAL_C_FLIP_CORRECTION_MEASUREMENT_KEY_{uuid4().hex}')
     #     measurement_symbol = sympy.symbols(measurement_key.name)
     #
-    #     with ActiveEncodingsStore(additional_tracked_encodings=[context.cat_parity_code]) as encodings_store:
-    #         z_on_gscx = context.cat_parity_code.get_operation_circuit(
+    #     with ActiveEncodingsStore(additional_tracked_encodings=[context.generalized_shor_code_x_basis]) as encodings_store:
+    #         z_on_gscx = context.generalized_shor_code_x_basis.get_operation_circuit(
     #             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0))
     #         return TaggedOperation(
     #             CircuitOperation(
@@ -86,7 +86,7 @@ class UniversalOperationsUtilities:
     #         )
 
     def measure_out_helper(self, measurement_key: MeasurementKey, context: UniversalOperationsContext) -> OP_TREE:
-        logical_z = list(context.multiple_cat_code.get_operation_circuit(
+        logical_z = list(context.generalized_shor_code.get_operation_circuit(
             operation=LogicalOperation(gate=LogicalGateLabel.Z, qubit_index=0)
         ).all_operations())
         return self._measurer_type(observables=[logical_z], measurement_keys=[measurement_key]).get_measurement_circuit()
@@ -106,18 +106,18 @@ class UniversalOperationsUtilities:
     def use_fresh_ancilla_qubits(self) -> Generator[UniversalOperationsContext, None, None]:
         minimum_qubits_per_subregister = 3
         num_qubits_per_subregister = max(minimum_qubits_per_subregister, self._num_qubits_for_logical_operations)
-        num_qubits_for_subregister_parity_code = num_qubits_per_subregister * self._num_cat_states
-        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_subregister_parity_code) as ancilla_qubits:
-            multiple_cat_code = GeneralizedShorCode(num_cats=self._num_cat_states,
-                                                    num_qubits_per_cat=self._num_qubits_for_logical_operations,
-                                                    qubits=ancilla_qubits)
-            cat_parity_code = GeneralizedShorCodeHadamard(num_cats=self._num_cat_states,
-                                                          num_qubits_per_cat=self._num_qubits_for_logical_operations,
-                                                          qubits=ancilla_qubits)
+        num_qubits_for_ancilla_code = num_qubits_per_subregister * self._num_cat_states
+        with FreshAncillasPool().use_fresh_ancillas(num_ancillas=num_qubits_for_ancilla_code) as ancilla_qubits:
+            generalized_shor_code = GeneralizedShorCode(num_cats=self._num_cat_states,
+                                                        num_qubits_per_cat=self._num_qubits_for_logical_operations,
+                                                        qubits=ancilla_qubits)
+            generalized_shor_code_x_basis = GeneralizedShorCodeXBasis(num_cats=self._num_cat_states,
+                                                                      num_qubits_per_cat=self._num_qubits_for_logical_operations,
+                                                                      qubits=ancilla_qubits)
             yield UniversalOperationsContext(
                 ancilla_qubits=ancilla_qubits,
-                cat_parity_code=cat_parity_code,
-                multiple_cat_code=multiple_cat_code,
+                generalized_shor_code_x_basis=generalized_shor_code_x_basis,
+                generalized_shor_code=generalized_shor_code,
             )
 
     @property

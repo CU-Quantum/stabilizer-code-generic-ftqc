@@ -5,7 +5,7 @@ from cirq import Circuit, LineQubit, X, Y, Z
 
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
 from cirq_experiments.custom_dataclasses.universal_operations_context import UniversalOperationsContext
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import GeneralizedShorCodeXBasis
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.support.universal_operations.universal_operations_utilities import \
     UniversalOperationsUtilities
@@ -164,10 +164,10 @@ class TestModifiedStabilizers:
                 operations=target_operations,
                 context=UniversalOperationsContext(
                     ancilla_qubits=[],
-                    cat_parity_code=GeneralizedShorCodeHadamard(num_cats=len(control.subregisters),
-                                                                num_qubits_per_cat=len(control.subregisters[0]),
-                                                                qubits=control.data_qubits, ),
-                    multiple_cat_code=control,
+                    generalized_shor_code_x_basis=GeneralizedShorCodeXBasis(num_cats=len(control.subregisters),
+                                                                            num_qubits_per_cat=len(control.subregisters[0]),
+                                                                            qubits=control.data_qubits, ),
+                    generalized_shor_code=control,
                 ),
                 target_code=target,
             )
@@ -176,7 +176,8 @@ class TestModifiedStabilizers:
                     encoding_circuit,
                     flip_circuit,
                 ),
-                num_data_qubits=len(self._qubits))
+                num_data_qubits=len(self._qubits),
+            )
 
             circuit_with_error = build_noisy_circuit(encoding_circuit, flip_circuit)
             result = simulator.run_simulation(circuit_with_error, num_data_qubits=len(self._qubits))

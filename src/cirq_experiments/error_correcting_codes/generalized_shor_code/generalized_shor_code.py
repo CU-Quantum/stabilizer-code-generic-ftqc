@@ -4,7 +4,7 @@ from cirq import Circuit, CircuitOperation, FrozenCircuit, TaggedOperation, X, Z
 
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import GeneralizedShorCodeXBasis
 from cirq_experiments.support.cat_state_creator.cat_state_creator import CatStateCreator
 from cirq_experiments.support.operations_applier.operations_applier import DELAYED_NOISE_TAG
 from cirq_experiments.globals.error_correcting_code_configuration import ConfigurationErrorCorrectingCodeManager
@@ -35,7 +35,7 @@ def syndrome_then_recovery_circuit(correction_circuit: CorrectionCircuit) -> Cir
     )
 
 
-class GeneralizedShorCode(GeneralizedShorCodeHadamard):
+class GeneralizedShorCode(GeneralizedShorCodeXBasis):
     def encode_logical_qubit(self) -> Circuit:
         return Circuit(
             TaggedOperation(

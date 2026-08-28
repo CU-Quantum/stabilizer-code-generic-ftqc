@@ -9,8 +9,8 @@ from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabil
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
-    GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import \
+    GeneralizedShorCodeXBasis
 
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
@@ -22,11 +22,8 @@ from tests.cirq_experiments.error_correcting_codes.five_qubit_code.expected_stat
 from tests.cirq_experiments.error_correcting_codes.generalized_shor_code.expected_states_generalized_shor import ExpectedStatesGeneralizedShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_golay import \
-    ExpectedStatesGenericGolay
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_steane import \
     ExpectedStatesGenericSteane
-from cirq_experiments.error_correcting_codes.golay_code.golay_code import GolayCode
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit, \
     get_check_matrix_values_steane
 from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_states_repetition import ExpectedStatesRepetition
@@ -51,7 +48,7 @@ class StateParameters:
 
 
 PARAMETERS = {
-    "MultipleCatCode": StateParameters(
+    "GeneralizedShorCode": StateParameters(
         zero=ParametersForStateEncodingTest(
             code=GeneralizedShorCode(num_cats=ExpectedStatesGeneralizedShor().arbitrary_num_cats,
                                      num_qubits_per_cat=ExpectedStatesGeneralizedShor().arbitrary_num_qubits_per_cat),
@@ -77,14 +74,14 @@ PARAMETERS = {
             initial_data_state=tensor(*[KET_ONE_DENSITY_MATRIX] * ExpectedStatesRepetition().arbitrary_num_qubits),
         ),
     ),
-    "CatParityCode": StateParameters(
+    "GeneralizedShorCodeXBasis": StateParameters(
         zero=ParametersForStateEncodingTest(
-            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
             expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),
         one=ParametersForStateEncodingTest(
-            code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+            code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats, num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
             expected_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ONE_STATE_VECTOR] * ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats),
         ),
@@ -111,18 +108,6 @@ PARAMETERS = {
             code=StabilizerStandardizedCode(generators=get_check_matrix_values_steane()),
             expected_state=ExpectedStatesGenericSteane().get_logical_one_state_vector(),
             initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 6, KET_ONE_STATE_VECTOR),
-        ),
-    ),
-    "GenericStabilizerCodeGolay": StateParameters(
-        zero=ParametersForStateEncodingTest(
-            code=GolayCode(),
-            expected_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 23),
-        ),
-        one=ParametersForStateEncodingTest(
-            code=GolayCode(),
-            expected_state=ExpectedStatesGenericGolay().get_logical_one_state_vector(),
-            initial_data_state=tensor(*[KET_ZERO_STATE_VECTOR] * 22, KET_ONE_STATE_VECTOR),
         ),
     ),
     "FiveQubitCode": StateParameters(

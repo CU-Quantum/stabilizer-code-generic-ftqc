@@ -8,7 +8,7 @@ from stim import Circuit
 
 from stim_experiments.simulate_cx.custom_dataclasses import RunConfiguration
 from stim_experiments.simulate_cx.support.cx_from_gscx import CxFromGscx
-from stim_experiments.simulate_cx.decoder_by_matrix.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
+from stim_experiments.simulate_cx.decoders.standalone_partition_decoder import StandaloneExactMwPartitionDecoder
 from stim_experiments.simulate_cx.support.stabilizer_code_utilities import StabilizerCodeUtilities, \
     get_dodecacode_utilities, get_five_qubit_code_utilities, get_shor_code_utilities, \
     get_shor_h_observable_x, \

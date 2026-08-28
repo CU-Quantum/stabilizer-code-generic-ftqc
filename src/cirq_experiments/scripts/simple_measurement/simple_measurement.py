@@ -1,7 +1,8 @@
 import numpy as np
 from numpy._typing import NDArray
 
-from cirq_experiments.scripts.script_runner import RunnerConfiguration, ScriptRunner, get_runner_configuration_args
+from cirq_experiments.scripts.script_runner import RunnerConfiguration, ScriptRunner, SuccessfulResultsInfoRunner, \
+    get_runner_configuration_args
 from cirq_experiments.custom_dataclasses.transformation_operation import TransformationGate, TransformationOperation
 
 
@@ -15,7 +16,10 @@ class SimpleMeasurement:
         ]
         return ScriptRunner(
             operations=operations,
-            was_successful_func=self.was_successful,
+            successful_results_info=SuccessfulResultsInfoRunner(
+                num_processes=self._run_configuration.num_processes,
+                was_successful_func=self.was_successful,
+            ),
             runner_configuration=self._run_configuration,
         ).run_main()
 

@@ -5,13 +5,12 @@ import pytest
 from cirq import Circuit, Gate, LineQubit, Operation, X, Y, Z
 
 from cirq_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
-from cirq_experiments.error_correcting_codes.generalized_shor_code_hadamard.generalized_shor_code_hadamard import \
-    GeneralizedShorCodeHadamard
+from cirq_experiments.error_correcting_codes.generalized_shor_code_x_basis.generalized_shor_code_x_basis import \
+    GeneralizedShorCodeXBasis
 from cirq_experiments.error_correcting_codes.five_qubit_code.five_qubit_code import FiveQubitCode
 from cirq_experiments.error_correcting_codes.generalized_shor_code.generalized_shor_code import GeneralizedShorCode
 from cirq_experiments.error_correcting_codes.repetition_code.repetition_code import RepetitionCodeOneLogical
 from cirq_experiments.error_correcting_codes.shors_code.shors_repetition_code import ShorsRepetitionCode
-from cirq_experiments.error_correcting_codes.golay_code.golay_code import GolayCode
 from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import \
     StabilizerStandardizedCode
 from cirq_experiments.error_correcting_codes.steane_code.staene_code import SteaneCode
@@ -29,14 +28,12 @@ from tests.cirq_experiments.error_correcting_codes.repetition_code.expected_stat
 from tests.cirq_experiments.error_correcting_codes.shors_code.expected_states_shor import ExpectedStatesShor
 from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_5_qubit import \
     ExpectedStatesGenericFiveQubit
-from tests.cirq_experiments.error_correcting_codes.stabilizer_standardized_code.expected_states_standardized_golay import \
-    ExpectedStatesGenericGolay
 from tests.cirq_experiments.error_correcting_codes.steane_code.expected_states_steane import ExpectedStatesSteane
 from tests.cirq_experiments.utilities_for_tests import get_cat_state_vector, set_configuration_to_reduce_ancilla_qubits
 
 QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_SHOR_BLOCKS = [0, 4, 8]
 ARBITRARY_QUBIT_INDICES = [0, 2, 6]
-QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS = [
+QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS = [
     0,
     ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat + 1,
     ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat * ExpectedStatesGeneralizedShorHadamard().num_cats - 1
@@ -51,7 +48,7 @@ class ParametersForCorrectionsTest:
 
 
 SINGLE_ERROR_PARAMETERS = {
-    "MultipleCatCode": ParametersForCorrectionsTest(
+    "GeneralizedShorCode": ParametersForCorrectionsTest(
         code=GeneralizedShorCode(num_cats=3,
                                  num_qubits_per_cat=3),
         initial_state=tensor(*[get_cat_state_vector(num_qubits=3)] * 3),
@@ -62,27 +59,22 @@ SINGLE_ERROR_PARAMETERS = {
         initial_state=ExpectedStatesRepetition().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(3)),
     ),
-    "CatParityCodeZeroState": ParametersForCorrectionsTest(
-        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
-                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+    "GeneralizedShorCodeXBasisZeroState": ParametersForCorrectionsTest(
+        code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
+                                       num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_zero_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS
     ),
-    "CatParityCodeOneState": ParametersForCorrectionsTest(
-        code=GeneralizedShorCodeHadamard(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
-                                         num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
+    "GeneralizedShorCodeXBasisOneState": ParametersForCorrectionsTest(
+        code=GeneralizedShorCodeXBasis(num_cats=ExpectedStatesGeneralizedShorHadamard().num_cats,
+                                       num_qubits_per_cat=ExpectedStatesGeneralizedShorHadamard().num_qubits_per_cat),
         initial_state=ExpectedStatesGeneralizedShorHadamard().get_logical_one_state_vector(),
-        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_CAT_PARITY_CODE_SUBREGISTERS
+        qubit_indices_to_test=QUBIT_INDICES_IN_DIFFERENT_POSITIONS_IN_DIFFERENT_GENERALIZED_SHOR_CODE_X_BASIS_SUBREGISTERS
     ),
     "GenericStabilizerCodeFiveQubit": ParametersForCorrectionsTest(
         code=StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit()),
         initial_state=ExpectedStatesGenericFiveQubit().get_logical_zero_state_vector(),
         qubit_indices_to_test=list(range(5)),
-    ),
-    "GenericStabilizerCodeGolay": ParametersForCorrectionsTest(
-        code=GolayCode(),
-        initial_state=ExpectedStatesGenericGolay().get_logical_zero_state_vector(),
-        qubit_indices_to_test=[0, 11, 22],
     ),
     "FiveQubitCode": ParametersForCorrectionsTest(
         code=FiveQubitCode(),
@@ -129,10 +121,10 @@ class TestCorrections:
     @pytest.mark.slow
     @pytest.mark.parametrize("params", [
         pytest.param((
-                GeneralizedShorCodeHadamard(num_cats=5, num_qubits_per_cat=5),
+                GeneralizedShorCodeXBasis(num_cats=5, num_qubits_per_cat=5),
                 ExpectedStatesGeneralizedShorHadamard(num_cats=5, num_qubits_per_cat=5).get_logical_zero_state_vector(),
                 [X(LineQubit(1)), X(LineQubit(2))]
-        ), id='CatParityCode_2-Xs'),
+        ), id='GeneralizedShorCodeXBasis_2-Xs'),
     ])
     def test_multiple_errors_are_corrected(self, params: (ErrorCorrectingCode, TYPE_STATE_VECTOR_OR_DENSITY_MATRIX, list[Operation])):
         code = params[0]

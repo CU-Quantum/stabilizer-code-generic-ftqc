@@ -28,13 +28,13 @@ class UniversalHadamardFaultTolerant(UniversalHadamard):
         with self._use_fresh_ancilla_qubits() as context:
             return Circuit(
                 self._reset_ancilla_qubits(context=context),
-                self._encode_three_cat(context=context),
+                self._encode_helper(context=context),
                 self._czx_helpers_to_data(context=context),
                 self._measure_out_helper(context=context),
             )
 
-    def _encode_three_cat(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
-        return self._universal_operations_utilities.encode_multiple_cat(context=context)
+    def _encode_helper(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
+        return self._universal_operations_utilities.encode_generalized_shor_code(context=context)
 
     def _czx_helpers_to_data(self, context: UniversalHadamardFaultTolerantContext) -> OP_TREE:
         return [
