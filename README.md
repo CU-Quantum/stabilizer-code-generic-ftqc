@@ -97,6 +97,32 @@ python src/stim_experiments/scripts/plot_total_ler.py
 python src/stim_experiments/scripts/plot_qec.py
 ```
 
+### Cirq Fault-Tolerance & Algorithm Experiments
+
+Verify exact fault-tolerant quantum state transformations and run algorithm simulations:
+
+#### 1. Universal Operations Validations
+Validate fault-tolerant logical $H$, $CX$, and $T$ gate constructions and modified stabilizer preservation:
+```bash
+# Run all universal operation verification experiments
+pytest tests/cirq_experiments/support/universal_operations/
+
+# Or run individual operation test suites:
+pytest tests/cirq_experiments/support/universal_operations/universal_hadamard/
+pytest tests/cirq_experiments/support/universal_operations/universal_controlled_flip/
+pytest tests/cirq_experiments/support/universal_operations/universal_t/
+```
+
+#### 2. Fault-Tolerant Deutsch-Jozsa Algorithm
+Run fault-tolerant Deutsch-Jozsa algorithm experiments with constant and balanced oracles encoded with Generalized Shor codes:
+```bash
+# Run Deutsch-Jozsa algorithm test suite (via Clifford simulator)
+pytest tests/cirq_experiments/algorithms/deutsch_josza/
+
+# Run the end-to-end Deutsch-Jozsa experiment script with noise
+python src/cirq_experiments/scripts/deutsch_josza/deutsch_josza.py
+```
+
 ---
 
 ## Quick Start
