@@ -122,12 +122,6 @@ pytest tests/cirq_experiments/algorithms/deutsch_josza/
 
 ---
 
-## Cirq Simulator Guide
-
-For interactive quick-start tutorials, configuration parameters, and custom stabilizer code implementation walkthroughs, see [`cirq_simulator_guide.md`](cirq_simulator_guide.md).
-
----
-
 ## Running Tests
 
 Run the full test suite with `pytest`:

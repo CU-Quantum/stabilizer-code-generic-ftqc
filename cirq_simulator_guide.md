@@ -26,11 +26,11 @@ print("State vector:", result.final_state_vector)
 
 ### 2. Logical State Preparation & Operations
 
-Create and simulate logical qubits encoded with arbitrary stabilizer codes:
+Create and simulate logical qubits encoded with arbitrary stabilizer codes using Clifford simulation:
 
 ```python
 import cirq
-from cirq_experiments.algorithms.logical_operations_circuit_creator import (
+from cirq_experiments.algorithms.support.logical_operations_circuit_creator.logical_operations_circuit_creator import (
     LogicalOperationsCircuitCreator,
 )
 from cirq_experiments.custom_dataclasses.transformation_operation import (
@@ -40,13 +40,29 @@ from cirq_experiments.custom_dataclasses.transformation_operation import (
 from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import (
     StabilizerStandardizedCode,
 )
-from cirq_experiments.simulations.error_correcting_simulator_state_vector import (
-    ErrorCorrectingSimulatorStateVector,
+from cirq_experiments.globals.error_correcting_code_configuration import (
+    ConfigurationErrorCorrectingCodeManager,
+)
+from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
+from cirq_experiments.simulations.error_correcting_runner import (
+    ErrorCorrectingRunnerClifford,
+)
+from cirq_experiments.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import (
+    CatStateCreatorCxFromFirstQubit,
+)
+from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import (
+    MeasurerWithSingleQubitSequential,
 )
 from predefined_check_matrix_values import get_check_matrix_values_5_qubit
 
+# Configure execution strategies
+config = ConfigurationErrorCorrectingCodeManager().get_configuration()
+config.measurer_type = MeasurerWithSingleQubitSequential
+config.cat_state_creator_type = CatStateCreatorCxFromFirstQubit
+
 # Initialize physical qubits (5 qubits per logical qubit for the 5-qubit code)
 qubits = cirq.LineQubit.range(10)
+FreshAncillasPool().set_first_ancilla_num(len(qubits))
 
 # Create 5-qubit stabilizer code encodings
 code = StabilizerStandardizedCode(generators=get_check_matrix_values_5_qubit())
@@ -59,6 +75,7 @@ encodings = [
 operations = [
     TransformationOperation(gate=TransformationGate.H, target_qubit_index=0),
     TransformationOperation(gate=TransformationGate.CX, target_qubit_index=1, control_qubit_index=0),
+    TransformationOperation(gate=TransformationGate.M, target_qubit_index=0),
     TransformationOperation(gate=TransformationGate.M, target_qubit_index=1),
 ]
 
@@ -66,14 +83,10 @@ operations = [
 creator = LogicalOperationsCircuitCreator(encodings=encodings, operations=operations)
 circuit = creator.get_simulation_circuit()
 
-simulator = ErrorCorrectingSimulatorStateVector()
-result = simulator.run_simulation(
-    circuit=circuit,
-    num_data_qubits=len(creator.data_qubits),
-)
+runner = ErrorCorrectingRunnerClifford()
+result = runner.run_circuit(circuit=circuit, num_shots=5)
 
-print("Final state:", result.state)
-print("Logical measurements:", result.logical_qubit_measurements)
+print("Measurements per shot:", result.measurements_per_shot)
 ```
 
 ---
@@ -86,7 +99,7 @@ Customize measurer implementations, cat state creation strategies, and universal
 from cirq_experiments.globals.error_correcting_code_configuration import (
     ConfigurationErrorCorrectingCodeManager,
 )
-from cirq_experiments.support.cat_state_creator.cat_state_creator_cx_from_first_qubit.cat_state_creator_cx_from_first_qubit import (
+from cirq_experiments.support.cat_state_creator.cat_state_creator_cx_from_first_qubit import (
     CatStateCreatorCxFromFirstQubit,
 )
 from cirq_experiments.support.measurer.measurer_with_single_qubit_sequential import (
@@ -121,7 +134,7 @@ config.seed = 42
 | `cat_state_creator_type` | `type[CatStateCreator]` | `CatStateCreatorFlagPattern` | Cat state preparation protocol |
 | `universal_hadamard_type` | `type[UniversalHadamard]` | `UniversalHadamardFaultTolerant` | Logical Hadamard implementation |
 | `universal_controlled_operation_type` | `type[UniversalControlledOperation]` | `UniversalControlledOperationFaultTolerant` | Universal controlled gate strategy |
-| `universal_t_type` | `type[UniversalT]` | `UniversalTFaultTolerant` | Fault-tolerant logical T gate strategy |
+| `universal_t_type` | `type[UniversalT]` | `UniversalTFaultTolerant` | Logical T gate strategy |
 | `num_cat_states` | `int` | `3` | Number of cat states for Generalized Shor Code |
 | `seed` | `Optional[int]` | `None` | Random seed for simulation reproducibility |
 | `majority_vote_repetitions` | `int` | `3` | Syndrome measurement repetitions for majority voting |
@@ -130,14 +143,31 @@ config.seed = 42
 
 ## Custom Stabilizer Codes
 
-Extend `ErrorCorrectingCode` or instantiate `StabilizerStandardizedCode` with custom check matrices:
+### 1. Using Standardized Stabilizer Codes with Check Matrices
+
+Instantiate `StabilizerStandardizedCode` directly from any valid check matrix in binary symplectic form:
+
+```python
+from cirq_experiments.error_correcting_codes.stabilizer_standardized_code.stabilizer_standardized_code import (
+    StabilizerStandardizedCode,
+)
+from predefined_check_matrix_values import get_check_matrix_values_steane
+
+# Instantiate Steane [[7, 1, 3]] code from predefined check matrix
+steane_code = StabilizerStandardizedCode(generators=get_check_matrix_values_steane())
+print("Steane code data qubits:", len(steane_code.data_qubits))
+```
+
+### 2. Subclassing `ErrorCorrectingCode`
+
+Implement custom encoding circuits, syndrome extraction routines, and logical gate definitions:
 
 ```python
 from typing import Optional
 import cirq
 from cirq_experiments.custom_dataclasses.correction_circuit import CorrectionCircuit
 from cirq_experiments.custom_dataclasses.logical_operation import LogicalGateLabel, LogicalOperation
-from cirq_experiments.error_correcting_codes.error_correcting_code import ErrorCorrectingCode
+from cirq_experiments.error_correcting_codes.error_correcting_code.error_correcting_code import ErrorCorrectingCode
 from cirq_experiments.globals.fresh_ancillas_pool import FreshAncillasPool
 
 
