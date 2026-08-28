@@ -11,7 +11,7 @@ from tests.cirq_experiments.utilities_for_tests import set_configuration_to_redu
 
 @pytest.mark.slow
 class TestDeutschJosza:
-    @pytest.fixture(autouse=True, params=range(3))
+    @pytest.fixture(autouse=True, params=range(10))
     def _setup(self, request):
         set_seed(request.param)
         set_configuration_to_reduce_ancilla_qubits()
