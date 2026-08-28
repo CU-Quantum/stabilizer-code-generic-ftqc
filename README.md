@@ -102,7 +102,7 @@ python src/stim_experiments/scripts/plot_qec.py
 Verify exact quantum state transformations and run algorithm simulations:
 
 #### 1. Universal Operations Validations
-Validate logical $H$, $CX$, and $T$ gate constructions and modified stabilizer preservation:
+Validate logical $H$, $CX$, and $T$ gate effects:
 ```bash
 # Run all universal operation verification experiments
 pytest tests/cirq_experiments/support/universal_operations/
@@ -116,11 +116,8 @@ pytest tests/cirq_experiments/support/universal_operations/universal_t/
 #### 2. Deutsch-Jozsa Algorithm
 Run Deutsch-Jozsa algorithm experiments with constant and balanced oracles encoded with Generalized Shor codes:
 ```bash
-# Run Deutsch-Jozsa algorithm test suite (via Clifford simulator)
+# Run Deutsch-Jozsa algorithm test suite
 pytest tests/cirq_experiments/algorithms/deutsch_josza/
-
-# Run the end-to-end Deutsch-Jozsa experiment script with noise
-python src/cirq_experiments/scripts/deutsch_josza/deutsch_josza.py
 ```
 
 ---
