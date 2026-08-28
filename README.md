@@ -56,6 +56,49 @@ pip install -e .
 
 ---
 
+## Experiments & Benchmarking
+
+Monte Carlo simulations and error threshold benchmarks across stabilizer codes under circuit-level noise using Stim and Sinter.
+
+### Running Code Simulations
+
+Run Stim threshold and logical error rate simulations for different target stabilizer codes:
+
+```bash
+# 1. Five-qubit code simulation (with lookup table decoder)
+python src/stim_experiments/scripts/five_qubit/five_qubit.py
+
+# 2. Dodecacode [[10, 1, 4]] simulation (with BP-OSD decoder)
+python src/stim_experiments/scripts/dodecacode/dodecacode.py
+
+# 3. Generalized Shor Code CX (GSCX) distance 7 simulation (with MWPM decoder)
+python src/stim_experiments/scripts/gscx_distance_7/gscx_distance_7.py
+```
+
+#### Simulation Options
+All simulation scripts accept command-line flags to customize shots, error rates, and multiprocessing:
+```bash
+python src/stim_experiments/scripts/five_qubit/five_qubit.py \
+  --max-shots 1000000 \
+  --max-errors 1000 \
+  --num-workers 8 \
+  --depolarization-probabilities 1e-4 5e-4 0.001 0.005 0.01
+```
+
+### Plotting Results
+
+Generate logical error rate (LER) plots from the simulation data:
+
+```bash
+# Plot total logical error rate comparison across all codes
+python src/stim_experiments/scripts/plot_total_ler.py
+
+# Plot individual code threshold curves
+python src/stim_experiments/scripts/plot_qec.py
+```
+
+---
+
 ## Quick Start
 
 ### 1. Basic Circuit Simulation (Cirq)
@@ -227,24 +270,6 @@ class My3QubitRepetitionCode(ErrorCorrectingCode):
             return cirq.Circuit(cirq.Z(self.data_qubits[base]))
         return None
 ```
-
----
-
-## Experiments & Benchmarking
-
-### Stim Simulations
-- **5-Qubit Code**: `src/stim_experiments/scripts/five_qubit_code/`
-- **Dodecacode**: `src/stim_experiments/scripts/dodecacode/`
-- **Plotting & Analysis**: `src/stim_experiments/scripts/`
-
-Run a sample Stim simulation script:
-```bash
-python src/stim_experiments/scripts/five_qubit_code/five_qubit_threshold.py
-```
-
-### Cirq Fault-Tolerance Tests
-- Universal gate validations: `tests/cirq_experiments/support/universal_operations/`
-- Fault-tolerant Deutsch-Jozsa algorithm: `tests/cirq_experiments/algorithms/deutsch_josza/test_deutsch_josza.py`
 
 ---
 
