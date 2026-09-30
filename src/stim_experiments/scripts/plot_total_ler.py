@@ -55,8 +55,8 @@ class Main:
         ax.set_ylim(1e-10, 1)
         ax.set_xlim(5e-5)
         ax.grid()
-        ax.set_title(r'Total Logical Error Rate of $\overline{CX}_{GSCX,\mathcal{Q}_1}$')
-        ax.set_ylabel('Logical Error Rate')
+        ax.set_title(r'Aggregate Logical Error Rate of $\overline{CX}_{GSCX,\mathcal{Q}_1}$')
+        ax.set_ylabel('Aggregate Logical Error Rate')
         ax.set_xlabel('Physical Error Rate')
         ax.legend()
 
